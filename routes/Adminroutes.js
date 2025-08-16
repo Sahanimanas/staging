@@ -1,8 +1,7 @@
-const login = require('../controller/login.js');
-const checkRole = require('../middlewares/admin.js');
+const login_User = require('../controller/login_AllRole.js');
 const express = require('express');
 const router = express.Router();
 
-router.post('/login', login.loginAdminOrTherapist);
+router.post('/login', login_User);
 
 module.exports = router;

@@ -1,8 +1,10 @@
-const registerUser = require('../controller/registerUser.js');
-const checkRole = require('../middlewares/admin.js');
 const express = require('express');
 const router = express.Router();
 
-router.post('/register', registerUser);
+const registerUser = require('../controller/registerUser.js');
+const login_User = require('../controller/login_AllRole.js');
 
+
+router.post('/register',registerUser);
+router.post('/login',login_User);
 module.exports = router;

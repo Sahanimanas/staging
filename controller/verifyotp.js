@@ -1,30 +1,48 @@
-const { body } = require("express-validator");
-const { createOtp, otpStore } = require("../services/otpservice"); 
+const express = require("express");
+const OTP = require("../models/OtpSchema.js");
+const User = require("../models/userSchema.js");
+const jwt  = require("jsonwebtoken");
+const Token = require("../models/tokenSchema.js");
+/* ------------------ VERIFY EMAIL OTP ------------------ */
+const verifyEmailOtp = async (req, res) => {
+  try {
+    const { userId, otpCode, purpose } = req.body;
 
-const verifyOtp = async (req, res) => {
-  const { email, otp } = req.body;
+    if (!userId || !otpCode) {
+      return res.status(400).json({ message: "User ID and OTP are required" });
+    }
 
-  if (!email || !otp) {
-    return res.status(400).json({ message: "Email and OTP are required" });
+    // 1. Find OTP record
+    const record = await OTP.findOne({
+      userId,
+      otpCode, // ⚠️ if you hash OTP before saving, use bcrypt.compare instead
+      purpose,
+      used: false,
+      expiresAt: { $gt: new Date() } // not expired
+    });
+console.log(record)
+    if (!record) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    // 2. Mark OTP as used
+    record.used = true;
+    await record.save();
+
+    // 3. Update user emailVerified
+    await User.findByIdAndUpdate(userId, { emailVerified: true });
+
+    const token = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    // Save token to database
+    await Token.create({ userId, token, type: purpose, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days expiry
+
+    return res.status(200).json({ success: true, message: "Email verified successfully!", token });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "OTP verification failed", error: error.message });
   }
-  console.table(otpStore);
-  const storedOtp = otpStore[email];
-  if (!storedOtp) {
-    console.log(req.body);
-    return res.status(400).json({ message: "Invalid OTP" });
-  }
-
-  if (storedOtp.otp !== otp) {
-    return res.status(400).json({ message: "Invalid OTP" });
-  }
-
-  if (Date.now() > storedOtp.expires) {
-    return res.status(400).json({ message: "OTP has expired" });
-  }
-
-  
-  delete otpStore[email];
-  console.log("OTP verified successfully:", otp);
-  res.status(200).json({ success: "OTP verified successfully" });
 };
-module.exports = verifyOtp;
+
+module.exports = verifyEmailOtp;

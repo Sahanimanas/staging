@@ -2,14 +2,13 @@
 
 const express = require("express");
 const bcrypt = require("bcrypt");
-const User = require("../models/user.js");
-
-const router = express.Router();
-
+const User = require("../models/userSchema.js");
+const sendotp = require("./GenerateOTP.js");
 // POST /register - only for customers
-router.post("/register", async (req, res) => {
+const registerUser = async (req, res) => {
   try {
-    const { email, password, firstName, lastName } = req.body;
+    console.log(req.body)
+    const { email, password, name: { first: firstName, last: lastName } } = req.body;
 
     // 1. Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
@@ -22,26 +21,27 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // 3. Create new customer (force role to 'customer')
-    const user = new User({
+    const user = await User.create({
+      name: {
+        first: firstName,
+        last: lastName || "",
+      },
       email: email.toLowerCase(),
       passwordHash: hashedPassword,
       role: "customer", // 👈 Hardcoded so no one can register as therapist/admin
-      name: {
-        first: firstName,
-        last: lastName,
-      },
+     
     });
+    console.log(firstName)
+    const otp = await sendotp(user._id, email);
 
-    await user.save();
-
-    res.status(201).json({
-      message: "Customer registered successfully",
-      userId: user._id,
+     return res.status(201).json({
+      message: "User registered successfully. Please verify your email with the OTP sent.",
+      userId: user._id
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
-});
+};
 
-module.exports = router;
+module.exports = registerUser;

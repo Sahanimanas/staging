@@ -1,37 +1,33 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
+/* ------------------ USERS ------------------ */
 const UserSchema = new Schema(
   {
-    email: {
-      type: String,
-      required: true,
-      lowercase: true,
-      index: true,
-      unique: true,
+    name: {
+      first: { type: String, required: true },
+      last: String,
     },
+    email: { type: String, required: true, unique: true, lowercase: true },
     emailVerified: { type: Boolean, default: false },
-    passwordHash: { type: String },
+    phone: String,
+    phoneVerified: { type: Boolean, default: false },
+    passwordHash: String,
     role: {
       type: String,
       enum: ["customer", "therapist", "admin"],
       required: true,
     },
-    name: { first: String, last: String },
+
     avatarUrl: String,
     locale: String,
     timezone: String,
-    status: {
-      type: String,
-      enum: ["active", "suspended", "banned"],
-      default: "active",
-    },
     mfaEnabled: { type: Boolean, default: false },
     profileComplete: { type: Boolean, default: false },
-    lastLoginAt: Date,
-    deletedAt: Date,
+    lastSignInAt: Date,
   },
   { timestamps: true }
 );
 
+/* ------------------ EXPORT MODELS ------------------ */
 module.exports = mongoose.model("User", UserSchema);
