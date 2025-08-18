@@ -1,14 +1,22 @@
-const mongoose= require('mongoose')
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
-
 
 /* ------------------ SERVICES ------------------ */
 const ServiceSchema = new Schema({
-  name: String,
-  tier: { type: String, enum: ["normal", "premium"] },
-  durationMinutes: Number,
-  price: { amount: Number, currency: String },
-  description: String,
+  name: { type: String, required: true },
+  tier: { type: String, enum: ["normal", "premium"], default: "normal" },
+
+  // Multiple duration + price combos
+  options: [
+    {
+      durationMinutes: { type: Number, required: true },
+      price: {
+        amount: { type: Number, required: true },   // always in GBP
+      }
+    }
+  ],
+
+  description: String, 
   features: [String]
 }, { timestamps: true });
 

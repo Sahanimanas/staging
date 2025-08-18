@@ -1,4 +1,3 @@
-/* ------------------ THERAPIST PROFILES ------------------ */
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
@@ -8,8 +7,20 @@ const TherapistProfileSchema = new Schema({
   bio: String,
   specializations: [String],
   languages: [String],
-  locationType: { type: String, enum: ["onsite", "mobile", "both"] },
-  pricing: { baseRate: Number, currency: String },
+
+  // ✅ Array of postcodes instead of locationType
+  servicePostcodes: [{
+    type: String,
+    validate: {
+      validator: function(v) {
+        // UK postcode regex (case-insensitive)
+        return /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i.test(v);
+      },
+      message: props => `${props.value} is not a valid UK postcode!`
+    }
+  }],
+
+  pricing: { baseRate: Number, currency: { type: String, default: "GBP" } },
   rating: { type: Number, default: 0 },
   ratingCount: { type: Number, default: 0 },
   isVerified: { type: Boolean, default: false },
