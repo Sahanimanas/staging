@@ -9,11 +9,12 @@ const BookingSchema = require("../../models/BookingSchema");
 /**
  * @route POST /therapists/filter
  * @desc Get available therapists based on service, date & time
- * @body { service: { serviceId, optionIndex }, date, time }
+ * @body { service: { serviceId, optionIndex }, date (DD-MM-YYYY), time (HH:mm) }
  */
 const getTherapists = async (req, res) => {
   try {
     const { service, date, time } = req.body;
+
     if (
       !service?.serviceId ||
       service.optionIndex === undefined ||
@@ -23,40 +24,27 @@ const getTherapists = async (req, res) => {
       return res.status(400).json({ error: "Invalid request body" });
     }
 
-    // Extract and parse date (DD-MM-YYYY)
+    // Parse date & time
     const [day, month, year] = date.split("-");
-    const selectedDate = new Date(`${year}-${month}-${day}T${time}:00`); // ISO format YYYY-MM-DDTHH:mm:ss
+    const slotStart = new Date(`${year}-${month}-${day}T${time}:00.000Z`);
 
-    if (isNaN(selectedDate.getTime())) {
+    if (isNaN(slotStart.getTime())) {
       return res.status(400).json({ error: "Invalid date or time format" });
     }
 
-    // Parse input
-    const service_Id = new mongoose.Types.ObjectId(service.serviceId);
-    // const selectedDate = new Date(date); // "16-08-2025"
-    // const [hours, minutes] = time.split(":").map(Number);
-
-    // Fetch service to get duration
-    const serviceDoc = await ServiceSchema.findById(service_Id);
-    if (!serviceDoc)
-      return res.status(404).json({ error: "Service not found" });
+    // Fetch service duration
+    const serviceDoc = await ServiceSchema.findById(service.serviceId);
+    if (!serviceDoc) return res.status(404).json({ error: "Service not found" });
 
     const option = serviceDoc.options[service.optionIndex];
     if (!option) return res.status(400).json({ error: "Invalid option index" });
 
-    const durationMinutes = option.durationMinutes;
-
-    // Compute slot start & end times (for comparison)
-    const slotStart = new Date(selectedDate);
-
-    const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60000);
+    const slotEnd = new Date(slotStart.getTime() + option.durationMinutes * 60000);
 
     // Step 1: Find therapists offering this service
     const therapists = await TherapistProfiles.find({
       specializations: service.serviceId,
-    }).select("_id userId");
-
-    // console.log(service.serviceId);
+    }).populate("userId", "email avatarUrl");
 
     if (!therapists.length) {
       return res.json({ therapists: [] });
@@ -64,52 +52,44 @@ const getTherapists = async (req, res) => {
 
     const therapistIds = therapists.map((t) => t._id);
 
-    // console.log(therapistIds)
-    // Step 2: Check therapist availability
+    // Step 2: Get availability for that day
     const availabilities = await AvailabilitySchema.find({
       therapistId: { $in: therapistIds },
-      date: {
-        $gte: new Date(selectedDate.setHours(0, 0, 0, 0)),
-        $lte: new Date(selectedDate.setHours(23, 59, 59, 999)),
-      },
-    });
-    // console.log(availabilities)
-
-    // Filter therapists who have a valid available block for the slot
-    const availableTherapists = availabilities.filter((av) => {
-      return av.blocks.some((block) => {
-        if (!block.isAvailable) return false;
-
-        // Parse block start/end
-        const [bh, bm] = block.startTime.split(":").map(Number);
-        const [eh, em] = block.endTime.split(":").map(Number);
-
-        const blockStart = new Date(av.date);
-        blockStart.setHours(bh, bm, 0, 0);
-
-        const blockEnd = new Date(av.date);
-        blockEnd.setHours(eh, em, 0, 0);
-
-        return slotStart >= blockStart && slotEnd <= blockEnd;
-      });
+      date: new Date(`${year}-${month}-${day}T00:00:00.000Z`), // exact day
     });
 
-    if (!availableTherapists.length) {
+    // Step 3: Filter available therapists
+    const availableTherapistIds = availabilities
+      .filter((av) =>
+        av.blocks.some((block) => {
+          if (!block.isAvailable) return false;
+
+          const [bh, bm] = block.startTime.split(":").map(Number);
+          const [eh, em] = block.endTime.split(":").map(Number);
+
+          const blockStart = new Date(av.date);
+          blockStart.setHours(bh, bm, 0, 0);
+
+          const blockEnd = new Date(av.date);
+          blockEnd.setHours(eh, em, 0, 0);
+
+          return slotStart >= blockStart && slotEnd <= blockEnd;
+        })
+      )
+      .map((av) => av.therapistId.toString());
+
+    if (!availableTherapistIds.length) {
       return res.json({ therapists: [] });
     }
 
-    const availableTherapistIds = availableTherapists.map(
-      (av) => av.therapistId
-    );
-
-    // Step 3: Ensure no overlapping bookings
+    // Step 4: Exclude therapists with conflicting bookings
     const conflictingBookings = await BookingSchema.find({
       therapistId: { $in: availableTherapistIds },
-      date: { $eq: new Date(selectedDate) },
+      date: new Date(`${year}-${month}-${day}T00:00:00.000Z`),
       $or: [
         {
-          slotStart: { $lt: slotEnd.toTimeString().slice(0, 5) },
-          slotEnd: { $gt: slotStart.toTimeString().slice(0, 5) },
+          slotStart: { $lt: slotEnd.toISOString().slice(11, 16) },
+          slotEnd: { $gt: slotStart.toISOString().slice(11, 16) },
         },
       ],
     });
@@ -118,21 +98,15 @@ const getTherapists = async (req, res) => {
       b.therapistId.toString()
     );
 
-    // Final therapist list = available but not already booked
+    // Final list
     const finalTherapists = therapists.filter(
-      (t) => !bookedTherapistIds.includes(t._id.toString())
+      (t) =>
+        availableTherapistIds.includes(t._id.toString()) &&
+        !bookedTherapistIds.includes(t._id.toString())
     );
-    console.log(finalTherapists);
 
     return res.json({
-      therapists: await Promise.all(
-        finalTherapists.map(async (t) => {
-          const profile = await TherapistProfiles.findById(t._id).populate("userId", "email avatarUrl");
-          return {
-            profile
-          };
-        })
-      ),
+      therapists: finalTherapists,
     });
   } catch (error) {
     console.error("Error filtering therapists:", error);
