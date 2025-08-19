@@ -5,7 +5,7 @@ const TherapistProfileSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
   title: String,
   bio: String,
-  specializations: { type: Schema.Types.ObjectId, ref: "Service", required: true, unique: true },
+  specializations: [{ type: Schema.Types.ObjectId, ref: "Service", required: true, unique: true }],
   languages: [String],
 
   // ✅ Array of postcodes instead of locationType
@@ -19,6 +19,10 @@ const TherapistProfileSchema = new Schema({
       message: props => `${props.value} is not a valid UK postcode!`
     }
   }],
+  experience: {
+    type: Number,
+    required: true
+  },
 
   rating: { type: Number, default: 0 },
   ratingCount: { type: Number, default: 0 },
