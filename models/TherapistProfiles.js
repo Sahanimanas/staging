@@ -20,7 +20,6 @@ const TherapistProfileSchema = new Schema({
     }
   }],
 
-  pricing: { baseRate: Number, currency: { type: String, default: "GBP" } },
   rating: { type: Number, default: 0 },
   ratingCount: { type: Number, default: 0 },
   isVerified: { type: Boolean, default: false },
