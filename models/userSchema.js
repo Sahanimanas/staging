@@ -19,7 +19,7 @@ const UserSchema = new Schema(
       required: true,
     },
 
-    avatarUrl: String,
+    avatar_url: String,
    address: {
     type: {
       Building_No: { type: String, required: true },
