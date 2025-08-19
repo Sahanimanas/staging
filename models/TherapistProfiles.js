@@ -5,7 +5,7 @@ const TherapistProfileSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
   title: String,
   bio: String,
-  specializations: [String],
+  specializations: { type: Schema.Types.ObjectId, ref: "Service", required: true, unique: true },
   languages: [String],
 
   // ✅ Array of postcodes instead of locationType

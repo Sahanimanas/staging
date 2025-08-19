@@ -24,6 +24,9 @@ const getTherapists = async (req, res) => {
       return res.status(400).json({ error: "Invalid request body" });
     }
 
+    // Create a new mongoose ObjectId
+    const serviceID = new mongoose.Types.ObjectId(service.serviceId);
+
     // Parse date & time
     const [day, month, year] = date.split("-");
     const slotStart = new Date(`${year}-${month}-${day}T${time}:00.000Z`);
@@ -33,7 +36,7 @@ const getTherapists = async (req, res) => {
     }
 
     // Fetch service duration
-    const serviceDoc = await ServiceSchema.findById(service.serviceId);
+    const serviceDoc = await ServiceSchema.findById(serviceID);
     if (!serviceDoc) return res.status(404).json({ error: "Service not found" });
 
     const option = serviceDoc.options[service.optionIndex];
@@ -43,7 +46,7 @@ const getTherapists = async (req, res) => {
 
     // Step 1: Find therapists offering this service
     const therapists = await TherapistProfiles.find({
-      specializations: service.serviceId,
+      specializations: serviceID,
     }).populate("userId", "email avatar_url");
 
     if (!therapists.length) {
