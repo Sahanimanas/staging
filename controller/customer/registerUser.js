@@ -7,7 +7,7 @@ const sendotp = require("../otpHandler/generateOTP.js");
 // POST /register - only for customers
 const registerUser = async (req, res) => {
   try {
-    console.log(req.body)
+    
     const { email, password, name: { first: firstName, last: lastName } } = req.body;
 
     // 1. Check if user already exists
@@ -43,7 +43,7 @@ const registerUser = async (req, res) => {
       message: " Please verify your email with the OTP sent.",
     });
   } catch (err) {
-    console.error(err);
+   
     res.status(500).json({ message: "Server error" });
   }
 };

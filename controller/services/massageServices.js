@@ -8,7 +8,7 @@ const getAllServices = async (req, res) => {
     const services = await Service.find();
     res.status(200).json(services);
   } catch (err) {
-    console.error("Error fetching services:", err);
+    
     res.status(500).json({ message: "Server error. Could not fetch services." });
   }
 }

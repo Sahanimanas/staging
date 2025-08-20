@@ -8,9 +8,9 @@ const Adminroutes = require('./routes/Adminroutes');
 const therapistRoutes = require('./routes/TherapistRoutes.js')
 const connectDB = require('./db/db.js');
 const User = require('./models/userSchema.js');
-const verify_user  = require('./controller/otpHandler/verifyotp')
-const servicesroute = require('./routes/servicesRoute.js');
 
+const servicesroute = require('./routes/servicesRoute.js');
+const otproutes = require('./routes/otproutes.js');
 require('dotenv').config();
 connectDB();
 
@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 
 app.use('/auth/user', userroutes);
 app.use('/auth/admin', Adminroutes );
-app.post('/verifyotp', verify_user);
+app.use('/verifyotp', otproutes);
 
 app.use('/auth/therapist', therapistRoutes);
 app.use('/services', servicesroute);

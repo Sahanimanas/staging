@@ -40,7 +40,7 @@ const verifyEmailOtp = async (req, res) => {
     return res.status(200).json({ success: true, message: "Email verified successfully!", token });
 
   } catch (error) {
-    console.error(error);
+   
     return res.status(500).json({ message: "OTP verification failed", error: error.message });
   }
 };

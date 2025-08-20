@@ -17,7 +17,7 @@ const sendotp = async (userID, email, purpose) => {
   try {
     const otp = await createOtp(userID, email, purpose); // Generate OTP
 
-    console.log(otp.otpCode, otp.expiresAt);
+   
 
     await transporter.sendMail({
   from: process.env.EMAIL_USER,
@@ -45,7 +45,7 @@ const sendotp = async (userID, email, purpose) => {
 });
   return "OTP sent successfully";
   } catch (err) {
-   console.log(err)
+  
     throw new Error("otp not sent");
   }
 };

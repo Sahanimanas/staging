@@ -5,7 +5,7 @@ const sendotp = require("../otpHandler/generateOTP");
 
 const login_User = async (req, res) => {
   try {
-    console.log(req.body);
+  
     
     const { email, password} = req.body;
 
@@ -39,7 +39,7 @@ const login_User = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Login error:", error);
+   
     res.status(500).json({ message: "Server error" });
   }
 };
