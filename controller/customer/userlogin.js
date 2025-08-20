@@ -6,7 +6,6 @@ const sendotp = require("../otpHandler/generateOTP");
 const login_User = async (req, res) => {
   try {
    
-    
     const { email, password} = req.body;
 
     // 1️⃣ Check if user exists
