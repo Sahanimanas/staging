@@ -1,4 +1,4 @@
-const login_Therapist = require('../controller/login_AllRole.js');
+const login_Therapist = require('../controller/therapistController/therapistlogin.js');
 const  getTherapists  = require('../controller/therapistController/getTherapists.js');
 
 const express = require('express');

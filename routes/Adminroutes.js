@@ -1,4 +1,4 @@
-const login_User = require('../controller/login_AllRole.js');
+const login_User = require('../controller/admin/adminlogin');
 const express = require('express');
 const router = express.Router();
 

@@ -1,24 +1,24 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("../models/userSchema");
-const sendotp = require("./otpHandler/generateOTP");
+const User = require("../../models/userSchema");
+const sendotp = require("../otpHandler/generateOTP");
 
 const login_User = async (req, res) => {
   try {
     console.log(req.body);
     
-    const { email, password, role } = req.body;
+    const { email, password} = req.body;
 
     // 1️⃣ Check if user exists
-    const user = await User.findOne({ email: email.toLowerCase() , role });
-    console.log("this is user:", user);
+    const user = await User.findOne({ email: email.toLowerCase()});
+    
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
     // 3️⃣ Check account status
-    // if (user.status !== "active") {
-    //   return res.status(403).json({ message: "Account is not active" });
-    // }
+    if (user.role !== "admin") {
+      return res.status(403).json({ message: "Error login" });
+    }
 
    // 4️⃣ Verify password
     const isMatch = await bcrypt.compare(password, user.passwordHash);
