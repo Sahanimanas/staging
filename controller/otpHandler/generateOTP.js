@@ -11,11 +11,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendotp = async (userID, email) => {
+const sendotp = async (userID, email, purpose) => {
   if (!email) throw new Error("Email is required");
 
   try {
-    const otp = await createOtp(userID, email); // Generate OTP
+    const otp = await createOtp(userID, email, purpose); // Generate OTP
 
     console.log(otp.otpCode, otp.expiresAt);
 
@@ -44,12 +44,11 @@ const sendotp = async (userID, email) => {
   `
 });
 
-    console.log(process.env.EMAIL_USER, process.env.EMAIL_PASS);
-    console.log("OTP sent to:", email);
-    
+   
+   
     // Optionally, you can store the OTP in a database or in-memory store
     // otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 }; // 5 minutes expiry
-   return 1;
+   res.status(200).json({ message: "OTP sent successfully" });
   } catch (err) {
    console.log(err)
     throw new Error("otp not sent");

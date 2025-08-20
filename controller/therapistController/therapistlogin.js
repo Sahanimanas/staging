@@ -26,8 +26,8 @@ const login_User = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
-   
-    const otpResponse = await sendotp(user._id , user.email);
+
+    const otpResponse = await sendotp(user._id , user.email, "login");
     if (!otpResponse) {
       return res.status(500).json({
         message: `otpResponse: ${otpResponse}`

@@ -6,12 +6,11 @@ const userroutes = require('./routes/userroutes')
 const Adminroutes = require('./routes/Adminroutes');
 
 const therapistRoutes = require('./routes/TherapistRoutes.js')
-// const db = require('./db/db.js');
 const connectDB = require('./db/db.js');
-const checkRole = require('./middlewares/admin.js');
 const User = require('./models/userSchema.js');
 const verify_user  = require('./controller/otpHandler/verifyotp')
 const servicesroute = require('./routes/servicesRoute.js');
+const authMiddleware = require('./middlewares/authtoken.js');
 require('dotenv').config();
 connectDB();
 
@@ -26,8 +25,11 @@ app.get('/', (req, res) => {
 app.use('/auth/user', userroutes);
 app.use('/auth/admin', Adminroutes );
 app.post('/verifyotp', verify_user);
+app.post('/auth/verifytoken', verify_token)
 app.use('/auth/therapist', therapistRoutes);
-app.use('/services', servicesroute);
+app.use('/services',authMiddleware, servicesroute);
+
+app.use('/bookings', require('./routes/BookingRoute'));
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);

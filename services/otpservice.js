@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 
 
 
-async function createOtp(userId, email) {
+async function createOtp(userId, email, purpose) {
   if (!email) throw new Error("Email is required for OTP creation");
 
   // Generate secure 6-digit OTP
@@ -19,7 +19,7 @@ async function createOtp(userId, email) {
     userId: userId,
     email: email,
     otpCode: otpCode,
-    purpose: "email_verification",
+    purpose: purpose,
     expiresAt: expires
   });
 
