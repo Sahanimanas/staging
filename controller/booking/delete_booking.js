@@ -1,6 +1,6 @@
 /* ===================== DELETE ===================== */
 
-const Booking = require('../../models/Booking');
+const Booking = require('../../models/BookingSchema');
 const deleteBooking = async (req, res) => {
   try {
     const booking = await Booking.findByIdAndDelete(req.params.id);

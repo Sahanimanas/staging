@@ -2,22 +2,25 @@ const express = require('express');
 const router = express.Router();
 
 /*
-POST /bookings → create
+POST url/bookings/create → create
 
-GET /bookings → get all
+GET url/bookings → get all
 
-GET /bookings/:id → get one
+GET url/bookings/:id → get one
 
-PUT /bookings/:id → update
+PUT url/bookings/:id → update
 
-DELETE /bookings/:id → delete
+DELETE url/bookings/:id → delete
 
 */ 
+const   {getAllBookings,
+  getBookingById}  = require('../controller/booking/get_booking.js')
 
-router.post('/create', require('../controller/booking/createBooking'));
-router.get('/', require('../controller/booking/getAllBookings'));
-router.get('/:id', require('../controller/booking/getBookingById'));
-router.put('/:id', require('../controller/booking/updateBooking'));
-router.delete('/:id', require('../controller/booking/deleteBooking'));
+
+router.post('/create', require('../controller/booking/create_booking.js'));
+router.get('/', getAllBookings);
+router.get('/:id', getBookingById);
+router.put('/:id', require('../controller/booking/update_booking.js'));
+router.delete('/:id', require('../controller/booking/delete_booking.js'));
 
 module.exports = router;

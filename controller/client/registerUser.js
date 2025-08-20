@@ -33,7 +33,7 @@ const registerUser = async (req, res) => {
       },
       email: email.toLowerCase(),
       passwordHash: hashedPassword,
-      role: "customer", // 👈 Hardcoded so no one can register as therapist/admin
+      role: "client", // 👈 Hardcoded so no one can register as therapist/admin
      
     });
  

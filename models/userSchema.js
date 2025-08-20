@@ -15,7 +15,7 @@ const UserSchema = new Schema(
     passwordHash: String,
     role: {
       type: String,
-      enum: ["customer", "therapist", "admin"],
+      enum: ["client", "therapist", "admin"],
       required: true,
     },
 

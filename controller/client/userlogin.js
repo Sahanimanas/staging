@@ -15,7 +15,7 @@ const login_User = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
     // 3️⃣ Check account status
-    if (user.role !== "customer") {
+    if (user.role !== "client") {
       return res.status(403).json({ message: "Error login" });
     }
 
