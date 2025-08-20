@@ -43,12 +43,7 @@ const sendotp = async (userID, email, purpose) => {
   </div>
   `
 });
-
-   
-   
-    // Optionally, you can store the OTP in a database or in-memory store
-    // otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 }; // 5 minutes expiry
-  return res.status(200).json({ message: "OTP sent successfully" });
+  return "OTP sent successfully";
   } catch (err) {
    console.log(err)
     throw new Error("otp not sent");
