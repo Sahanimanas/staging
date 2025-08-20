@@ -8,9 +8,10 @@ const Adminroutes = require('./routes/Adminroutes');
 const therapistRoutes = require('./routes/TherapistRoutes.js')
 const connectDB = require('./db/db.js');
 const User = require('./models/userSchema.js');
-
+//const BookingRoute  = require('./routes/BookingRoute.js');
 const servicesroute = require('./routes/servicesRoute.js');
 const otproutes = require('./routes/otproutes.js');
+const tokenHandler = require('./controller/tokenHandler.js');
 require('dotenv').config();
 connectDB();
 
@@ -28,8 +29,8 @@ app.use('/verifyotp', otproutes);
 
 app.use('/auth/therapist', therapistRoutes);
 app.use('/services', servicesroute);
-
-// app.use('/bookings', require('./routes/BookingRoute'));
+app.get('/auth/verifytoken', tokenHandler);
+//app.use('/bookings', BookingRoute);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);

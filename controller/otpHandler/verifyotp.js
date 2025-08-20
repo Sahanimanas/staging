@@ -35,7 +35,7 @@ const verifyEmailOtp = async (req, res) => {
     const token = jwt.sign({ userId: record.userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     // Save token to database
-    await Token.create({ userId: record.userId, email, token, type: purpose, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days expiry
+    await Token.create({ userId: record.userId, email, token, type: "jwt", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days expiry
 
     return res.status(200).json({ success: true, message: "Email verified successfully!", token });
 

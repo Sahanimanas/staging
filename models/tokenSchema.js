@@ -6,7 +6,7 @@ const TokenSchema = new Schema({
   token: { type: String, required: true }, // hashed if sensitive
   type: { 
     type: String, 
-    enum: ["login", "password_reset", "email_verification", "registration","invite"], 
+    enum: ["jwt"], 
     required: true 
   },
   expiresAt: { type: Date, required: true },
