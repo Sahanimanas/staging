@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const registerUser = require('../controller/registerUser.js');
+const registerUser = require('../controller/customer/registerUser.js');
 const login_User = require('../controller/login_AllRole.js');
 
 

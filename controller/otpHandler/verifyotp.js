@@ -1,8 +1,8 @@
 const express = require("express");
-const OTP = require("../models/OtpSchema.js");
-const User = require("../models/userSchema.js");
+const OTP = require("../../models/OtpSchema");
+const User = require("../../models/userSchema.js");
 const jwt  = require("jsonwebtoken");
-const Token = require("../models/tokenSchema.js");
+const Token = require("../../models/tokenSchema.js");
 /* ------------------ VERIFY EMAIL OTP ------------------ */
 const verifyEmailOtp = async (req, res) => {
   try {

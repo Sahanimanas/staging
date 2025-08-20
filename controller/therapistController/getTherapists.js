@@ -119,4 +119,4 @@ const getTherapists = async (req, res) => {
   }
 };
 
-module.exports = { getTherapists };
+module.exports =  getTherapists ;

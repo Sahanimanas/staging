@@ -1,5 +1,7 @@
-const { createOtp} = require("../services/otpservice"); // wherever you save it
+const { createOtp} = require("../../services/otpservice"); // wherever you save it
 const nodemailer = require("nodemailer");
+const express = require('express')
+require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -42,15 +44,15 @@ const sendotp = async (userID, email) => {
   `
 });
 
-console.log(process.env.EMAIL_USER, process.env.EMAIL_PASS);
+    console.log(process.env.EMAIL_USER, process.env.EMAIL_PASS);
     console.log("OTP sent to:", email);
     
     // Optionally, you can store the OTP in a database or in-memory store
     // otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 }; // 5 minutes expiry
    return 1;
   } catch (err) {
-    console.error(err);
-    return 0;
+   console.log(err)
+    throw new Error("otp not sent");
   }
 };
 

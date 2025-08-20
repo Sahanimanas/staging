@@ -1,5 +1,5 @@
 const express = require('express')
-const Service = require('../models/ServiceSchema.js');
+const Service = require('../../models/ServiceSchema.js');
 const getAllServices = async (req, res) => {
   try {
     const services = await Service.find();

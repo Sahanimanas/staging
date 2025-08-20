@@ -2,8 +2,8 @@
 
 const express = require("express");
 const bcrypt = require("bcrypt");
-const User = require("../models/userSchema.js");
-const sendotp = require("./generateOTP.js");
+const User = require("../../models/userSchema.js");
+const sendotp = require("../otpHandler/generateOTP.js");
 // POST /register - only for customers
 const registerUser = async (req, res) => {
   try {
@@ -31,11 +31,11 @@ const registerUser = async (req, res) => {
       role: "customer", // 👈 Hardcoded so no one can register as therapist/admin
      
     });
-    console.log(firstName)
+ 
     const otp = await sendotp(user._id, email);
 
      return res.status(201).json({
-      message: "User registered successfully. Please verify your email with the OTP sent.",
+      message: " Please verify your email with the OTP sent.",
       userId: user._id
     });
   } catch (err) {
