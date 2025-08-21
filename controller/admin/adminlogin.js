@@ -17,7 +17,7 @@ const login_User = async (req, res) => {
     }
     // 3️⃣ Check account status
     if (user.role !== "admin") {
-      return res.status(403).json({ message: "Error login" });
+      return res.status(404).json({ message: "Error login" });
     }
 
    // 4️⃣ Verify password
@@ -27,17 +27,16 @@ const login_User = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    const otpResponse = await sendotp(user._id , user.email, "login");
-    if (!otpResponse) {
-      return res.status(500).json({
-        message: `otpResponse: ${otpResponse}`
-      });
-    }
+     // const otpResponse = await sendotp(user._id , user.email,"login");
+    // if (!otpResponse) {
+    //   return res.status(500).json({
+    //     message: `otpResponse: ${otpResponse}`
+    //   });
+    
     // delete after testing 
     res.status(200).json({
-      message: `otpResponse: ${otpResponse}`
+      message: "login successfull"
     });
-
   } catch (error) {
    
     res.status(500).json({ message: "Server error" });
