@@ -154,7 +154,7 @@ const session = await stripe.checkout.sessions.create({
     },
   ],
   customer_email: req.body.email,
-  success_url: `http://localhost:5173/paymentsuccess`,
+  success_url: `http://localhost:5173/paymentsuccess?session_id={CHECKOUT_SESSION_ID}`,
   cancel_url: `http://localhost:5173/paymentfailed`,
   metadata: {
     bookingId: booking._id.toString(),

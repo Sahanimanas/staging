@@ -1,32 +1,44 @@
-// backend/routes/webhook.js
-const express = require("express");
-const router = express.Router();
+
 const Stripe = require("stripe");
-const Booking = require("../models/Booking");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-router.post("/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+// ✅ Stripe needs raw body to verify signature
+const webhook=  (req, res) => {
+  const sig = req.headers["stripe-signature"];
+
   let event;
 
   try {
-    const sig = req.headers["stripe-signature"];
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET // 👉 found in dashboard
+    );
   } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
-    return res.sendStatus(400);
+    console.error("⚠️ Webhook signature verification failed.", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // ✅ Handle payment success
-  if (event.type === "payment_intent.succeeded") {
-    const paymentIntent = event.data.object;
-    const bookingId = paymentIntent.metadata.bookingId;
+  // 🔹 Handle events
+  switch (event.type) {
+    case "checkout.session.completed":
+      const session = event.data.object;
+      console.log("✅ Payment successful:", session.id);
+      // TODO: update booking in DB, send email, etc.
+      break;
 
-    await Booking.findByIdAndUpdate(bookingId, { paymentStatus: "paid" });
-    console.log("✅ Booking marked as paid:", bookingId);
+    case "payment_intent.payment_failed":
+      const failedPayment = event.data.object;
+      console.log("❌ Payment failed:", failedPayment.id);
+      // TODO: mark as failed in DB
+      break;
+
+    default:
+      console.log(`Unhandled event type ${event.type}`);
   }
 
-  res.sendStatus(200);
-});
+  res.json({ received: true });
+};
 
-module.exports = router;
+module.exports = webhook;
