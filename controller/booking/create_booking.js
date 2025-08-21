@@ -143,8 +143,8 @@ const createBooking = async (req, res) => {
       customer_email: req.body.email,
       metadata: {
         "value": "true",
-        bookingId: booking._id,
-        clientId: booking.clientId,
+        bookingId: "book_011",
+       
       },
     });
 
