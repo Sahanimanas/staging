@@ -2,7 +2,7 @@
 const Stripe = require("stripe");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
+const temporary = require('../models/temporary.js')
 // ✅ Stripe needs raw body to verify signature
 const webhook=  (req, res) => {
   const sig = req.headers["stripe-signature"];
@@ -26,6 +26,10 @@ const webhook=  (req, res) => {
       const session = event.data.object;
       console.log("✅ Payment successful:", session.id);
       // TODO: update booking in DB, send email, etc.
+      temporary.create({ data: session })
+        .then(() => console.log("Temporary data saved"))
+        .catch(err => console.error("Error saving temporary data:", err));
+
       break;
 
     case "payment_intent.payment_failed":
