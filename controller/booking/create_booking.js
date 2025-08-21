@@ -136,14 +136,15 @@ const createBooking = async (req, res) => {
           quantity: 1,
         },
       ],
-      customer_email: email,
+     
       success_url: `http://localhost:5173/paymentsuccess?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `http://localhost:5173/paymentfailed`,
-      customer_email: email,
+     
       customer: user._id.toString(),
       metadata: {
-        bookingId: booking._id.toString(),
-        clientId: booking.clientId.toString(),
+        "value": "true",
+        bookingId: booking._id,
+        clientId: booking.clientId,
       },
     });
 
