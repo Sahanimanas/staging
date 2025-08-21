@@ -115,7 +115,7 @@ const getTherapists = async (req, res) => {
     });
   } catch (error) {
     console.error("Error filtering therapists:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 

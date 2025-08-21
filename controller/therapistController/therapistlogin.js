@@ -2,12 +2,11 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/userSchema");
 const sendotp = require("../otpHandler/generateOTP");
-
+const Token = require("../../models/tokenSchema.js");
 const login_User = async (req, res) => {
   try {
-    
-    
-    const { email, password} = req.body;
+    const { email, password } = req.body;
+
 
     // 1️⃣ Check if user exists
     const user = await User.findOne({ email: email.toLowerCase()});
@@ -26,20 +25,15 @@ const login_User = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
-
-   // const otpResponse = await sendotp(user._id , user.email,"login");
-    // if (!otpResponse) {
-    //   return res.status(500).json({
-    //     message: `otpResponse: ${otpResponse}`
-    //   });
     
-    // delete after testing 
-    res.status(200).json({
-      message: "login successfull"
-    });
+    await User.findOneAndUpdate({ _id: user._id }, { lastSignInAt: new Date() });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });   
+   await Token.create({ userId: user._id, email, token, type: "jwt", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days expiry
+    return res.status(200).json({success: true, message: "login successfull", token });
+
   } catch (error) {
    
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
