@@ -4,7 +4,7 @@ const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const temporary = require('../models/temporary.js')
 // ✅ Stripe needs raw body to verify signature
-const webhook=  (req, res) => {
+const webhook= async (req, res) => {
   const sig = req.headers["stripe-signature"];
 
   let event;
@@ -15,6 +15,7 @@ const webhook=  (req, res) => {
       sig,
       process.env.STRIPE_WEBHOOK_SECRET // 👉 found in dashboard
     );
+    console.log(event.type)
   } catch (err) {
     console.error("⚠️ Webhook signature verification failed.", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -22,14 +23,31 @@ const webhook=  (req, res) => {
 
   // 🔹 Handle events
   switch (event.type) {
-    case "checkout.session.completed":
+    case "payment_intent.succeeded":
       const session = event.data.object;
       console.log("✅ Payment successful:", session.id);
       // TODO: update booking in DB, send email, etc.
-      temporary.create({ data: session })
-        .then(() => console.log("Temporary data saved"))
-        .catch(err => console.error("Error saving temporary data:", err));
+      console.log(session);
+     try {
+          // Save in DB
+          await temporary.findOneAndUpdate(
+            { sessionId: session.id },
+            {
+              sessionId: session.id,
+              paymentIntentId: session.payment_intent,
+              customerEmail: session.customer_details?.email,
+              amountTotal: session.amount_total,
+              currency: session.currency,
+              status: session.status,
+              rawData: session,
+            },
+            { upsert: true, new: true }
+          );
 
+          console.log("✅ Checkout session saved:", session.id);
+        } catch (dbErr) {
+          console.error("❌ Failed to save session in DB:", dbErr.message);
+        }
       break;
 
     case "payment_intent.payment_failed":
