@@ -118,6 +118,8 @@ const createBooking = async (req, res) => {
     // 7. Create Stripe checkout session
     const amount = Math.round(finalPrice * 100);
 
+    console.log(booking._id.toString());
+    
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
@@ -137,6 +139,8 @@ const createBooking = async (req, res) => {
       customer_email: email,
       success_url: `http://localhost:5173/paymentsuccess?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `http://localhost:5173/paymentfailed`,
+      customer_email: email,
+      customer_id: user._id.toString(),
       metadata: {
         bookingId: booking._id.toString(),
         clientId: booking.clientId.toString(),
