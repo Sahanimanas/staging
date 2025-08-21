@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/userSchema");
 const sendotp = require("../otpHandler/generateOTP");
-
+const Token = require("../../models/tokenSchema.js");
 const login_User = async (req, res) => {
   try {
    
@@ -25,14 +25,22 @@ const login_User = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
-    
+    console.log(user);
+
+    try{
        await User.findOneAndUpdate({ _id: user._id }, { lastSignInAt: new Date() });
        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });   
       await Token.create({ userId: user._id, email, token, type: "jwt", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days expiry
        return res.status(200).json({success: true, message: "login successfull", token });
-  } catch (error) {
+    }catch(err){
+       console.error("Error creating token:", err);
+       return res.status(500).json({ message: "Server error" });
+
+
+    }
+      } catch (error) {
     
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
