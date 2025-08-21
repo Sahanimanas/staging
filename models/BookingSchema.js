@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-
+const Counter = require('./CounterSchema')
 /* ------------------ BOOKINGS ------------------ */
 const BookingSchema = new Schema({
  clientId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   therapistId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   serviceId: { type: Schema.Types.ObjectId, ref: "Service", required: true },
-  ritualPurchaseId: { type: Schema.Types.ObjectId, ref: "RitualPurchase" },
+  ritualPurchaseId: { type: Schema.Types.ObjectId, ref: "RitualPurchase" } || { type: String },
   bookingCode: { type: String, unique: true },
   date: { type: Date, required: true }, // if from bundle
   slotStart: { type: String, required: true },

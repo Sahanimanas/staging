@@ -6,6 +6,7 @@ const userroutes = require('./routes/userroutes')
 const Adminroutes = require('./routes/Adminroutes');
 const Bookingroute = require('./routes/BookingRoute.js');
 const therapistRoutes = require('./routes/TherapistRoutes.js')
+const cartRoute = require('./routes/CartRoute.js');
 const connectDB = require('./db/db.js');
 const User = require('./models/userSchema.js');
 const servicesroute = require('./routes/servicesRoute.js');
@@ -29,8 +30,9 @@ app.use('/verifyotp', otproutes);
 app.use('/auth/therapist', therapistRoutes);
 app.use('/services', servicesroute);
 app.get('/auth/verifytoken', tokenHandler);
-app.use('/bookings', Bookingroute);
-
+app.use('/payment', Bookingroute);
+// app.use('/cart', cartRoute);
+// app.use('/payment', paymentroute);
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
 });
