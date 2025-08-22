@@ -40,6 +40,7 @@
  *       "notes": "Please be on time."
  *     }
  */
+
 const Booking = require("../../models/BookingSchema");
 const Service = require("../../models/ServiceSchema");
 const User = require("../../models/userSchema");

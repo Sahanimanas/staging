@@ -52,7 +52,7 @@ const getTherapists = async (req, res) => {
 
 
     if (!therapists.length) {
-      return res.json({ therapists: [] });
+      return res.json({ message: 'no therapist available' });
     }
 
     const therapistIds = therapists.map((t) => t._id);
