@@ -35,8 +35,8 @@ app.use('/verifyotp', otproutes);
 app.use('/auth/therapist', therapistRoutes);
 app.use('/services', servicesroute);
 app.get('/auth/verifytoken', tokenHandler);
-app.use('/payment', Bookingroute);
-
+app.post('/payment/create-checkout-session', require("./controller/booking/create_booking.js"));
+app.use('/bookings', Bookingroute);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);

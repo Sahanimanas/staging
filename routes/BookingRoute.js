@@ -18,7 +18,6 @@ const {
   getBookingById,
 } = require("../controller/booking/get_booking.js");
 
-router.post("/create-checkout-session", require("../controller/booking/create_booking.js"));
 router.get("/", getAllBookings);
 router.get("/:id", getBookingById);
 router.put("/:id", require("../controller/booking/update_booking.js"));
