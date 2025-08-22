@@ -41,7 +41,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.post('/login',login_Therapist);
+
 
 /**
  * @swagger
@@ -90,6 +90,7 @@ router.post('/login',login_Therapist);
  *       500:
  *         description: Internal Server Error
  */
+router.post('/login',login_Therapist);
 router.post("/filter",getTherapists);
 router.post('/addAvailability',require('../controller/therapistController/addAvailabilty'));
 router.post('/addTherapist',require('../controller/therapistController/Addtherapist'));

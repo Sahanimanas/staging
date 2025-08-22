@@ -12,7 +12,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "http://localhost:3000", // Your API base URL
+        url: "https://noira-backend.vercel.app", // Your API base URL
       },
     ],
   },
