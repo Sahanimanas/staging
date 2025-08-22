@@ -140,7 +140,7 @@ const createBooking = async (req, res) => {
       success_url: `http://localhost:5173/paymentsuccess?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `http://localhost:5173/paymentfailed`,
 
-      customer_email: req.body.email,
+      customer: user._id,
       metadata: {
         "value": "true",
         bookingId: "book_011",
