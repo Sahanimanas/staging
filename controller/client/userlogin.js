@@ -37,8 +37,8 @@ const login_User = async (req, res) => {
        console.error("Error creating token:", err);
        return res.status(500).json({ message: "Server error" });
     }
-      } catch (error) {
-    
+  } catch (error) {
+    console.log(error.message);
     return res.status(500).json({ message: "Server error" });
   }
 };
