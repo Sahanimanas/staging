@@ -84,7 +84,7 @@ const getTherapists = async (req, res) => {
       .map((av) => av.therapistId.toString());
 
     if (!availableTherapistIds.length) {
-      return res.json({ therapists: [] });
+      return res.json({ message: 'no therapist available' });
     }
 
     // Step 4: Exclude therapists with conflicting bookings
