@@ -46,7 +46,7 @@ const Service = require("../../models/ServiceSchema");
 const User = require("../../models/userSchema");
 const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
+const checkoutsession = require('../../models/temporary');
 const createBooking = async (req, res) => {
   try {
     const {
@@ -147,7 +147,14 @@ const createBooking = async (req, res) => {
        
       },
     });
-
+  await checkoutsession.create({
+     sessionId: session.id,
+     customerEmail: user.email,
+     amountTotal: session.amount_total,
+     currency: session.currency,
+     status: session.status,
+     rawData: session,
+   });
     return res.json({ url: session.url });
 
   } catch (error) {

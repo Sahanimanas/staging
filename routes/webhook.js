@@ -34,13 +34,9 @@ const webhook= async (req, res) => {
           await temporary.findOneAndUpdate(
             { sessionId: session.id },
             {
-              sessionId: session.id,
+             
               paymentIntentId: session.payment_intent,
-              customerEmail: session.customer_email,
-              amountTotal: session.amount_total,
-              currency: session.currency,
-              status: session.status,
-              rawData: session,
+              status: session.status
             },
             { upsert: true, new: true }
           );
