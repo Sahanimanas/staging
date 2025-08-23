@@ -6,23 +6,24 @@ const TherapistProfile = require("../../../models/TherapistProfiles.js");
  */
 const deleteTherapist = async (req, res) => {
   try {
-    const { therapistId } = req.params;
+    const { id } = req.params;
 
-    if (!therapistId) {
+    if (!id) {
       return res.status(400).json({ error: "Therapist ID is required" });
     }
 
     // ✅ Find therapist user
-    const therapistUser = await User.findById(therapistId);
-    if (!therapistUser || therapistUser.role !== "therapist") {
+    const therapistUser = await TherapistProfile.findById({_id:id});
+    if (!therapistUser) {
       return res.status(404).json({ error: "Therapist not found" });
     }
+      await User.findByIdAndDelete(therapistUser.userId);
 
     // ✅ Remove therapist profile (if exists)
-    await TherapistProfile.deleteOne({ userId: therapistId });
+    await TherapistProfile.deleteOne({ userId: therapistUser.userId });
 
     // ✅ Remove therapist user
-    await User.findByIdAndDelete(therapistId);
+  
 
     return res.status(200).json({ message: "Therapist deleted successfully" });
   } catch (error) {

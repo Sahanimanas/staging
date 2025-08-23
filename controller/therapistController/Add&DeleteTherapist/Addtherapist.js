@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const User = require("../../../models/userSchema.js");
-
+const  TherapistProfiles = require('../../../models/TherapistProfiles.js');
 /**
  * Add a new therapist user
  */
@@ -48,11 +48,15 @@ const addTherapist = async (req, res) => {
     });
 
     await therapistUser.save();
-
+const therapistProfile = new TherapistProfiles({
+  userId: therapistUser._id,
+  // Add any additional fields required for the therapist profile
+});
+await therapistProfile.save();
     return res.status(201).json({
       message: "Therapist account created successfully",
-      user: {
-        id: therapistUser._id,
+      therapist: {
+        id: therapistProfile._id,
         name: therapistUser.name,
         email: therapistUser.email,
         role: therapistUser.role

@@ -15,7 +15,7 @@ const TherapistProfileSchema = new Schema(
       {
         type: Schema.Types.ObjectId,
         ref: "Service",
-        required: true,
+        required: false,
         unique: true,
       },
     ],
@@ -36,7 +36,7 @@ const TherapistProfileSchema = new Schema(
     ],
     experience: {
       type: Number,
-      required: true,
+   required: false,
     },
 
     rating: { type: Number, default: 0 },
