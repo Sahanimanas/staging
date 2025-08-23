@@ -2,20 +2,24 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const bodyParser = require("body-parser");
-
+require('dotenv').config();
 const PORT = process.env.PORT || 3000;
+
+const connectDB = require('./db/db.js');
+connectDB();
 const userroutes = require('./routes/userroutes')
 const Adminroutes = require('./routes/Adminroutes');
 const Bookingroute = require('./routes/BookingRoute.js');
 const therapistRoutes = require('./routes/TherapistRoutes.js')
-const cartRoute = require('./routes/CartRoute.js');
-const connectDB = require('./db/db.js');
+
+
+
 const User = require('./models/userSchema.js');
 const servicesroute = require('./routes/servicesRoute.js');
 const otproutes = require('./routes/otproutes.js');
 const tokenHandler = require('./controller/tokenHandler.js');
-require('dotenv').config();
-connectDB();
+
+
 app.post('/webhook',  express.raw({ type: "application/json" }), require('./routes/webhook'));
 
 app.use(express.urlencoded({ extended: true }));
