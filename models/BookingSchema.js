@@ -4,14 +4,14 @@ const Counter = require('./CounterSchema')
 /* ------------------ BOOKINGS ------------------ */
 const BookingSchema = new Schema({
  clientId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  therapistId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  therapistId: { type: Schema.Types.ObjectId, ref: "TherapistProfile", required: true },
   serviceId: { type: Schema.Types.ObjectId, ref: "Service", required: true },
   ritualPurchaseId: { type: Schema.Types.ObjectId, ref: "RitualPurchase" } || { type: String },
   bookingCode: { type: String, unique: true },
   date: { type: Date, required: true }, // if from bundle
   slotStart: { type: String, required: true },
   slotEnd:  { type: String, required: true },
-  status: { type: String, enum: ["confirmed", "cancelled", "completed"], default: "confirmed" },
+  status: { type: String, enum: ["confirmed", "cancelled", "completed","pending"], default: "confirmed" },
   paymentStatus: { type: String, enum: ["pending", "paid", "failed"], default: "pending" },
   price: { amount: Number, currency: String },
   eliteHourSurcharge: { type: Boolean, default: false },

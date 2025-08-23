@@ -110,7 +110,8 @@ const createBooking = async (req, res) => {
       date,
       slotStart,
       slotEnd,
-      paymentStatus: "pending",
+      status: "confirmed",  //test
+      paymentStatus: "paid",//test  
       price: { amount: finalPrice, currency: "gbp" },
       eliteHourSurcharge: surcharge,
       notes,

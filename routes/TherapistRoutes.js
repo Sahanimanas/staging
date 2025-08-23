@@ -13,4 +13,6 @@ router.get('/getAllTherapists',require('../controller/therapistController/GetThe
 router.post('/deleteAvailabilityByDate',require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityByDate);
 router.post('/deleteAvailabilityBlocks',require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityBlocks);
 router.get('/availability/:id',require('../controller/therapistController/schedule/getAvailabilityById.js'));
+
+router.get("/dashboard/:therapistId",require('../controller/therapistController/Dashboard/dashboard.js'));
 module.exports = router;
