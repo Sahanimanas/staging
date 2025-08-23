@@ -34,7 +34,6 @@ const webhook= async (req, res) => {
           await temporary.findOneAndUpdate(
             { sessionId: session.id },
             {
-             
               paymentIntentId: session.payment_intent,
               status: session.status
             },

@@ -13,11 +13,11 @@ const registerUser = async (req, res) => {
     // 1. Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
 
-    if (existingUser && !existingUser.emailVerified) {
+    if (existingUser) {
 
-      const otp = await sendotp(existingUser._id, email, "registration" );
+      // const otp = await sendotp(existingUser._id, email, "registration" );
       return res.status(200).json({
-        message: "Email already in use, please verify your account using OTP.",
+        message: "Email already in use, please login.",
       });
     }
 
