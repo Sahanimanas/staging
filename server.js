@@ -14,15 +14,13 @@ const User = require('./models/userSchema.js');
 const servicesroute = require('./routes/servicesRoute.js');
 const otproutes = require('./routes/otproutes.js');
 const tokenHandler = require('./controller/tokenHandler.js');
-const { swaggerUi, swaggerDocs } = require("./swagger");
 require('dotenv').config();
 connectDB();
 app.post('/webhook',  express.raw({ type: "application/json" }), require('./routes/webhook'));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: '*' }));
-// Swagger UI route
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
 
 app.get('/', (req, res) => {
   res.send('Hello from Express server!');
