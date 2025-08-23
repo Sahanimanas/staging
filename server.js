@@ -19,6 +19,7 @@ const servicesroute = require('./routes/servicesRoute.js');
 const otproutes = require('./routes/otproutes.js');
 const tokenHandler = require('./controller/tokenHandler.js');
 
+const login_Therapist = require('./controller/therapistController/AUTH/therapistlogin.js'); 
 
 app.post('/webhook',  express.raw({ type: "application/json" }), require('./routes/webhook'));
 
@@ -34,7 +35,8 @@ app.use('/auth/user', userroutes);
 app.use('/auth/admin', Adminroutes );
 app.use('/verifyotp', otproutes);
 
-app.use('/auth/therapist', therapistRoutes);
+app.use('/auth/therapist/login', login_Therapist);
+app.use('/therapist', therapistRoutes);
 app.use('/services', servicesroute);
 app.get('/auth/verifytoken', tokenHandler);
 app.post('/payment/create-checkout-session', require("./controller/booking/create_booking.js"));

@@ -1,4 +1,4 @@
-const TherapistAvailability = require("../../models/AvailabilitySchema.js");
+const TherapistAvailability = require("../../../models/AvailabilitySchema.js");
 
 /**
  * Add or update therapist availability for a specific date

@@ -1,4 +1,4 @@
-const TherapistAvailability = require("../../models/AvailabilitySchema.js");
+const TherapistAvailability = require("../../../models/AvailabilitySchema.js");
 
 /**
  * Delete entire availability for a specific date

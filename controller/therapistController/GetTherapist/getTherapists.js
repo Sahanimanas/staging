@@ -1,10 +1,10 @@
 // routes/therapistRoutes.js
 const express = require("express");
 const mongoose = require("mongoose");
-const TherapistProfiles = require("../../models/TherapistProfiles");
-const AvailabilitySchema = require("../../models/AvailabilitySchema");
-const ServiceSchema = require("../../models/ServiceSchema");
-const BookingSchema = require("../../models/BookingSchema");
+const TherapistProfiles = require("../../../models/TherapistProfiles");
+const AvailabilitySchema = require("../../../models/AvailabilitySchema");
+const ServiceSchema = require("../../../models/ServiceSchema");
+const BookingSchema = require("../../../models/BookingSchema");
 
 /**
  * @route POST /therapists/filter

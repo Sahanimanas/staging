@@ -2,8 +2,8 @@
 
 const express = require("express");
 const bcrypt = require("bcrypt");
-const User = require("../../models/userSchema.js");
-const sendotp = require("../otpHandler/generateOTP.js");
+const User = require("../../../models/userSchema.js");
+const sendotp = require("../../otpHandler/generateOTP.js");
 // POST /register - only for customers
 const registerUser = async (req, res) => {
   try {

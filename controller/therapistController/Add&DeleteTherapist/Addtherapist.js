@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const User = require("../../models/userSchema.js");
+const User = require("../../../models/userSchema.js");
 
 /**
  * Add a new therapist user

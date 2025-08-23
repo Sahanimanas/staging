@@ -1,8 +1,9 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("../../models/userSchema");
-const sendotp = require("../otpHandler/generateOTP");
-const Token = require("../../models/tokenSchema.js");
+const User = require("../../../models/userSchema.js");
+const sendotp = require("../../otpHandler/generateOTP.js");
+const Token = require("../../../models/tokenSchema.js");
+const TherapistProfiles = require('../../../models/TherapistProfiles.js');
 const login_User = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -27,9 +28,10 @@ const login_User = async (req, res) => {
     }
     
     await User.findOneAndUpdate({ _id: user._id }, { lastSignInAt: new Date() });
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });   
-   await Token.create({ userId: user._id, email, token, type: "jwt", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days expiry
-    return res.status(200).json({success: true, message: "login successfull", token });
+    const Therapist = await TherapistProfiles.findById({ userId: user._id });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    await Token.create({ userId: user._id, email, token, type: "jwt", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days expiry
+    return res.status(200).json({success: true, message: "login successfull", token, TherapistId: Therapist._id});
 
   } catch (error) {
    
@@ -38,4 +40,4 @@ const login_User = async (req, res) => {
 };
 
 
-module.exports = login_User;
+module.exports = login_User;    

@@ -1,5 +1,5 @@
-const User = require("../../models/userSchema.js");
-const TherapistProfile = require("../../models/TherapistProfiles.js");
+const User = require("../../../models/userSchema.js");
+const TherapistProfile = require("../../../models/TherapistProfiles.js");
 
 /**
  * Delete therapist by ID (user + profile)
