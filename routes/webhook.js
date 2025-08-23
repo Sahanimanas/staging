@@ -36,7 +36,7 @@ const webhook= async (req, res) => {
             {
               sessionId: session.id,
               paymentIntentId: session.payment_intent,
-              customerEmail: session.customer_details?.email,
+              customerEmail: session.customer_email,
               amountTotal: session.amount_total,
               currency: session.currency,
               status: session.status,
