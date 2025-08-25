@@ -12,21 +12,40 @@ const addAvailability = async (req, res) => {
       return res.status(400).json({ error: "therapistId, date, and blocks are required" });
     }
 
-    // ✅ Convert date to start of the day (for consistency)
+    // ✅ Normalize date (start of the day)
     const normalizedDate = new Date(date);
     normalizedDate.setUTCHours(0, 0, 0, 0);
 
-    // ✅ Check if availability for the date already exists
+    // ✅ Find existing availability for that date
     let availability = await TherapistAvailability.findOne({ therapistId, date: normalizedDate });
 
     if (availability) {
-      // Update existing availability blocks
-      availability.blocks = blocks;
+      // ✅ Merge blocks without duplicates
+      const existingBlocks = availability.blocks.map(b => `${b.start}-${b.end}`);
+      const newBlocks = [];
+
+      for (const block of blocks) {
+        const key = `${block.start}-${block.end}`;
+        if (!existingBlocks.includes(key)) {
+          newBlocks.push(block);
+        }
+      }
+
+      if (newBlocks.length === 0) {
+        return res.status(200).json({ message: "No new slots added. All blocks already exist.", availability });
+      }
+
+      availability.blocks = [...availability.blocks, ...newBlocks];
       await availability.save();
-      return res.status(200).json({ message: "Availability updated successfully", availability });
+
+      return res.status(200).json({
+        message: "New availability blocks added successfully",
+        addedBlocks: newBlocks,
+        availability
+      });
     }
 
-    // ✅ Create new availability record
+    // ✅ Create new availability if none exists
     availability = new TherapistAvailability({
       therapistId,
       date: normalizedDate,

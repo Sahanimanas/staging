@@ -1,4 +1,3 @@
-// routes/therapistRoutes.js
 const express = require("express");
 const mongoose = require("mongoose");
 const TherapistProfiles = require("../../../models/TherapistProfiles");
@@ -24,9 +23,6 @@ const getTherapists = async (req, res) => {
       return res.status(400).json({ error: "Invalid request body" });
     }
 
-    // Create a new mongoose ObjectId
-    const serviceID = new mongoose.Types.ObjectId(service.serviceId);
-
     // Parse date & time
     const [day, month, year] = date.split("-");
     const slotStart = new Date(`${year}-${month}-${day}T${time}:00.000Z`);
@@ -34,6 +30,16 @@ const getTherapists = async (req, res) => {
     if (isNaN(slotStart.getTime())) {
       return res.status(400).json({ error: "Invalid date or time format" });
     }
+
+    // ✅ Check if the selected date is in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // normalize
+    if (slotStart < today) {
+      return res.status(400).json({ error: "Selected date cannot be in the past" });
+    }
+
+    // Create a new mongoose ObjectId
+    const serviceID = new mongoose.Types.ObjectId(service.serviceId);
 
     // Fetch service duration
     const serviceDoc = await ServiceSchema.findById(serviceID);
@@ -47,12 +53,12 @@ const getTherapists = async (req, res) => {
     // Step 1: Find therapists offering this service
     const therapists = await TherapistProfiles.find({
       specializations: serviceID,
-    }).populate("userId", "email avatar_url")
-      .populate("specializations","name");
-
+    })
+      .populate("userId", "email avatar_url")
+      .populate("specializations", "name");
 
     if (!therapists.length) {
-      return res.json({ message: 'no therapist available' });
+      return res.json({ therapists: [] });
     }
 
     const therapistIds = therapists.map((t) => t._id);
@@ -63,7 +69,7 @@ const getTherapists = async (req, res) => {
       date: new Date(`${year}-${month}-${day}T00:00:00.000Z`), // exact day
     });
 
-    // Step 3: Filter available therapists
+    // Step 3: Filter available therapists based on availability blocks
     const availableTherapistIds = availabilities
       .filter((av) =>
         av.blocks.some((block) => {
@@ -84,7 +90,7 @@ const getTherapists = async (req, res) => {
       .map((av) => av.therapistId.toString());
 
     if (!availableTherapistIds.length) {
-      return res.json({ message: 'no therapist available' });
+      return res.json({ therapists: [] });
     }
 
     // Step 4: Exclude therapists with conflicting bookings
@@ -103,7 +109,7 @@ const getTherapists = async (req, res) => {
       b.therapistId.toString()
     );
 
-    // Final list
+    // Final list (only available and not booked)
     const finalTherapists = therapists.filter(
       (t) =>
         availableTherapistIds.includes(t._id.toString()) &&
@@ -119,4 +125,4 @@ const getTherapists = async (req, res) => {
   }
 };
 
-module.exports =  getTherapists ;
+module.exports = getTherapists;
