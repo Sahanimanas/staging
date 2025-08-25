@@ -1,5 +1,5 @@
 const TherapistAvailability = require("../../../models/AvailabilitySchema.js");
-
+const mongoose = require("mongoose");
 /**
  * Delete entire availability for a specific date
  */
