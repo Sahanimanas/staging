@@ -52,7 +52,8 @@ console.log(token)
       email,
       token,
       type: "login",
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) //7 din
+      
     });
 
     // ✅ 8. Send response
