@@ -40,6 +40,10 @@ const deleteAvailabilityBlocks = async (req, res) => {
   try {
     const { therapistId, date, blocksToDelete } = req.body;
 
+    if (!mongoose.Types.ObjectId.isValid(therapistId)) {
+      return res.status(400).json({ error: "Invalid therapistId" });
+    }
+
     if (!therapistId || !date || !Array.isArray(blocksToDelete) || blocksToDelete.length === 0) {
       return res.status(400).json({ error: "therapistId, date, and blocksToDelete array are required" });
     }
@@ -53,14 +57,13 @@ const deleteAvailabilityBlocks = async (req, res) => {
       return res.status(404).json({ message: "No availability found for the given date" });
     }
 
-    // Remove specified blocks
+    // Filter out blocks to delete
     availability.blocks = availability.blocks.filter(
       (block) => !blocksToDelete.some(
         (delBlock) => delBlock.startTime === block.startTime && delBlock.endTime === block.endTime
       )
     );
 
-    // If no blocks left after deletion, remove the entire record
     if (availability.blocks.length === 0) {
       await TherapistAvailability.deleteOne({ therapistId, date: normalizedDate });
       return res.status(200).json({ message: "All blocks deleted. Availability removed for the date." });
@@ -77,5 +80,6 @@ const deleteAvailabilityBlocks = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 module.exports = { deleteAvailabilityByDate, deleteAvailabilityBlocks };
