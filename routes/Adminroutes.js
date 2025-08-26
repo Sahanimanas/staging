@@ -1,7 +1,8 @@
-const login_User = require('../controller/admin/adminlogin');
+
 const express = require('express');
 const router = express.Router();
-
-router.post('/login', login_User);
+const verifyadmin = require('../middlewares/verifyadmin.js');   
+const dashboard = require('../controller/admin/dashboard.js');
+router.get('/dashboard', verifyadmin, dashboard);
 
 module.exports = router;

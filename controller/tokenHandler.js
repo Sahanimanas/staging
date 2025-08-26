@@ -22,8 +22,9 @@ const tokenHandler = async (req, res) => {
 
     // 2. Match user by email
     const user = await User.findOne({ email });
-    console.log(user)
-    console.log(decoded.userId)
+
+
+    
     if (!user || user._id.toString() !== decoded.userId) {
       return res.status(403).json({ message: "Token does not match user" });
     }

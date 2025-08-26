@@ -18,7 +18,8 @@ const UserSchema = new Schema(
       enum: ["client", "therapist", "admin"],
       required: true,
     },
-
+ googleId: String,
+ appleId: String,
     avatar_url: String,
    address: {
     type: {

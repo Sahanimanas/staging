@@ -29,8 +29,8 @@ const login_User = async (req, res) => {
       { _id: user._id },
       { lastSignInAt: new Date() }
     );
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+    const token = jwt.sign( { userId: user._id, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: "2d",
     });
     await Token.create({
       userId: user._id,
