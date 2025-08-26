@@ -62,6 +62,7 @@ console.log(token)
       message: "Login successful",
       token,
       userId: user._id,
+      name: user.name,
       therapistId: therapist._id
     });
 

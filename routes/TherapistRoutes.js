@@ -15,7 +15,7 @@ router.post('/blocks',require('../controller/therapistController/schedule/delete
 router.get('/availability/:id',require('../controller/therapistController/schedule/getAvailabilityById.js'));
 router.post('/availability/copy',require('../controller/therapistController/schedule/copyavailability.js'));
 router.get("/dashboard/:therapistId",require('../controller/therapistController/Dashboard/dashboard.js'));
-
+router.post('/bookings/revenue',require('../controller/therapistController/Dashboard/revenue.js'));
 router.post("/reset", require('../middlewares/verifyTherapist.js'), require('../controller/therapistController/schedule/DeleteEntireMonth.js'));
-
+router.post('/next7days',require('../controller/therapistController/schedule/next7days.js'));
 module.exports = router;

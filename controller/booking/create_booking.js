@@ -107,7 +107,7 @@ const createBooking = async (req, res) => {
       serviceId,
       therapistId,
       ritualPurchaseId,
-      date,
+      date: slotStart,
       slotStart,
       slotEnd,
       status: "confirmed",  //test

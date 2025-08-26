@@ -2,7 +2,9 @@ const User = require("../models/userSchema");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const express = require('express')
+const express = require('express');
+const { type } = require("os");
+const tokenSchema = require("../models/tokenSchema");
 require('dotenv').config();
 
 const forgotPassword = async (req, res) => {
@@ -14,12 +16,12 @@ const forgotPassword = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     // ✅ Create JWT token for reset
-    const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "15m" // expires in 15 minutes
     });
-
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-console.log(process.env.FRONTEND_URL)
+   
+    const resetUrl = `${process.env.FRONTEND_URL}/auth/resetpassword/${resetToken}`;
+    console.log(process.env.FRONTEND_URL);
     // ✅ Send email with reset link
     const transporter = nodemailer.createTransport({
       service: "gmail", // or your email service
@@ -27,6 +29,12 @@ console.log(process.env.FRONTEND_URL)
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       }
+    });
+    const token = await tokenSchema.create({
+      userId: user._id,
+      token: resetToken,
+      type: "password_reset",
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
     });
 
     await transporter.sendMail({

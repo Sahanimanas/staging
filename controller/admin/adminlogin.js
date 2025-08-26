@@ -41,7 +41,7 @@ const login_User = async (req, res) => {
     }); // 7 days expiry
     return res
       .status(200)
-      .json({ success: true, message: "login successfull", token });
+      .json({ success: true, message: "login successfull", token , name: user.name,});
   } catch (error) {
     return res.status(500).json({ message: "Server error" });
   }
