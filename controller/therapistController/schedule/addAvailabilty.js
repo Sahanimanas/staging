@@ -3,59 +3,77 @@ const TherapistAvailability = require("../../../models/AvailabilitySchema.js");
 /**
  * Add or update therapist availability for a specific date
  */
+
 const addAvailability = async (req, res) => {
   try {
     const { therapistId, date, blocks } = req.body;
 
-    // ✅ Validate input
-    if (!therapistId || !date || !blocks || !Array.isArray(blocks) || blocks.length === 0) {
+    if (!therapistId || !date || !blocks || !Array.isArray(blocks)) {
       return res.status(400).json({ error: "therapistId, date, and blocks are required" });
     }
 
-    // ✅ Normalize date (start of the day)
     const normalizedDate = new Date(date);
     normalizedDate.setUTCHours(0, 0, 0, 0);
 
-    // ✅ Find existing availability for that date
     let availability = await TherapistAvailability.findOne({ therapistId, date: normalizedDate });
-
-    if (availability) {
-      // ✅ Merge blocks without duplicates
-      const existingBlocks = availability.blocks.map(b => `${b.start}-${b.end}`);
-      const newBlocks = [];
-
-      for (const block of blocks) {
-        const key = `${block.start}-${block.end}`;
-        if (!existingBlocks.includes(key)) {
-          newBlocks.push(block);
-        }
-      }
-
-      if (newBlocks.length === 0) {
-        return res.status(200).json({ message: "No new slots added. All blocks already exist.", availability });
-      }
-
-      availability.blocks = [...availability.blocks, ...newBlocks];
-      await availability.save();
-
-      return res.status(200).json({
-        message: "New availability blocks added successfully",
-        addedBlocks: newBlocks,
-        availability
+    if (!availability) {
+      availability = new TherapistAvailability({
+        therapistId,
+        date: normalizedDate,
+        blocks: []
       });
     }
 
-    // ✅ Create new availability if none exists
-    availability = new TherapistAvailability({
-      therapistId,
-      date: normalizedDate,
-      blocks
-    });
+    const toMinutes = (time) => {
+      const [h, m] = time.split(":").map(Number);
+      return h * 60 + m;
+    };
 
+    const validBlocks = [];
+    const skippedInvalid = [];
+    const skippedConflicts = [];
+
+    // Sort incoming blocks by startTime for easier conflict checks
+    const sortedBlocks = blocks.sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime));
+
+    for (let i = 0; i < sortedBlocks.length; i++) {
+      const block = sortedBlocks[i];
+      const start = toMinutes(block.startTime);
+      const end = toMinutes(block.endTime);
+
+      if (end <= start) {
+        skippedInvalid.push(block);
+        continue;
+      }
+
+      // Check if this block overlaps with any already accepted block
+      const isConflict = validBlocks.some((b) => {
+        const bStart = toMinutes(b.startTime);
+        const bEnd = toMinutes(b.endTime);
+        return start < bEnd && end > bStart;
+      });
+
+      if (isConflict) {
+        skippedConflicts.push(block);
+        continue;
+      }
+
+      validBlocks.push(block);
+    }
+
+    // ✅ Replace old blocks with new valid ones
+    availability.blocks = validBlocks;
     await availability.save();
-    return res.status(201).json({ message: "Availability added successfully", availability });
+
+    return res.status(200).json({
+      message: "Availability updated successfully",
+      updatedBlocks: validBlocks,
+      skippedInvalid,
+      skippedConflicts,
+      availability
+    });
   } catch (error) {
-    console.error("Error adding availability:", error.message);
+    console.error("Error updating availability:", error.message);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };

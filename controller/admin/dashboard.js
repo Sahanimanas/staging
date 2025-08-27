@@ -1,40 +1,98 @@
 const Booking = require("../../models/BookingSchema");
+const Therapist = require("../../models/TherapistProfiles.js");
 
-const dashboard = async (req, res) => {
+const getDashboardStats = async (req, res) => {
   try {
-    const now = new Date();
-    const sevenDaysLater = new Date();
-    sevenDaysLater.setDate(now.getDate() + 7);
+    const { filter } = req.query;
+    let startDate, endDate;
 
-    const totalBookings = await Booking.countDocuments();
-    const upcoming = await Booking.countDocuments({
-      appointmentDate: { $gte: now, $lte: sevenDaysLater }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (filter === "today") {
+      startDate = new Date(today);
+      endDate = new Date(today);
+      endDate.setHours(23, 59, 59, 999);
+    } else if (filter === "week") {
+      const firstDayOfWeek = new Date(today);
+      firstDayOfWeek.setDate(today.getDate() - today.getDay());
+      firstDayOfWeek.setHours(0, 0, 0, 0);
+
+      const lastDayOfWeek = new Date(today);
+      lastDayOfWeek.setDate(today.getDate() + (6 - today.getDay()));
+      lastDayOfWeek.setHours(23, 59, 59, 999);
+
+      startDate = firstDayOfWeek;
+      endDate = lastDayOfWeek;
+    } else if (filter === "month") {
+      startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      endDate.setHours(23, 59, 59, 999);
+    } else {
+      return res.status(400).json({ error: "Invalid filter" });
+    }
+
+    // Common match condition
+    const dateCondition = { $gte: startDate, $lte: endDate };
+
+    // Total bookings in the range
+    const totalBookings = await Booking.countDocuments({
+      createdAt: dateCondition,
     });
-    const completed = await Booking.countDocuments({ status: "completed" });
-    const cancelled = await Booking.countDocuments({ status: "cancelled" });
-   const revenueAgg = await Booking.aggregate([
-  { $match: { status: "completed" } },
-  { $group: { _id: null, total: { $sum: "$price.amount" } } }
-]);
 
-const revenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
+    // Active therapists
+    const activeTherapists = await Therapist.countDocuments({ isActive: true });
 
-    const completionRate = totalBookings ? ((completed / totalBookings) * 100).toFixed(2) : 0;
-    const cancellationRate = totalBookings ? ((cancelled / totalBookings) * 100).toFixed(2) : 0;
+    // Completed sessions (in the date range)
+    const todaysSessions = await Booking.countDocuments({
+      date: dateCondition,
+      status: "completed",
+    });
 
-    res.json({
+    // Pending bookings in the date range
+    const pendingBookings = await Booking.countDocuments({
+      createdAt: dateCondition,
+      status: "pending",
+    });
+
+    // Cancelled bookings in the date range
+    const cancelledBookings = await Booking.countDocuments({
+      createdAt: dateCondition,
+      status: "cancelled",
+    });
+
+    // Upcoming sessions (future bookings)
+    const upcoming = await Booking.countDocuments({
+      date: { $gte: new Date() },
+      status: "pending",
+    });
+
+    // Revenue for completed bookings
+    const revenueAgg = await Booking.aggregate([
+      {
+        $match: {
+          createdAt: dateCondition,
+          status: "completed",
+        },
+      },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+
+    const revenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
+
+    return res.json({
       totalBookings,
+      activeTherapists,
+      todaysSessions,
+      pendingBookings,
+      cancelledBookings,
       upcoming,
-      completed,
-      cancelled,
       revenue,
-      completionRate: `${completionRate}%`,
-      cancellationRate: `${cancellationRate}%`
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Server Error" });
+    res.status(500).json({ error: "Server error" });
   }
 };
 
-module.exports = dashboard;
+module.exports =  getDashboardStats ;

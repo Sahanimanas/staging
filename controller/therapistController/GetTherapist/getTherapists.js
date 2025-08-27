@@ -58,31 +58,35 @@ const getTherapists = async (req, res) => {
       .populate("specializations", "name");
 
     if (!therapists.length) {
-      return res.json({ therapists: [] });
+      return res.status(404).json({ therapists: [] });
     }
-
     const therapistIds = therapists.map((t) => t._id);
 
-    // Step 2: Get availability for that day
-    const availabilities = await AvailabilitySchema.find({
-      therapistId: { $in: therapistIds },
-      date: new Date(`${year}-${month}-${day}T00:00:00.000Z`), // exact day
-    });
+const dayStart = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+const dayEnd = new Date(`${year}-${month}-${day}T23:59:59.999Z`);
 
-    // Step 3: Filter available therapists based on availability blocks
-    const availableTherapistIds = availabilities
-      .filter((av) =>
-        av.blocks.some((block) => {
+const availabilities = await AvailabilitySchema.find({
+  therapistId: { $in: therapistIds },
+  date: { $gte: dayStart, $lte: dayEnd },
+});
+
+
+// Step 3: Filter available therapists based on availability blocks
+const availableTherapistIds = availabilities
+  .filter((av) =>
+    av.blocks.some((block) => {
           if (!block.isAvailable) return false;
 
           const [bh, bm] = block.startTime.split(":").map(Number);
           const [eh, em] = block.endTime.split(":").map(Number);
-
+       
           const blockStart = new Date(av.date);
-          blockStart.setHours(bh, bm, 0, 0);
-
+          blockStart.setUTCHours(bh, bm, 0, 0);
+  
           const blockEnd = new Date(av.date);
-          blockEnd.setHours(eh, em, 0, 0);
+          blockEnd.setUTCHours(eh, em, 0, 0);
+
+          console.log(blockStart, blockEnd);
 
           return slotStart >= blockStart && slotEnd <= blockEnd;
         })

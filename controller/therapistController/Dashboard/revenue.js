@@ -15,10 +15,10 @@ const getRevenueReport = async (req, res) => {
     }
 
    const start = new Date(startDate);
-start.setHours(0, 0, 0, 0); // Start of the day
+start.setUTCHours(0, 0, 0, 0); // Start of the day
 
 const end = new Date(endDate);
-end.setHours(23, 59, 59, 999); // End of the day
+end.setUTCHours(23, 59, 59, 999); // End of the day
 
 const bookings = await Booking.find({
   therapistId,
@@ -48,7 +48,6 @@ const bookings = await Booking.find({
         date: booking.date,
         clientName: booking.clientId?.name || "Unknown",
         paymentAmount: amount,
-        currency: booking.price?.currency || "GBP"
       };
     });
 
