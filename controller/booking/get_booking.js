@@ -7,7 +7,7 @@ const getAllBookings = async (req, res) => {
       .populate("clientId", "name email")
       .populate("therapistId", "name email")
       .populate("serviceId", "name")
-      .populate("ritualPurchaseId");
+      
     res.json({ success: true, bookings });
   } catch (error) {
     console.error("Error fetching bookings:", error);
@@ -22,8 +22,7 @@ const getBookingById = async (req, res) => {
       .populate("clientId", "name email")
       .populate("therapistId", "name email")
       .populate("serviceId", "name")
-      .populate("ritualPurchaseId");
-
+     
     if (!booking) {
       return res.status(404).json({ success: false, error: "Booking not found" });
     }

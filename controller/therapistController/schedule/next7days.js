@@ -14,7 +14,7 @@ const getNext7DaysAvailability = async (req, res) => {
 
     // Start date = today at 00:00:00
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
 
     // End date = today + 6 days
     const endDate = new Date(today);

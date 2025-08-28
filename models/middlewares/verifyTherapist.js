@@ -1,4 +1,4 @@
-const TherapistProfile = require('../models/TherapistProfiles')
+const TherapistProfile = require('../TherapistProfiles')
 
 const verifyTherapist = async (req, res, next) => {
   try {

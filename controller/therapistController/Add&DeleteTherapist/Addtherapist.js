@@ -13,6 +13,7 @@ const addTherapist = async (req, res) => {
       phone,
       password,
       avatar_url,
+      Postcode,
       address,
       timezone
     } = req.body;
@@ -42,6 +43,7 @@ const addTherapist = async (req, res) => {
       passwordHash,
       role: "therapist",
       avatar_url,
+      Postcode,
       address,
       timezone,
       profileComplete: false // default

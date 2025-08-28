@@ -11,7 +11,7 @@ const verifyEmailOtp = async (req, res) => {
     if (!email || !otpCode) {
       return res.status(400).json({ message: "Email and OTP are required" });
     }
-
+ console.log(email, otpCode, purpose);
     // 1. Find OTP record
     const record = await OTP.findOne({
       email,

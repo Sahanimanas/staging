@@ -14,11 +14,14 @@ const registerUser = async (req, res) => {
     const existingUser = await User.findOne({ email: email.toLowerCase() });
 
     if (existingUser) {
-
-      // const otp = await sendotp(existingUser._id, email, "registration" );
-      return res.status(200).json({
-        message: "Email already in use, please login.",
-      });
+      if (!existingUser.emailVerified) {
+         await User.findByIdAndDelete(existingUser._id);
+      } 
+      else {
+        return res.status(200).json({
+          message: "Email already in use, please login.",
+        });
+      }
     }
 
     // 2. Hash password
@@ -37,9 +40,12 @@ const registerUser = async (req, res) => {
      
     });
  
-    const otp = await sendotp(user._id, email);
-
-     return res.status(201).json({
+    const otp = await sendotp(user._id, email, "registration");
+    if (otp !== "OTP sent successfully") {
+      await User.findByIdAndDelete(user._id); // Rollback user creation
+      return res.status(500).json({ message: "Failed to send OTP" });
+    }
+    return res.status(201).json({
       message: " Please verify your email with the OTP sent.",
     });
   } catch (err) {

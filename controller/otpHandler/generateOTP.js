@@ -45,7 +45,7 @@ const sendotp = async (userID, email, purpose) => {
 });
   return "OTP sent successfully";
   } catch (err) {
-  
+  console.log(err.message);
     throw new Error("otp not sent");
   }
 };
