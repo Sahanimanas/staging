@@ -9,8 +9,8 @@ const BookingSchema = new Schema({
   ritualPurchaseId: { type: Schema.Types.ObjectId, ref: "RitualPurchase" } || { type: String },
   bookingCode: { type: String, unique: true },
   date: { type: Date, required: true }, // if from bundle
-  slotStart: { type: String, required: true },
-  slotEnd:  { type: String, required: true },
+  slotStart: { type: Date, required: true },
+  slotEnd:  { type: Date, required: true },
   status: { type: String, enum: ["confirmed", "cancelled", "completed","pending"], default: "confirmed" },
   paymentStatus: { type: String, enum: ["pending", "paid", "failed"], default: "pending" },
   price: { amount: Number, currency: String },

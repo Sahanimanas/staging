@@ -26,7 +26,7 @@ const authMiddleware = require('../models/middlewares/authtoken.js');
  *       500:
  *         description: Server error
  */
-router.get('/list', authMiddleware, getAllServices);
-
+router.get('/list', getAllServices);
+router.get('/', require('../controller/services/getServices.js'));
 
 module.exports = router;

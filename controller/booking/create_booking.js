@@ -1,52 +1,73 @@
-/**
- * @api {post} /booking/create Create a new booking
- * @apiName CreateBooking
- * @apiGroup Booking
- *
- * @apiDescription
- * Creates a new booking for a client with a therapist for a specific service and time slot.
- *
- * @apiBody {String} clientId           The ID of the client/user (required).
- * @apiBody {String} therapistId        The ID of the therapist (required).
- * @apiBody {String} serviceId          The ID of the service (required).
- * @apiBody {String} ritualPurchaseId   The ID of a ritual purchase (if applicable).
- * @apiBody {String} date               The date for the booking (YYYY-MM-DD, required).
- * @apiBody {String} slotStart          Start time of the slot (HH:mm, required).
- * @apiBody {String} slotEnd            End time of the slot (HH:mm, required).
- * @apiBody {String} paymentStatus      Payment status (e.g., 'pending', 'paid').
- * @apiBody {Number} price              Price for the booking.
- * @apiBody {Boolean} eliteHourSurcharge Whether elite hour surcharge applies.
- * @apiBody {String} notes              Additional notes (optional).
- *
- * @apiSuccess (success 201) {String} message   Success message.
- * @apiSuccess (success 201) {Object} booking  The created booking object.
- *
- * @apiError (Error 400)  {String} message  Missing required fields.
- * @apiError (Error 500)  {String} message  Server error.
- *
- * @apiExample {json} Request-Example:
- *     POST /booking/create
- *     {
- *       "clientId": "123",
- *       "therapistId": "789",
- *       "serviceId": "456",
- *       "ritualPurchaseId": "abc",
- *       "date": "2025-08-21",
- *       "slotStart": "08:00",
- *       "slotEnd": "09:00",
- *       "paymentStatus": "pending",
- *       "price": 100,
- *       "eliteHourSurcharge": false,
- *       "notes": "Please be on time."
- *     }
- */
-
 const Booking = require("../../models/BookingSchema");
 const Service = require("../../models/ServiceSchema");
 const User = require("../../models/userSchema");
+const AvailabilitySchema = require("../../models/AvailabilitySchema");
 const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const checkoutsession = require('../../models/temporary');
+
+/**
+ * Helper to split availability blocks after a booking
+ */
+function blockBookedSlot(blocks, slotStart, slotEnd) {
+  const newBlocks = [];
+
+  blocks.forEach(block => {
+    if (!block.isAvailable) {
+      newBlocks.push(block);
+      return;
+    }
+
+    const [bh, bm] = block.startTime.split(":").map(Number);
+    const [eh, em] = block.endTime.split(":").map(Number);
+  
+    const blockStart = bh * 60 + bm; // block start in minutes
+    const blockEnd = eh * 60 + em;
+    const bookingStart = slotStart.getUTCHours() * 60 + slotStart.getUTCMinutes();
+    const bookingEnd = slotEnd.getUTCHours() * 60 + slotEnd.getUTCMinutes();
+
+    // If booking is completely outside this block
+    if (bookingEnd <= blockStart || bookingStart >= blockEnd) {
+      newBlocks.push(block);
+      return;
+    }
+
+    // --- Before booking ---
+    if (bookingStart > blockStart) {
+      newBlocks.push({
+        startTime: formatTime(blockStart),
+        endTime: formatTime(bookingStart),
+        isAvailable: true
+      });
+    }
+
+    // --- Booked slot ---
+    newBlocks.push({
+      startTime: formatTime(Math.max(bookingStart, blockStart)),
+      endTime: formatTime(Math.min(bookingEnd, blockEnd)),
+      isAvailable: false
+    });
+
+    // --- After booking ---
+    if (bookingEnd < blockEnd) {
+      newBlocks.push({
+        startTime: formatTime(bookingEnd),
+        endTime: formatTime(blockEnd),
+        isAvailable: true
+      });
+    }
+  });
+// console.log(newBlocks)
+  return newBlocks;
+}
+
+// helper: convert minutes → HH:mm
+function formatTime(minutes) {
+  const h = String(Math.floor(minutes / 60)).padStart(2, "0");
+  const m = String(minutes % 60).padStart(2, "0");
+  return `${h}:${m}`;
+}
+
 const createBooking = async (req, res) => {
   try {
     const {
@@ -60,29 +81,26 @@ const createBooking = async (req, res) => {
       notes,
     } = req.body;
 
-    // 1. Validate required fields
     if (!email || !therapistId || !serviceId || !date || !time || optionIndex === undefined) {
       return res.status(400).json({ message: "Missing required fields" });
     }
-
+console.log(req.body)
     const ritualPurchaseId = ritualPurchaseid || null;
 
-    // 2. Find client
+    // Find client
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // 3. Parse date + time
-    const slotStart = new Date(date);
+    // Parse date + time in UTC
+    const [year, month, day] = date.split("-").map(Number);
     const [hours, minutes] = time.split(":").map(Number);
-    slotStart.setUTCHours(hours, minutes, 0, 0);
+    const slotStart = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0, 0));
 
     if (isNaN(slotStart.getTime())) {
       return res.status(400).json({ error: "Invalid date or time format" });
     }
 
-    // 4. Fetch service and option
+    // Fetch service and option
     const serviceDoc = await Service.findById(serviceId);
     if (!serviceDoc) return res.status(404).json({ error: "Service not found" });
 
@@ -91,37 +109,48 @@ const createBooking = async (req, res) => {
 
     const slotEnd = new Date(slotStart.getTime() + option.durationMinutes * 60000);
 
-    // 5. Price calculation
+    // Price calculation
     let finalPrice = option.price.amount;
     let surcharge = false;
     const hour = slotStart.getUTCHours();
-
     if (hour >= 23 || hour < 9) {
       surcharge = true;
       finalPrice += 15;
     }
+ 
+const newdate = new Date(slotStart); // copy original date
+newdate.setUTCHours(0, 0, 0, 0);
 
-    // 6. Create booking
+   
+    // Create booking
     const booking = await Booking.create({
       clientId: user._id,
       serviceId,
       therapistId,
       ritualPurchaseId,
-      date: slotStart,
+      date: newdate,
       slotStart,
       slotEnd,
-      status: "confirmed",  //test
-      paymentStatus: "paid",//test  
+      status: "confirmed",
+      paymentStatus: "paid",
       price: { amount: finalPrice, currency: "gbp" },
       eliteHourSurcharge: surcharge,
       notes,
     });
 
-    // 7. Create Stripe checkout session
-    const amount = Math.round(finalPrice * 100);
+    // Block the booked slot from availability
+    const availabilityDoc = await AvailabilitySchema.findOne({
+      therapistId,
+      date: newdate
+    });
 
-    console.log(booking._id.toString());
-    
+    if (availabilityDoc) {
+      availabilityDoc.blocks = blockBookedSlot(availabilityDoc.blocks, slotStart, slotEnd);
+      await availabilityDoc.save();
+    }
+    // console.log("Updated availability blocks", availabilityDoc.blocks);
+    // Stripe checkout session
+    const amount = Math.round(finalPrice * 100);
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
@@ -138,24 +167,21 @@ const createBooking = async (req, res) => {
           quantity: 1,
         },
       ],
-     
       success_url: `http://localhost:5173/paymentsuccess?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `http://localhost:5173/paymentfailed`,
-
       customer_email: user.email,
-      metadata: {
-        bookingId: "book_011",
-       
-      },
+      metadata: { bookingId: "book_011" },
     });
-  await checkoutsession.create({
-     sessionId: session.id,
-     customerEmail: user.email,
-     amountTotal: session.amount_total,
-     currency: session.currency,
-     status: session.status,
-     rawData: session,
-   });
+
+    await checkoutsession.create({
+      sessionId: session.id,
+      customerEmail: user.email,
+      amountTotal: session.amount_total,
+      currency: session.currency,
+      status: session.status,
+      rawData: session,
+    });
+
     return res.json({ url: session.url });
 
   } catch (error) {

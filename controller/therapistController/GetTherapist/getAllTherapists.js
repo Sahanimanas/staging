@@ -20,28 +20,28 @@ const getAllTherapists = async (req, res) => {
     }
 
     // ✅ Fetch paginated therapists
-    const therapists = await User.find({ role: "therapist" })
+    const users = await User.find({ role: "therapist" })
       .select("-passwordHash")
       .skip(skip)
       .limit(limit)
       .lean();
 
-    const therapistIds = therapists.map((t) => t._id);
+    const usersIds = users.map((t) => t._id);
 
     // ✅ Fetch therapist profiles with populated specialization names
-    const profiles = await TherapistProfile.find({ userId: { $in: therapistIds } })
+    const profiles = await TherapistProfile.find({ userId: { $in: usersIds } })
       .populate("specializations", "name -_id")
       .lean();
 
     // ✅ Merge user + profile
-    const result = therapists.map((user) => {
+    const result = users.map((user) => {
       const profile = profiles.find(
         (p) => p.userId.toString() === user._id.toString()
       );
       return {
         ...user,
         profile: profile
-          ? {
+          ? { _id: profile._id,
               ...profile,
               specializations: profile.specializations?.map((s) => s.name) || [],
             }

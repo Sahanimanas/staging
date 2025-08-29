@@ -10,6 +10,8 @@ const BookingSchema = require("../../../models/BookingSchema");
  * @desc Get available therapists based on service, date & time
  * @body { service: { serviceId, optionIndex }, date (DD-MM-YYYY), time (HH:mm) }
  */
+
+
 const getTherapists = async (req, res) => {
   try {
     const { service, date, time } = req.body;
@@ -24,7 +26,7 @@ const getTherapists = async (req, res) => {
     }
 
     // Parse date & time
-    const [day, month, year] = date.split("-");
+    const [year, month, day] = date.split("-");
     const slotStart = new Date(`${year}-${month}-${day}T${time}:00.000Z`);
 
     if (isNaN(slotStart.getTime())) {
@@ -35,7 +37,9 @@ const getTherapists = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // normalize
     if (slotStart < today) {
-      return res.status(400).json({ error: "Selected date cannot be in the past" });
+      return res
+        .status(400)
+        .json({ error: "Selected date cannot be in the past" });
     }
 
     // Create a new mongoose ObjectId
@@ -43,12 +47,15 @@ const getTherapists = async (req, res) => {
 
     // Fetch service duration
     const serviceDoc = await ServiceSchema.findById(serviceID);
-    if (!serviceDoc) return res.status(404).json({ error: "Service not found" });
+    if (!serviceDoc)
+      return res.status(404).json({ error: "Service not found" });
 
     const option = serviceDoc.options[service.optionIndex];
     if (!option) return res.status(400).json({ error: "Invalid option index" });
 
-    const slotEnd = new Date(slotStart.getTime() + option.durationMinutes * 60000);
+    const slotEnd = new Date(
+      slotStart.getTime() + option.durationMinutes * 60000
+    );
 
     // Step 1: Find therapists offering this service
     const therapists = await TherapistProfiles.find({
@@ -61,32 +68,31 @@ const getTherapists = async (req, res) => {
       return res.status(404).json({ therapists: [] });
     }
     const therapistIds = therapists.map((t) => t._id);
+    const dayStart = new Date(slotStart);
+    dayStart.setUTCHours(0, 0, 0, 0); // start of the day in UTC
 
-const dayStart = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
-const dayEnd = new Date(`${year}-${month}-${day}T23:59:59.999Z`);
+    const dayEnd = new Date(slotStart);
 
-const availabilities = await AvailabilitySchema.find({
-  therapistId: { $in: therapistIds },
-  date: { $gte: dayStart, $lte: dayEnd },
-});
+    const availabilities = await AvailabilitySchema.find({
+      therapistId: { $in: therapistIds },
+      date: { $gte: dayStart, $lte: dayEnd },
+    });
 
-
-// Step 3: Filter available therapists based on availability blocks
-const availableTherapistIds = availabilities
-  .filter((av) =>
-    av.blocks.some((block) => {
+    // Step 3: Filter available therapists based on availability blocks
+    const availableTherapistIds = availabilities
+      .filter((av) =>
+        av.blocks.some((block) => {
           if (!block.isAvailable) return false;
 
           const [bh, bm] = block.startTime.split(":").map(Number);
           const [eh, em] = block.endTime.split(":").map(Number);
-       
+
           const blockStart = new Date(av.date);
           blockStart.setUTCHours(bh, bm, 0, 0);
-  
+
           const blockEnd = new Date(av.date);
           blockEnd.setUTCHours(eh, em, 0, 0);
 
-          console.log(blockStart, blockEnd);
 
           return slotStart >= blockStart && slotEnd <= blockEnd;
         })
@@ -103,8 +109,8 @@ const availableTherapistIds = availabilities
       date: new Date(`${year}-${month}-${day}T00:00:00.000Z`),
       $or: [
         {
-          slotStart: { $lt: slotEnd.toISOString().slice(11, 16) },
-          slotEnd: { $gt: slotStart.toISOString().slice(11, 16) },
+          slotStart: { $lt: slotEnd },
+          slotEnd: { $gt: slotStart },
         },
       ],
     });
@@ -119,6 +125,7 @@ const availableTherapistIds = availabilities
         availableTherapistIds.includes(t._id.toString()) &&
         !bookedTherapistIds.includes(t._id.toString())
     );
+
 
     return res.json({
       therapists: finalTherapists,
