@@ -24,6 +24,6 @@ router.post('/therapistprofile',require('../controller/therapistController/Profi
 //by Therapist flow
 
 router.get('/list', require('../controller/therapistController/GetTherapist/bytherpist/getTherapist.js'));
-
+router.get('/:therapistId/services', require('../controller/services/therapistServices.js'));
 
 module.exports = router;

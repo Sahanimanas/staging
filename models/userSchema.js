@@ -24,11 +24,11 @@ const UserSchema = new Schema(
     avatar_url: String,
     address: {
       type: {
-        Building_No: { type: String, required: true },
-        Street: { type: String, required: true },
+        Building_No: { type: String, required: false },
+        Street: { type: String, required: false },
         Locality: { type: String }, // optional
-        PostTown: { type: String, default: "LONDON", required: true },
-        Postcode: {
+        PostTown: { type: String, default: "LONDON", required: false },
+        PostalCode: {
           type: String,
           required: true,
           validate: {
