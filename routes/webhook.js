@@ -1,6 +1,6 @@
 const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-// const temporary = require("../models/temporary.js");
+const temporary = require("../models/temporary.js");
 
 // ✅ Stripe needs raw body to verify signature
 const webhook = async (req, res) => {
@@ -27,23 +27,23 @@ const webhook = async (req, res) => {
       console.log("✅ Checkout completed:", session.id);
       console.log("Customer Email:", session.customer_details?.email);
 
-      // try {
-      //   await temporary.findOneAndUpdate(
-      //     { sessionId: session.id },
-      //     {
-      //       paymentIntentId: session.payment_intent,
-      //       customerEmail: session.customer_details?.email, // ✅ save customer email
-      //       amountTotal: session.amount_total,      // optional: save total amount
-      //       currency: session.currency,
-      //       status: session.status,
-      //     },
-      //     { upsert: true, new: true }
-      //   );
+      try {
+        await temporary.findOneAndUpdate(
+          { sessionId: session.id },
+          {
+            paymentIntentId: session.payment_intent,
+            customerEmail: session.customer_details?.email, // ✅ save customer email
+            amountTotal: session.amount_total,      // optional: save total amount
+            currency: session.currency,
+            status: session.status,
+          },
+          { upsert: true, new: true }
+        );
 
-      //   console.log("✅ Checkout session saved:", session.id);
-      // } catch (dbErr) {
-      //   console.error("❌ Failed to save session in DB:", dbErr.message);
-      // }
+        console.log("✅ Checkout session saved:", session.id);
+      } catch (dbErr) {
+        console.error("❌ Failed to save session in DB:", dbErr.message);
+      }
       break;
     }
 
@@ -51,20 +51,20 @@ const webhook = async (req, res) => {
       const intent = event.data.object;
       console.log("💰 Payment succeeded:", intent.id);
 
-      // try {
-      //   await temporary.findOneAndUpdate(
-      //     { paymentIntentId: intent.id },
-      //     {
-      //       status: intent.status,
-      //       amount: intent.amount,
-      //       currency: intent.currency,
-      //     },
-      //     { upsert: true, new: true }
-      //   );
-      //   console.log("✅ PaymentIntent saved:", intent.id);
-      // } catch (dbErr) {
-      //   console.error("❌ Failed to save PaymentIntent:", dbErr.message);
-      // }
+      try {
+        await temporary.findOneAndUpdate(
+          { paymentIntentId: intent.id },
+          {
+            status: intent.status,
+            amount: intent.amount,
+            currency: intent.currency,
+          },
+          { upsert: true, new: true }
+        );
+        console.log("✅ PaymentIntent saved:", intent.id);
+      } catch (dbErr) {
+        console.error("❌ Failed to save PaymentIntent:", dbErr.message);
+      }
       break;
     }
 
@@ -72,15 +72,15 @@ const webhook = async (req, res) => {
       const failedPayment = event.data.object;
       console.log("❌ Payment failed:", failedPayment.id);
 
-      // try {
-      //   await temporary.findOneAndUpdate(
-      //     { paymentIntentId: failedPayment.id },
-      //     { status: "failed" },
-      //     { upsert: true, new: true }
-      //   );
-      // } catch (dbErr) {
-      //   console.error("❌ Failed to save failed PaymentIntent:", dbErr.message);
-      // }
+      try {
+        await temporary.findOneAndUpdate(
+          { paymentIntentId: failedPayment.id },
+          { status: "failed" },
+          { upsert: true, new: true }
+        );
+      } catch (dbErr) {
+        console.error("❌ Failed to save failed PaymentIntent:", dbErr.message);
+      }
       break;
     }
 
