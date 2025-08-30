@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 const connectDB = require('./db/db.js');
 connectDB();
+
 const userroutes = require('./routes/userroutes')
 const Adminroutes = require('./routes/Adminroutes');
 const Bookingroute = require('./routes/BookingRoute.js');
@@ -22,11 +23,11 @@ const jwt = require('jsonwebtoken')
 const login_Therapist = require('./controller/therapistController/AUTH/therapistlogin.js'); 
 const { googleAuthCallback } = require('./routes/google.js');
 
-app.post('/webhook',  express.raw({ type: "application/json" }), require('./routes/webhook'));
-
+app.post('/webhook',  express.raw({ type: 'application/json' }), require('./routes/webhook'));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: '*' }));
-app.use(express.json());
+
 
 
 

@@ -4,7 +4,7 @@ const User = require("../../models/userSchema");
 const AvailabilitySchema = require("../../models/AvailabilitySchema");
 const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const checkoutsession = require('../../models/temporary');
+// const checkoutsession = require('../../models/temporary');
 
 /**
  * Helper to split availability blocks after a booking
@@ -173,14 +173,7 @@ newdate.setUTCHours(0, 0, 0, 0);
       metadata: { bookingId: "book_011" },
     });
 
-    await checkoutsession.create({
-      sessionId: session.id,
-      customerEmail: user.email,
-      amountTotal: session.amount_total,
-      currency: session.currency,
-      status: session.status,
-      rawData: session,
-    });
+  
 
     return res.json({ url: session.url });
 
