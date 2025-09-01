@@ -34,7 +34,33 @@ app.use(cors({ origin: '*' }));
 
 
 app.get('/', (req, res) => {
-  res.send('Hello from Express server!');
+  res.send(`<!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>My Basic HTML Page</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f5f5f5;
+          color: #333;
+          text-align: center;
+          padding-top: 50px;
+        }
+        h1 {
+          color: #007bff;
+        }
+        p {
+          font-size: 18px;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Welcome to My Website</h1>
+      <p>This is a basic HTML page served with Express.js</p>
+    </body>
+    </html>`);
 });
 
 app.use('/auth', require('./routes/google.js'));
