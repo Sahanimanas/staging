@@ -39,7 +39,7 @@ const getAllTherapists = async (req, res) => {
         (p) => p.userId.toString() === user._id.toString()
       );
       return {
-        ...user,
+      
         profile: profile
           ? { _id: profile._id,
               ...profile,
