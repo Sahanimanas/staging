@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -82,4 +83,3 @@ app.use('/auth',require('./routes/forgotpasswordRoute/forgotpass.js'))
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
