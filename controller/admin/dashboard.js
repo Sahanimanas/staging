@@ -7,27 +7,27 @@ const getDashboardStats = async (req, res) => {
     let startDate, endDate;
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
 
     if (filter === "today") {
       startDate = new Date(today);
       endDate = new Date(today);
-      endDate.setHours(23, 59, 59, 999);
+      endDate.setUTCHours(23, 59, 59, 999);
     } else if (filter === "week") {
       const firstDayOfWeek = new Date(today);
       firstDayOfWeek.setDate(today.getDate() - today.getDay());
-      firstDayOfWeek.setHours(0, 0, 0, 0);
+      firstDayOfWeek.setUTCHours(0, 0, 0, 0);
 
       const lastDayOfWeek = new Date(today);
       lastDayOfWeek.setDate(today.getDate() + (6 - today.getDay()));
-      lastDayOfWeek.setHours(23, 59, 59, 999);
+      lastDayOfWeek.setUTCHours(23, 59, 59, 999);
 
       startDate = firstDayOfWeek;
       endDate = lastDayOfWeek;
     } else if (filter === "month") {
       startDate = new Date(today.getFullYear(), today.getMonth(), 1);
       endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      endDate.setHours(23, 59, 59, 999);
+      endDate.setUTCHours(23, 59, 59, 999);
     } else {
       return res.status(400).json({ error: "Invalid filter" });
     }
