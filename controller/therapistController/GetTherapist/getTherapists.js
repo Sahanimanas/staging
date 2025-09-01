@@ -126,9 +126,9 @@ const getTherapists = async (req, res) => {
         !bookedTherapistIds.includes(t._id.toString())
     );
 
-
+   const profile = finalTherapists;
     return res.json({
-      therapists: finalTherapists,
+      therapists: profile,
     });
   } catch (error) {
     console.error("Error filtering therapists:", error);
