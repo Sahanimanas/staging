@@ -52,6 +52,7 @@ const addTherapist = async (req, res) => {
     await therapistUser.save();
 const therapistProfile = new TherapistProfiles({
   userId: therapistUser._id,
+  title: name,
   // Add any additional fields required for the therapist profile
 });
 await therapistProfile.save();

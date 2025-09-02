@@ -6,7 +6,7 @@ const { Schema } = mongoose;
 const ServiceSchema = new Schema({
   name: { type: String, required: true },
   tier: { type: String, enum: ["normal", "premium"], default: "normal" },
-
+  image_url: { type: String, required: false },  
   // Multiple duration + price combos
   options: [
     {

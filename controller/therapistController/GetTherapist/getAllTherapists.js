@@ -1,10 +1,6 @@
 const User = require("../../../models/userSchema.js");
 const TherapistProfile = require("../../../models/TherapistProfiles.js");
 
-/**
- * Get all therapists with optional profile data (specializations → names)
- * Supports pagination with query params: ?page=1&limit=10
- */
 const getAllTherapists = async (req, res) => {
   try {
     // ✅ Pagination params
@@ -12,15 +8,19 @@ const getAllTherapists = async (req, res) => {
     const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 10;
     const skip = (page - 1) * limit;
 
-    // ✅ Count total therapists
-    const totalTherapists = await User.countDocuments({ role: "therapist" });
+    // ✅ Find therapist profiles that accept new clients
+    const acceptingProfiles = await TherapistProfile.find({ acceptingNewClients: true }).lean();
+    const acceptingUserIds = acceptingProfiles.map((p) => p.userId);
+
+    // ✅ Count total therapists (only those accepting)
+    const totalTherapists = acceptingUserIds.length;
 
     if (!totalTherapists) {
       return res.status(404).json({ message: "No therapists found" });
     }
 
-    // ✅ Fetch paginated therapists
-    const users = await User.find({ role: "therapist" })
+    // ✅ Fetch paginated users who are therapists & accepting
+    const users = await User.find({ _id: { $in: acceptingUserIds }, role: "therapist" })
       .select("-passwordHash")
       .skip(skip)
       .limit(limit)
@@ -28,8 +28,11 @@ const getAllTherapists = async (req, res) => {
 
     const usersIds = users.map((t) => t._id);
 
-    // ✅ Fetch therapist profiles with populated specialization names
-    const profiles = await TherapistProfile.find({ userId: { $in: usersIds } })
+    // ✅ Fetch therapist profiles for these users
+    const profiles = await TherapistProfile.find({
+      userId: { $in: usersIds },
+      acceptingNewClients: true,
+    })
       .populate("specializations", "name -_id")
       .lean();
 
@@ -41,7 +44,8 @@ const getAllTherapists = async (req, res) => {
       return {
         ...user,
         profile: profile
-          ? { _id: profile._id,
+          ? {
+              _id: profile._id,
               ...profile,
               specializations: profile.specializations?.map((s) => s.name) || [],
             }
@@ -50,8 +54,8 @@ const getAllTherapists = async (req, res) => {
     });
 
     return res.status(200).json({
-      count: result.length,
-      total: totalTherapists,
+      count: result.length, // count on this page
+      total: totalTherapists, // total across all pages
       page,
       totalPages: Math.ceil(totalTherapists / limit),
       therapists: result,

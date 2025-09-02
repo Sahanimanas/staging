@@ -60,6 +60,7 @@ const getTherapists = async (req, res) => {
     // Step 1: Find therapists offering this service
     const therapists = await TherapistProfiles.find({
       specializations: serviceID,
+      acceptingNewClients: true,  
     })
       .populate("userId", "email avatar_url")
       .populate("specializations", "name");

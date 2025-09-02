@@ -30,7 +30,7 @@ const login_User = async (req, res) => {
 
     try{
        await User.findOneAndUpdate({ _id: user._id }, { lastSignInAt: new Date() });
-       const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });   
+       const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
       await Token.create({ userId: user._id, email, token, type: "login", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days expiry
        return res.status(200).json({success: true, message: "login successfull", token, name: user.name, });
     }catch(err){
