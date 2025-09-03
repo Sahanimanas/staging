@@ -9,7 +9,7 @@ router.post("/filter",getTherapists);
 
 router.post('/addavailability',require('../controller/therapistController/schedule/addAvailabilty'));
 router.post('/addtherapist',require('../controller/therapistController/Add&DeleteTherapist/Addtherapist.js'));
-router.delete('/:id',require('../controller/therapistController/Add&DeleteTherapist/deletetherapist.js'));
+
 router.get('/getalltherapists',require('../controller/therapistController/GetTherapist/getAllTherapists.js'));
 router.post('/date',require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityByDate);
 router.post('/blocks',require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityBlocks);
@@ -26,6 +26,9 @@ router.post('/therapistprofile',require('../controller/therapistController/Profi
 
 router.get('/list', require('../controller/therapistController/GetTherapist/bytherpist/getTherapist.js'));
 router.get('/:therapistId/services', require('../controller/services/therapistServices.js'));
+
+//by id
+router.get('/:id', require('../controller/therapistController/GetTherapist/therapistByID.js'));
 
 module.exports = router;
 

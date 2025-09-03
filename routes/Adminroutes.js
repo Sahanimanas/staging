@@ -7,4 +7,5 @@ const dashboard = require('../controller/admin/dashboard.js');
 router.get('/dashboard', verifyadmin, dashboard);
 router.post('/addservices', verifyadmin, require('../controller/services/addservices.js'));
 router.get('/therapist',  require('../controller/therapistController/GetTherapist/admin_get_therapsit.js'));
+router.delete('/therapist/:id',require('../controller/therapistController/Add&DeleteTherapist/deletetherapist.js'));
 module.exports = router;

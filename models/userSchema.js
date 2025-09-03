@@ -42,7 +42,6 @@ const UserSchema = new Schema(
       },
       required: false, // ✅ whole address optional
     },
-    timezone: String,
     mfaEnabled: { type: Boolean, default: false },
     profileComplete: { type: Boolean, default: false },
     lastSignInAt: Date,

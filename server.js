@@ -23,14 +23,20 @@ const tokenHandler = require('./controller/tokenHandler.js');
 const jwt = require('jsonwebtoken')
 const login_Therapist = require('./controller/therapistController/AUTH/therapistlogin.js'); 
 const { googleAuthCallback } = require('./routes/google.js');
-const fileupload = require('express-fileupload');
+ 
 app.post('/webhook',  express.raw({ type: 'application/json' }), require('./routes/webhook'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: '*' }));
-app.use(fileupload({
-  useTempFiles: true,
-}));
+const fileUpload = require("express-fileupload");
+app.use(
+  fileUpload({
+   useTempFiles: true,
+    tempFileDir: __dirname + "/tmp/",
+    
+  })
+);
+app.use('/admin', require('./routes/Admin/createTherpist.js'));
 
 app.get('/', (req, res) => {
   res.send(`Hello from server`);
@@ -50,6 +56,9 @@ app.get('/auth/verifytoken', tokenHandler);
 app.post('/payment/create-checkout-session', require("./controller/booking/create_booking.js"));
 app.use('/bookings', Bookingroute);
 app.use('/auth',require('./routes/forgotpasswordRoute/forgotpass.js'))
+
+//temporary
+// app.use('/temp', require('./controller/temp.js'))
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);

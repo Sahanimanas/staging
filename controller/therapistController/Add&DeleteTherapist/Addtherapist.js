@@ -13,9 +13,7 @@ const addTherapist = async (req, res) => {
       phone,
       password,
       avatar_url,
-      Postcode,
-      address,
-      timezone
+      address
     } = req.body;
 
     // ✅ Validate required fields
@@ -43,9 +41,7 @@ const addTherapist = async (req, res) => {
       passwordHash,
       role: "therapist",
       avatar_url,
-      Postcode,
       address,
-      timezone,
       profileComplete: false // default
     });
 
