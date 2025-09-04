@@ -21,18 +21,19 @@ const login_User = async (req, res) => {
     }
 
    // 4️⃣ Verify password
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    const isMatch =  bcrypt.compare(password, user.passwordHash);
 
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
-    console.log(user);
+    
 
     try{
-       await User.findOneAndUpdate({ _id: user._id }, { lastSignInAt: new Date() });
+      const updatedUser = await User.findOneAndUpdate({ _id: user._id }, { lastSignInAt: new Date() }, {new: true} ).select("-passwordHash");
        const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
       await Token.create({ userId: user._id, email, token, type: "login", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days expiry
-       return res.status(200).json({success: true, message: "login successfull", token, name: user.name, });
+       return res.status(200).json({success: true, message: "login successfull", token, name: updatedUser.name, user:updatedUser });
+
     }catch(err){
        console.error("Error creating token:", err);
        return res.status(500).json({ message: "Server error" });

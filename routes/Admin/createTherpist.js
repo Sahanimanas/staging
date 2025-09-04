@@ -82,8 +82,8 @@ const createTherapist = async (req, res) => {
     if (!Array.isArray(specializations)) specializations = [specializations];
     specializations = specializations.filter(id => id).map(id => new ObjectId(id.trim()));
 
-    const servicePostcodes = req.body.servicesInPostcode
-        ? req.body.servicesInPostcode.split(",").map(pc => normalizePostcode(pc)).filter(pc => pc)
+    const servicePostcodes = req.body.servicesInPostalcode
+        ? req.body.servicesInPostalcode.split(",").map(pc => normalizePostcode(pc)).filter(pc => pc)
         : [];
         
     let languages = req.body["languages[]"] || [];
@@ -99,7 +99,7 @@ const createTherapist = async (req, res) => {
         languages,
         specializations,
         servicePostcodes,
-        acceptingNewClients: req.body.acceptingNewClients === "true",
+        active: req.body.active === "true",
         isVerified: req.body.isVerified === "true",
     });
     await newTherapistProfile.save();

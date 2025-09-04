@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 const connectDB = require('./db/db.js');
 connectDB();
 
-const userroutes = require('./routes/userroutes')
+const userAuth = require('./routes/userAuth.js')
 const Adminroutes = require('./routes/Adminroutes');
 const Bookingroute = require('./routes/BookingRoute.js');
 const therapistRoutes = require('./routes/TherapistRoutes.js')
@@ -32,7 +32,7 @@ const fileUpload = require("express-fileupload");
 app.use(
   fileUpload({
    useTempFiles: true,
-    tempFileDir: __dirname + "/tmp/",
+    tempFileDir: "/tmp/",
     
   })
 );
@@ -45,7 +45,8 @@ app.get('/', (req, res) => {
 app.use('/auth', require('./routes/google.js'));
 
 app.use(express.json());
-app.use('/auth/user', userroutes);
+app.use('/auth/user', userAuth);
+app.use('/user', require('./routes/userRoutes.js'));
 app.use('/admin', Adminroutes);
 app.use('/verifyotp', otproutes);
 app.post('/auth/admin/login', login_User);

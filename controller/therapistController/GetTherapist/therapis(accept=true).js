@@ -9,7 +9,7 @@ const getAllTherapists = async (req, res) => {
     const skip = (page - 1) * limit;
 
     // ✅ Find therapist profiles that accept new clients
-    const acceptingProfiles = await TherapistProfile.find({ acceptingNewClients: true }).lean();
+    const acceptingProfiles = await TherapistProfile.find({ active: true }).lean();
     const acceptingUserIds = acceptingProfiles.map((p) => p.userId);
 
     // ✅ Count total therapists (only those accepting)
@@ -31,7 +31,7 @@ const getAllTherapists = async (req, res) => {
     // ✅ Fetch therapist profiles for these users
     const profiles = await TherapistProfile.find({
       userId: { $in: usersIds },
-      acceptingNewClients: true,
+      active: true,
     })
       .populate("specializations", "name -_id")
       .lean();

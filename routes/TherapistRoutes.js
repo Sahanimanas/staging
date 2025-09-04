@@ -10,7 +10,7 @@ router.post("/filter",getTherapists);
 router.post('/addavailability',require('../controller/therapistController/schedule/addAvailabilty'));
 router.post('/addtherapist',require('../controller/therapistController/Add&DeleteTherapist/Addtherapist.js'));
 
-router.get('/getalltherapists',require('../controller/therapistController/GetTherapist/getAllTherapists.js'));
+router.get('/getalltherapists',require('../controller/therapistController/GetTherapist/therapis(accept=true).js'));
 router.post('/date',require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityByDate);
 router.post('/blocks',require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityBlocks);
 router.get('/availability/:id',require('../controller/therapistController/schedule/getAvailabilityById.js'));

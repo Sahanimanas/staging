@@ -30,12 +30,14 @@ const verifyEmailOtp = async (req, res) => {
     await record.save();
 
     // 3. Update user emailVerified
-    await User.findOneAndUpdate({ _id: record.userId }, { emailVerified: true });
-
+    const user = await User.findOneAndUpdate({ _id: record.userId }, { emailVerified: true },{ new: true }  ).select("-passwordHash");
+    
     const token = jwt.sign({ userId: record.userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     // Save token to database
     await Token.create({ userId: record.userId, email, token, type: "login", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days expiry
+  if(purpose === "registration")  return res.status(200).json({ success: true, message: "Email verified successfully!", token ,user});
+
 
     return res.status(200).json({ success: true, message: "Email verified successfully!", token });
 

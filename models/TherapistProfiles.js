@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
@@ -37,17 +36,16 @@ const TherapistProfileSchema = new Schema(
     ],
     experience: {
       type: Number,
-   required: false,
+      required: false,
     },
 
     rating: { type: Number, default: 0 },
     ratingCount: { type: Number, default: 0 },
     isVerified: { type: Boolean, default: false },
-    acceptingNewClients: { type: Boolean, default: true },
+    active: { type: Boolean, default: true },
     policies: Object,
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model("TherapistProfile", TherapistProfileSchema);
-

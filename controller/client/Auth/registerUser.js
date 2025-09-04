@@ -11,7 +11,7 @@ const registerUser = async (req, res) => {
     
     const { email, password, name: { first: firstName, last: lastName } , phone, postalCode} = req.body;
 
-    if(!email || !password || !firstName || !lastName || !phone || !postalCode) {
+    if(!email || !password || !firstName || !phone || !postalCode) {
       return res.status(400).json({ message: "All fields are required." });
     }
     //validate postal code

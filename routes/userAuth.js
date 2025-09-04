@@ -6,5 +6,6 @@ const login_User = require('../controller/client/Auth/userlogin.js');
 
 router.post('/register',registerUser);
 router.post('/login',login_User);
+// router.post('/address', require('../controller/client/add/userAddress.js'));
 module.exports = router;
 
