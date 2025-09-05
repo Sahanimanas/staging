@@ -16,7 +16,7 @@ const createTherapistProfile = async (req, res) => {
       bio,
       specializations,
       languages,
-      servicePostcodes,
+      servicesInPostalCodes,
       experience,
       policies
     } = req.body;
@@ -52,7 +52,7 @@ const createTherapistProfile = async (req, res) => {
     if (bio) therapistProfile.bio = bio;
     if (specializations) therapistProfile.specializations = specializations;
     if (languages) therapistProfile.languages = languages;
-    if (servicePostcodes) therapistProfile.servicePostcodes = servicePostcodes;
+    if (servicesInPostalCodes) therapistProfile.servicesInPostalCodes = servicesInPostalCodes;
     if (experience) therapistProfile.experience = experience;
     if (policies) therapistProfile.policies = policies;
 

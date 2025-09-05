@@ -43,6 +43,10 @@ const updateUserAddress = async (req, res) => {
       { $set: { address: updatedAddress } },
       { new: true } // return updated document
     );
+    User.updateOne(
+      { _id: mongoose.Types.ObjectId(userId) },
+      { $push: { allAddresses: updatedAddress } }
+    ).exec();
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found." });
@@ -50,7 +54,7 @@ const updateUserAddress = async (req, res) => {
 
     res.status(200).json({
       message: "Address updated successfully.",
-      address: updatedUser.address,
+      address: updatedUser.allAddresses,
     });
   } catch (error) {
     console.error("Error updating address:", error);

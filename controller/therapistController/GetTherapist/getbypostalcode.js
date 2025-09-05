@@ -10,19 +10,19 @@ const TherapistProfile = require("../../../models/TherapistProfiles"); // Therap
  */
 const therapistBypost = async (req, res) => {
   try {
-    const { postcode } = req.query;
+    const { PostalCode } = req.query;
 
-    if (!postcode) {
-      return res.status(400).json({ error: "Postcode is required" });
+    if (!PostalCode) {
+      return res.status(400).json({ error: "PostalCode is required" });
     }
 
     // ✅ Normalize postcode input
-    const normalizedPostcode = postcode.trim().toUpperCase();
+    const normalizedPostcode = PostalCode.trim().toUpperCase();
 
     // ✅ Find all therapists (users with role therapist) who have the matching postcode
     const therapists = await User.find({
       role: "therapist",
-      "address.Postcode": normalizedPostcode
+      "address.PostalCode": normalizedPostcode
     }).select("_id name address");
 
     if (!therapists.length) {

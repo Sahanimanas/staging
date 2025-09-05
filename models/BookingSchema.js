@@ -3,10 +3,10 @@ const { Schema } = mongoose;
 const Counter = require('./CounterSchema')
 /* ------------------ BOOKINGS ------------------ */
 const BookingSchema = new Schema({
- clientId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  clientId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   therapistId: { type: Schema.Types.ObjectId, ref: "TherapistProfile", required: true },
   serviceId: { type: Schema.Types.ObjectId, ref: "Service", required: true },
-  ritualPurchaseId: { type: Schema.Types.ObjectId, ref: "RitualPurchase" } || { type: String },
+  ritualPurchaseId: { type: Schema.Types.ObjectId, ref: "RitualPurchase", required: false } || { type: String },
   bookingCode: { type: String, unique: true },
   date: { type: Date, required: true }, // if from bundle
   slotStart: { type: Date, required: true },

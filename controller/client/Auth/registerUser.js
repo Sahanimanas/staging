@@ -4,22 +4,22 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const User = require("../../../models/userSchema.js");
 const sendotp = require("../../otpHandler/generateOTP.js");
-const validatePostalcode = require('../../../Handlers/postalcode_validate')
+// const validatePostalcode = require('../../../Handlers/postalcode_validate')
 // POST /register - only for customers
 const registerUser = async (req, res) => {
   try {
     
-    const { email, password, name: { first: firstName, last: lastName } , phone, postalCode} = req.body;
+    const { email, password, name: { first: firstName, last: lastName } , phone} = req.body;
 
-    if(!email || !password || !firstName || !phone || !postalCode) {
+    if(!email || !password || !firstName || !phone) {
       return res.status(400).json({ message: "All fields are required." });
     }
     //validate postal code
        
-   const {valid,formatted } = validatePostalcode(postalCode);
-   if (!valid) {
-     return res.status(400).json({ message: "Invalid postal code. Please enter a valid London, greater London postal code." });
-   }
+  //  const {valid,formatted } = validatePostalcode(postalCode);
+  //  if (!valid) {
+  //    return res.status(400).json({ message: "Invalid postal code. Please enter a valid London, greater London postal code." });
+  //  }
 
     // 1. Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
@@ -48,13 +48,7 @@ const registerUser = async (req, res) => {
       email: email.toLowerCase(),
       passwordHash: hashedPassword,
       role: "client",
-      phone: phone,
-      address: {
-       
-          PostalCode: formatted
-        
-      } 
-
+      phone: phone,    
     });
  
     const otp = await sendotp(user._id, email, "registration");

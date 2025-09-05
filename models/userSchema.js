@@ -1,7 +1,20 @@
 
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-
+const AddressSchema = new mongoose.Schema({
+  Building_No: { type: String },
+  Street: { type: String },
+  Locality: { type: String },
+  PostTown: { type: String, default: "LONDON" },
+  PostalCode: {
+    type: String,
+    required: true,
+    validate: {
+      validator: (v) => /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i.test(v),
+      message: (props) => `${props.value} is not a valid UK postcode!`,
+    },
+  },
+});
 /* ------------------ USERS ------------------ */
 const UserSchema = new Schema(
   {
@@ -23,25 +36,8 @@ const UserSchema = new Schema(
     googleId: String,
     appleId: String,
     avatar_url: String,
-    address: {
-      type: {
-        Building_No: { type: String, required: false },
-        Street: { type: String, required: false },
-        Locality: { type: String }, // optional
-        PostTown: { type: String, default: "LONDON", required: false },
-        PostalCode: {
-          type: String,
-          required: true,
-          validate: {
-            validator: function (v) {
-              return /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i.test(v);
-            },
-            message: (props) => `${props.value} is not a valid UK postcode!`,
-          },
-        },
-      },
-      required: false, // ✅ whole address optional
-    },
+    address: AddressSchema,
+    allAddresses: [AddressSchema],
     mfaEnabled: { type: Boolean, default: false },
     profileComplete: { type: Boolean, default: false },
     lastSignInAt: Date,

@@ -22,7 +22,7 @@ const TherapistProfileSchema = new Schema(
     languages: [String],
 
     // ✅ Array of postcodes instead of locationType
-    servicePostcodes: [
+    servicesInPostalCodes: [
       {
         type: String,
         validate: {

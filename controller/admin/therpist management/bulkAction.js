@@ -11,12 +11,12 @@ const User  = require("../../../models/userSchema"); // Adjust path
 const bulkActionTherapists = async (req, res) => {
   try {
     const { therapistIds, action } = req.body;
-
+    console.log("from bulkaction", therapistIds, action);
     if (!Array.isArray(therapistIds) || therapistIds.length === 0) {
       return res.status(400).json({ message: "therapistIds must be a non-empty array." });
     }
-    if(action){
-        return action.toLowerCase();
+    if (action) {
+      action.toLowerCase();
     }
 
     if (!["delete", "active", "inactive"].includes(action)) {

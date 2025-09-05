@@ -56,7 +56,13 @@ const createTherapist = async (req, res) => {
     const hashedPassword = await bcrypt.hash(req.body.password, 12);
 
     // --- KEY CHANGE STARTS HERE ---
-
+  newAddress =  {
+            Building_No: req.body["address[Building_No]"] || "",
+            Street: req.body["address[Street]"] || "",
+            Locality: req.body["address[Locality]"] || "",
+            PostTown: req.body["address[PostTown]"] || "LONDON",
+            PostalCode: req.body["address[PostalCode]"] || "",
+        }
     // 1️⃣ Create new User with a TEMPORARY avatar URL
     const newUser = new User({
         name: { first: req.body.firstName, last: req.body.lastName },
@@ -66,14 +72,8 @@ const createTherapist = async (req, res) => {
         gender: req.body.gender || "other",
         role: "therapist",
         // Use a placeholder or default URL initially
-        avatar_url: "null", 
-        address: {
-            Building_No: req.body["address[Building_No]"] || "",
-            Street: req.body["address[Street]"] || "",
-            Locality: req.body["address[Locality]"] || "",
-            PostTown: req.body["address[PostTown]"] || "LONDON",
-            PostalCode: req.body["address[PostalCode]"] || "",
-        },
+        avatar_url: "null",
+        address: newAddress,
     });
     await newUser.save();
 
@@ -82,7 +82,7 @@ const createTherapist = async (req, res) => {
     if (!Array.isArray(specializations)) specializations = [specializations];
     specializations = specializations.filter(id => id).map(id => new ObjectId(id.trim()));
 
-    const servicePostcodes = req.body.servicesInPostalcode
+    const servicesInPostalCodes = req.body.servicesInPostalcode
         ? req.body.servicesInPostalcode.split(",").map(pc => normalizePostcode(pc)).filter(pc => pc)
         : [];
         
@@ -98,7 +98,7 @@ const createTherapist = async (req, res) => {
         experience: Number(req.body.experience) || 0,
         languages,
         specializations,
-        servicePostcodes,
+        servicesInPostalCodes,
         active: req.body.active === "true",
         isVerified: req.body.isVerified === "true",
     });

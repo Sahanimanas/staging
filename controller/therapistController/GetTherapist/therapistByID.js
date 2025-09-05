@@ -6,7 +6,7 @@ const therapist = async (req,res) =>{
         return res.status(400).json({error: "Therapist ID is required"});
     }
   
-    const therapistProfile = await TherapistProfile.findById(id).populate('userId', 'email avatar_url phone address -_id').populate('specializations', 'name -_id').lean();
+    const therapistProfile = await TherapistProfile.findById(id).populate('userId').populate('specializations', 'name -_id').lean();
    
     if (!therapistProfile) {
         return res.status(404).json({error: "Therapist not found"});
