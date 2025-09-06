@@ -141,7 +141,6 @@ const createTherapist = async (req, res) => {
   }
 };
 
-// Route
-router.post("/createtherapist", createTherapist);
 
-module.exports = router;
+
+module.exports = createTherapist;

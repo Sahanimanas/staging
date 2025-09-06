@@ -20,15 +20,18 @@ router.post('/bookings/revenue',require('../controller/therapistController/Dashb
 router.post("/reset", require('../models/middlewares/verifyTherapist.js'), require('../controller/therapistController/schedule/DeleteEntireMonth.js'));
 router.post('/next7days',require('../controller/therapistController/schedule/next7days.js'));
 router.get('/filter', require('../controller/therapistController/GetTherapist/getbypostalcode.js'));
-router.post('/therapistprofile',require('../controller/therapistController/Profile.js'));
+// router.post('/therapistprofile',require('../controller/therapistController/Profile/Profile.js'));
 
 //by Therapist flow
 
 router.get('/list', require('../controller/therapistController/GetTherapist/bytherpist/getTherapist.js'));
 router.get('/:therapistId/services', require('../controller/services/therapistServices.js'));
-
+//router.put('/editprofile/:id', require('../controller/therapistController/Profile/editProfile.js'));
 //by id
 router.get('/:id', require('../controller/therapistController/GetTherapist/therapistByID.js'));
 
+//edit profile
+
+// router.post('/edit/:therapistId', require('../controller/therapistController/Profile/editProfile.js'));
 module.exports = router;
 

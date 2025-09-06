@@ -6,6 +6,33 @@ const User = require("../../../models/userSchema.js");
 const sendotp = require("../../otpHandler/generateOTP.js");
 // const validatePostalcode = require('../../../Handlers/postalcode_validate')
 // POST /register - only for customers
+function validateAndFormatUKPhone(phone) {
+  if (!phone) return { valid: false, formatted: null };
+
+  // Remove all spaces, dashes, brackets
+  let cleaned = phone.replace(/[\s\-()]/g, "");
+
+  // Handle common UK formats
+  if (cleaned.startsWith("0044")) {
+    cleaned = "+" + cleaned.slice(2); // 0044xxxx → +44xxxx
+  } else if (cleaned.startsWith("07")) {
+    cleaned = "+44" + cleaned.slice(1); // 07xxxxxx → +447xxxxxx
+  }
+
+  // Must start with +44
+  if (!cleaned.startsWith("+44")) {
+    return { valid: false, formatted: null };
+  }
+
+  // UK numbers are usually 10 digits after +44
+  const ukRegex = /^\+44\d{9,10}$/;
+  if (!ukRegex.test(cleaned)) {
+    return { valid: false, formatted: null };
+  }
+
+  return { valid: true, formatted: cleaned };
+}
+
 const registerUser = async (req, res) => {
   try {
     
@@ -14,11 +41,12 @@ const registerUser = async (req, res) => {
     if(!email || !password || !firstName || !phone) {
       return res.status(400).json({ message: "All fields are required." });
     }
-    //validate postal code
-       
-  //  const {valid,formatted } = validatePostalcode(postalCode);
-  //  if (!valid) {
-  //    return res.status(400).json({ message: "Invalid postal code. Please enter a valid London, greater London postal code." });
+
+    // Validate phone number
+    const { valid, formatted } = validateAndFormatUKPhone(phone);
+    if (!valid) {
+      return res.status(400).json({ message: "Invalid UK phone number." });
+    }
   //  }
 
     // 1. Check if user already exists
@@ -29,7 +57,7 @@ const registerUser = async (req, res) => {
          await User.findByIdAndDelete(existingUser._id);
       } 
       else {
-        return res.status(200).json({
+        return res.status(400).json({
           message: "Email already exists, please register with a different email.",
         });
       }
@@ -48,7 +76,7 @@ const registerUser = async (req, res) => {
       email: email.toLowerCase(),
       passwordHash: hashedPassword,
       role: "client",
-      phone: phone,    
+      phone: formatted,    
     });
  
     const otp = await sendotp(user._id, email, "registration");

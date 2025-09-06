@@ -12,12 +12,14 @@ router.delete('/therapist/:id',require('../controller/therapistController/Add&De
 
 //therapist Routes
 router.get('/therapist/list', require('../controller/admin/therpist management/alltherapist.js'));
-
+router.post('/createtherapist', require('./Admin/createTherpist.js'));
 router.post('/therapist/bulkaction', require('../controller/admin/therpist management/bulkAction.js'));
+router.put('/updatetherapist/:therapistId',require('../controller/therapistController/Profile/editProfile.js'))
 //service Routes
 router.post('/addservices', require('../controller/admin/service management/addService.js'));
 router.delete('/deleteservices/:id', require('../controller/admin/service management/deleteService.js'));
 router.put('/editservices/:id', require('../controller/admin/service management/editService.js'));
 router.get('/services/list', require('../controller/services/massageServices.js'));
 router.post('/postalcode', require('../controller/admin/addlocation.js'));
+router.get('/services/:id', require('../controller/admin/service management/serviceById.js'));
 module.exports = router;

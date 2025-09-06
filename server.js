@@ -36,7 +36,7 @@ app.use(
     
   })
 );
-app.use('/admin', require('./routes/Admin/createTherpist.js'));
+// app.use('/admin', );
 
 app.get('/', (req, res) => {
   res.send(`Hello from server`);

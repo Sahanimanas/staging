@@ -11,9 +11,10 @@ const bookingUser = async (req, res) => {
 
     // Find all bookings for this user
     const bookings = await Booking.find({ clientId: userId })
-      .populate("therapistId", "title") // populate therapist's title
-      .populate("serviceId", "name options") // populate service info
-      .sort({ date: -1 }); // latest first
+      .populate("therapistId") // populate therapist's title
+      .populate("serviceId") // populate service info
+      .sort({ date: -1 })
+      .lean();
 
     res.json({ bookings });
   } catch (err) {
