@@ -85,7 +85,7 @@ const registerUser = async (req, res) => {
       return res.status(500).json({ message: "Failed to send OTP" });
     }
     return res.status(201).json({
-      message: " Please verify your email with the OTP sent.",
+      message: "Please verify your email with the OTP sent.",
     });
   } catch (err) {
    console.log(err.message)
