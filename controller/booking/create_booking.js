@@ -80,6 +80,7 @@ const createBooking = async (req, res) => {
       time,
       notes,
     } = req.body;
+    console.log(req.body)
 
     if (!email || !therapistId || !serviceId || !date || !time || optionIndex === undefined) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -170,7 +171,7 @@ newdate.setUTCHours(0, 0, 0, 0);
       success_url: `http://localhost:5173/paymentsuccess?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `http://localhost:5173/paymentfailed`,
       customer_email: user.email,
-      metadata: { bookingId: "book_011" },
+
     });
 
     // await checkoutsession.create({

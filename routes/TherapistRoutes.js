@@ -31,7 +31,11 @@ router.get('/:therapistId/services', require('../controller/services/therapistSe
 router.get('/:id', require('../controller/therapistController/GetTherapist/therapistByID.js'));
 
 //edit profile
-
+//pending
 // router.post('/edit/:therapistId', require('../controller/therapistController/Profile/editProfile.js'));
+
+//bookings
+router.get('/bookings/:therapistId', require('../controller/therapistController/booking/booking.js'));
+
 module.exports = router;
 

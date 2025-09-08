@@ -11,6 +11,7 @@ const getAllBookings = async (req, res) => {
       .populate("clientId", "name email avatar_url")
       .populate("therapistId", "title")
       .populate("serviceId", "name")
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 

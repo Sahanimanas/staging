@@ -15,7 +15,7 @@ const bookingUser = async (req, res) => {
     const bookings = await Booking.find({ clientId: userId })
       .populate("therapistId") // populate therapist's title
       .populate("serviceId") // populate service info
-      .sort({ date: -1 })
+      .sort({ createdAt: -1 })
       .lean();
   const totalBookings = bookings.length;
     const totalPages = Math.ceil(totalBookings / limit);
