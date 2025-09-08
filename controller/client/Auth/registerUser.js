@@ -43,10 +43,10 @@ const registerUser = async (req, res) => {
     }
 
     // Validate phone number
-    const { valid, formatted } = validateAndFormatUKPhone(phone);
-    if (!valid) {
-      return res.status(400).json({ message: "Invalid UK phone number." });
-    }
+    // const { valid, formatted } = validateAndFormatUKPhone(phone);
+    // if (!valid) {
+    //   return res.status(400).json({ message: "Invalid UK phone number." });
+    // }
   //  }
 
     // 1. Check if user already exists
@@ -76,7 +76,7 @@ const registerUser = async (req, res) => {
       email: email.toLowerCase(),
       passwordHash: hashedPassword,
       role: "client",
-      phone: formatted,    
+      phone: phone,  //foramtted  
     });
  
     const otp = await sendotp(user._id, email, "registration");

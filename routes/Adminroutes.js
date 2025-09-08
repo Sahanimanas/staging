@@ -22,4 +22,8 @@ router.put('/editservices/:id', require('../controller/admin/service management/
 router.get('/services/list', require('../controller/services/massageServices.js'));
 router.post('/postalcode', require('../controller/admin/addlocation.js'));
 router.get('/services/:id', require('../controller/admin/service management/serviceById.js'));
+
+//bookings
+router.get('/bookings', require('../controller/booking/get_booking.js').getAllBookings);
+
 module.exports = router;

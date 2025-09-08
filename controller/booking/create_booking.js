@@ -162,7 +162,7 @@ newdate.setUTCHours(0, 0, 0, 0);
               name: serviceDoc.name,
               description: `Booking ID: ${booking._id}`,
             },
-            unit_amount: amount,
+            unit_amount: amount * 100,
           },
           quantity: 1,
         },

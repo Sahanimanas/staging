@@ -3,6 +3,7 @@ const OTP = require("../../models/OtpSchema");
 const User = require("../../models/userSchema.js");
 const jwt  = require("jsonwebtoken");
 const Token = require("../../models/tokenSchema.js");
+const sendSMS = require("../../utils/twilio.js");
 /* ------------------ VERIFY EMAIL OTP ------------------ */
 const verifyEmailOtp = async (req, res) => {
   try {
@@ -36,7 +37,12 @@ const verifyEmailOtp = async (req, res) => {
 
     // Save token to database
     await Token.create({ userId: record.userId, email, token, type: "login", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days expiry
-  if(purpose === "registration")  return res.status(200).json({ success: true, message: "Email verified successfully!", token ,user});
+  if(purpose === "registration") {
+    // 5. Send Welcome SMS (async, non-blocking)
+    sendSMS(user.phone, `🎉 Welcome to Noira, ${user.name.first}! We're excited to have you with us.`)
+      .then(() => console.log(`Welcome SMS sent to ${user.phone}`))
+      .catch(err => console.error("Failed to send welcome SMS:", err.message));
+    return res.status(200).json({ success: true, message: "Email verified successfully!", token ,user});}
 
 
     return res.status(200).json({ success: true, message: "Email verified successfully!", token });

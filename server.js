@@ -57,7 +57,8 @@ app.get('/auth/verifytoken', tokenHandler);
 app.post('/payment/create-checkout-session', require("./controller/booking/create_booking.js"));
 app.use('/bookings', Bookingroute);
 app.use('/auth',require('./routes/forgotpasswordRoute/forgotpass.js'))
-
+app.use('/temp/', require('./routes/temp.js'));
+// app.use('/payment', require('./routes/payment.js'));
 //temporary
 // app.use('/temp', require('./controller/temp.js'))
 

@@ -25,8 +25,8 @@ const webhook = async (req, res) => {
     case "checkout.session.completed": {
       const session = event.data.object;
 
-      console.log("✅ Checkout completed:", session.id);
-      console.log("Customer Email:", session.customer_details?.email);
+      console.log("✅ Checkout completed:", session);
+      console.log("Customer Email:", session.customer_details.email);
 
       try {
         await temporary.findOneAndUpdate(
@@ -50,7 +50,7 @@ const webhook = async (req, res) => {
 
     case "payment_intent.succeeded": {
       const intent = event.data.object;
-      console.log("💰 Payment succeeded:", intent.id);
+      console.log("💰 Payment succeeded:", intent);
 
       try {
         await temporary.findOneAndUpdate(
@@ -59,6 +59,7 @@ const webhook = async (req, res) => {
             status: intent.status,
             amount: intent.amount,
             currency: intent.currency,
+            customerEmail: intent.receipt_email, // optional: save receipt email
           },
           { upsert: true, new: true }
         );
