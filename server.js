@@ -51,7 +51,7 @@ app.get('/', (req, res) => {
 
 app.use('/auth', require('./routes/google.js'));
 
-app.use(express.json());
+
 app.use('/auth/user', userAuth);
 app.use('/user', require('./routes/userRoutes.js'));
 app.use('/admin', Adminroutes);
@@ -61,10 +61,17 @@ app.use('/auth/therapist/login', login_Therapist);
 app.use('/therapist', therapistRoutes);
 app.use('/services', servicesroute);
 app.get('/auth/verifytoken', tokenHandler);
+
 app.post('/payment/create-checkout-session', require("./controller/booking/create_booking.js"));
+
+
 app.use('/bookings', Bookingroute);
 app.use('/auth',require('./routes/forgotpasswordRoute/forgotpass.js'))
-app.use('/temp/', require('./routes/temp.js'));
+
+
+app.use('/temp', require('./routes/temp.js'));
+
+
 // app.use('/payment', require('./routes/payment.js'));
 //temporary
 // app.use('/temp', require('./controller/temp.js'))
