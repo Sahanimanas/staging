@@ -35,7 +35,7 @@ const login_User = async (req, res) => {
     await User.findByIdAndUpdate(user._id, { lastSignInAt: new Date() });
 
     // ✅ 5. Get Therapist Profile
-    const therapist = await TherapistProfiles.findOne({ userId: user._id });
+    const therapist = await TherapistProfiles.findOne({ userId: user._id }).populate('userId');
     if (!therapist) {
       return res.status(404).json({ message: "Therapist profile not found" });
     }
@@ -63,6 +63,7 @@ console.log(token)
       success: true,
       message: "Login successful",
       token,
+      therapist,
       userId: user._id,
       name: user.name,
       therapistId: therapist._id

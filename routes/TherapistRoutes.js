@@ -3,6 +3,7 @@
 const  getTherapists  = require('../controller/therapistController/GetTherapist/getTherapists.js');
 
 const express = require('express');
+const authMiddleware = require('../models/middlewares/authtoken.js');
 const router = express.Router();
 
 router.post("/filter",getTherapists);
@@ -28,14 +29,17 @@ router.get('/list', require('../controller/therapistController/GetTherapist/byth
 router.get('/:therapistId/services', require('../controller/services/therapistServices.js'));
 //router.put('/editprofile/:id', require('../controller/therapistController/Profile/editProfile.js'));
 //by id
-router.get('/:id', require('../controller/therapistController/GetTherapist/therapistByID.js'));
+
 
 //edit profile
 //pending
 // router.post('/edit/:therapistId', require('../controller/therapistController/Profile/editProfile.js'));
 
 //bookings
-router.get('/bookings/:therapistId', require('../controller/therapistController/booking/booking.js'));
-
+router.get('/getbookings',authMiddleware, require('../controller/therapistController/booking/booking.js'));
+router.put('/completebooking/:bookingId',authMiddleware, require('../controller/therapistController/booking/updatebooking.js').MarkComplete);
+router.put('/declinebooking/:bookingId',authMiddleware, require('../controller/therapistController/booking/updatebooking.js').declineBooking);
+//get by id
+router.get('/:id', require('../controller/therapistController/GetTherapist/therapistByID.js'));
 module.exports = router;
 

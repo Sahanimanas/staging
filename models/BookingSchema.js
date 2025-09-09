@@ -11,8 +11,10 @@ const BookingSchema = new Schema({
   date: { type: Date, required: true }, // if from bundle
   slotStart: { type: Date, required: true },
   slotEnd:  { type: Date, required: true },
-  status: { type: String, enum: ["confirmed", "cancelled", "completed","pending"], default: "confirmed" },
+  status: { type: String, enum: ["confirmed", "cancelled", "completed","pending","declined"], default: "confirmed" },
+  paymentIntentId: String,
   paymentStatus: { type: String, enum: ["pending", "paid", "failed"], default: "pending" },
+  customerEmail: String,
   price: { amount: Number, currency: String },
   eliteHourSurcharge: { type: Boolean, default: false },
   notes: String

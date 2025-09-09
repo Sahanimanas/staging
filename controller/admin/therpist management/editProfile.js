@@ -3,7 +3,7 @@ const TherapistProfile = require("../../../models/TherapistProfiles");
 const User = require("../../../models/userSchema");
 const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
-
+const nodemailer = require("nodemailer");
 // Cloudinary config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -106,7 +106,7 @@ const editTherapistProfile = async (req, res) => {
     console.log(therapistProfile);
     // Save therapist profile
     await therapistProfile.save();
-
+ 
     // ----------------------------
     // Respond immediately
     // ----------------------------

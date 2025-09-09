@@ -133,7 +133,7 @@ newdate.setUTCHours(0, 0, 0, 0);
       slotStart,
       slotEnd,
       status: "confirmed",
-      paymentStatus: "paid",
+      paymentStatus: "pending",
       price: { amount: finalPrice, currency: "gbp" },
       eliteHourSurcharge: surcharge,
       notes,
@@ -163,26 +163,19 @@ newdate.setUTCHours(0, 0, 0, 0);
               name: serviceDoc.name,
               description: `Booking ID: ${booking._id}`,
             },
-            unit_amount: amount * 100,
+            unit_amount: amount,
           },
           quantity: 1,
         },
       ],
-      success_url: `http://localhost:5173/paymentsuccess?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://localhost:5173/paymentfailed`,
+      success_url: `${process.env.FRONTEND_URL}/paymentsuccess?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/paymentfailed`,
       customer_email: user.email,
+      metadata: { bookingId: booking._id.toString() },
 
     });
 
-    // await checkoutsession.create({
-    //   sessionId: session.id,
-    //   customerEmail: user.email,
-    //   amountTotal: session.amount_total,
-    //   currency: session.currency,
-    //   status: session.status,
-    //   rawData: session,
-    // });
-
+    
     return res.json({ url: session.url });
 
   } catch (error) {

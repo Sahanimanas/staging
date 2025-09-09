@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const User = require('../models/userSchema');
 const jwt = require('jsonwebtoken');
+
 const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -16,7 +17,7 @@ const resetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.passwordHash = hashedPassword;
     await user.save();
-
+   
     res.json({ message: "Password has been reset successfully" });
   } catch (err) {
     console.error(err);

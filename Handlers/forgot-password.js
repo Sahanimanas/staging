@@ -1,9 +1,6 @@
 const User = require("../models/userSchema");
-const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const express = require('express');
-const { type } = require("os");
 const tokenSchema = require("../models/tokenSchema");
 require('dotenv').config();
 

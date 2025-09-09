@@ -1,7 +1,14 @@
 const Booking = require("../../../models/BookingSchema.js");
+const TherapistProfiles = require("../../../models/TherapistProfiles.js");
 
 const bookingUser = async (req, res) => {
-  const { therapistId } = req.params;
+  const userId = req.user._id;
+  const therapist = await TherapistProfiles.findOne({ userId:userId });
+  if(!therapist){
+    return res.status(404).json({ error: "Therapist not found" });
+  }
+  const therapistId = therapist._id.toString();
+  console.log(therapistId)
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
@@ -23,7 +30,7 @@ const bookingUser = async (req, res) => {
 
     res.json({  totalPages ,bookings: paginatedBookings,});
   } catch (err) {
-    console.error(err);
+    console.error(err.message);
     res.status(500).json({ error: "Server error" });
   }
 }

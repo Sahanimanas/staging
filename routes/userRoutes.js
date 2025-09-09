@@ -6,7 +6,9 @@ router.get('/:userId/bookings', require('../controller/client/profile/booking.js
 router.get('/:userId/alladdress', require('../controller/client/Address/getAddress.js'));
 router.post('/:userId/default', require('../controller/client/Address/defaultAddress.js'));
 
-router.get('/profile', authtoken, require('../controller/client/Auth/getProfile.js'));
+router.get('/profile', authtoken, require('../controller/client/profile/getProfile.js'));
 
 router.get('/:userId/bookings', require('../controller/client/profile/booking.js'));
+
+router.put('/editprofile', authtoken, require('../controller/client/profile/editprofile.js'));
 module.exports = router;
