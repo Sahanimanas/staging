@@ -4,19 +4,20 @@ const generateReviewEmail = require("../../../utils/generateReviewEmail");
 
 const MarkComplete = async (req, res) => {
   try {
-    const { status } = req.body;
-    const bookingId = req.params.id;
-
+    
+    const bookingId = req.params.bookingId;
+  console.log("mark booking",bookingId);
     const booking = await Booking.findById(bookingId).populate("clientId", "email name");
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
+booking.status = "completed";
 
-    booking.status = status;
     await booking.save();
 
-    if (status === "completed" && booking.clientId?.email) {
+    if (booking.status === "completed" && booking.clientId?.email) {
       const html = generateReviewEmail(booking.clientId.name.first, booking._id);
+      console.log(booking.clientId.email)
       await sendMail(
         booking.clientId.email,
         "We value your feedback – Review your recent session",
@@ -25,7 +26,7 @@ const MarkComplete = async (req, res) => {
     }
 
     res.status(200).json({
-      message: `Booking status updated to ${status}`,
+      message: `Booking status updated to `,
       booking,
     });
 

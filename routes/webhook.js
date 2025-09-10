@@ -38,7 +38,7 @@ const webhook = async (req, res) => {
         console.log(`✅ Checkout completed for booking: ${bookingId}`);
 
         // Mark booking as paid
-        await BookingSchema.findByIdAndUpdate(
+      const updated=   await BookingSchema.findByIdAndUpdate(
           bookingId,
           {
             status: "confirmed",
@@ -49,7 +49,7 @@ const webhook = async (req, res) => {
           },
           { new: true }
         );
-
+console.log("booking updated",updated)
         console.log(`✅ Booking ${bookingId} marked as paid`);
         // ✅ Prepare mail content
   const clientMail = `

@@ -45,7 +45,7 @@ function buildAllAddressesFromFlatBody(body) {
 }
 
 function buildPrimaryAddressFromFlatBody(body) {
-  if (!Object.keys(body).some((k) => k.startsWith("address["))) return null;
+ 
   return {
     Building_No: body["address[Building_No]"] || "",
     Street: body["address[Street]"] || "",
@@ -70,7 +70,7 @@ const editUserProfile = async (req, res) => {
     }
 
     let ALLOWED_POSTAL_CODES = await getAllowedPostalCodes();
-    ALLOWED_POSTAL_CODES = ALLOWED_POSTAL_CODES.map(normalizePostcode);
+
 
     // ----------------- BASIC FIELDS -----------------
     if (req.body["name[first]"]) user.name.first = req.body["name[first]"];
@@ -78,7 +78,7 @@ const editUserProfile = async (req, res) => {
     if (req.body.email) user.email = req.body.email;
     if (req.body.phone) user.phone = req.body.phone;
     if (req.body.gender) user.gender = req.body.gender;
-
+ 
     
     // ----------------- PRIMARY ADDRESS -----------------
     const newAddr = buildPrimaryAddressFromFlatBody(req.body) || req.body.address;
@@ -91,27 +91,27 @@ const editUserProfile = async (req, res) => {
     }
 
     // ----------------- ALL ADDRESSES -----------------
-    let allAddresses = [];
-    if (req.body.allAddresses && Array.isArray(req.body.allAddresses)) {
-      allAddresses = req.body.allAddresses;
-    } else {
-      allAddresses = buildAllAddressesFromFlatBody(req.body);
-    }
+    // let allAddresses = [];
+    // if (req.body.allAddresses && Array.isArray(req.body.allAddresses)) {
+    //   allAddresses = req.body.allAddresses;
+    // } else {
+    //   allAddresses = buildAllAddressesFromFlatBody(req.body);
+    // }
 
-    if (allAddresses.length > 0) {
-      const validatedAddresses = [];
-      for (const addr of allAddresses) {
-        const outward = addr.PostalCode.split(" ")[0];
-        if (!ALLOWED_POSTAL_CODES.includes(outward)) {
-          return res.status(400).json({
-            message: "Some postal codes in allAddresses are not allowed",
-            invalidCode: outward,
-          });
-        }
-        validatedAddresses.push(addr);
-      }
-      user.allAddresses = validatedAddresses;
-    }
+    // if (allAddresses.length > 0) {
+    //   const validatedAddresses = [];
+    //   for (const addr of allAddresses) {
+    //     const outward = addr.PostalCode.split(" ")[0];
+    //     if (!ALLOWED_POSTAL_CODES.includes(outward)) {
+    //       return res.status(400).json({
+    //         message: "Some postal codes in allAddresses are not allowed",
+    //         invalidCode: outward,
+    //       });
+    //     }
+    //     validatedAddresses.push(addr);
+    //   }
+    //   user.allAddresses = validatedAddresses;
+    // }
 // ----------------- PROFILE IMAGE -----------------
     if (req.files && req.files.profileImage) {
       try {

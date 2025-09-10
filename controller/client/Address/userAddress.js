@@ -43,8 +43,9 @@ const updateUserAddress = async (req, res) => {
     // 🔹 Step 2: Check against serviceable areas
     const outwardCode = normalizedPostalCode.split(" ")[0]; // e.g., EC1A
     const locationExists = await Location.findOne({});
-   
-    if( !locationExists || !locationExists.postalcodes || !locationExists.postalcodes.includes(outwardCode) ){
+ console.log(locationExists.postalcodes)
+ console.log(outwardCode)
+    if (!locationExists.postalcodes.includes(outwardCode)) {
       return res.status(400).json({
         message: `Services are not offered in postal code area: ${normalizedPostalCode}`,
       });
