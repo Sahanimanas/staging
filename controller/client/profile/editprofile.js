@@ -18,6 +18,43 @@ function normalizePostcode(postcode) {
   return cleaned;
 }
 
+// ✅ Utility to rebuild nested objects from flat form-data
+function buildAllAddressesFromFlatBody(body) {
+  const addresses = [];
+  const indexSet = new Set();
+
+  // find all unique indices from keys like allAddresses[0][Street]
+  for (const key in body) {
+    const match = key.match(/^allAddresses\[(\d+)\]\[/);
+    if (match) indexSet.add(Number(match[1]));
+  }
+
+  for (const idx of [...indexSet].sort((a, b) => a - b)) {
+    const prefix = `allAddresses[${idx}]`;
+    addresses.push({
+      Building_No: body[`${prefix}[Building_No]`] || "",
+      Street: body[`${prefix}[Street]`] || "",
+      Locality: body[`${prefix}[Locality]`] || "",
+      PostTown: body[`${prefix}[PostTown]`] || "LONDON",
+      PostalCode: normalizePostcode(body[`${prefix}[PostalCode]`] || ""),
+      _id: body[`${prefix}[_id]`] || undefined,
+    });
+  }
+
+  return addresses;
+}
+
+function buildPrimaryAddressFromFlatBody(body) {
+  if (!Object.keys(body).some((k) => k.startsWith("address["))) return null;
+  return {
+    Building_No: body["address[Building_No]"] || "",
+    Street: body["address[Street]"] || "",
+    Locality: body["address[Locality]"] || "",
+    PostTown: body["address[PostTown]"] || "LONDON",
+    PostalCode: normalizePostcode(body["address[PostalCode]"] || ""),
+  };
+}
+
 const editUserProfile = async (req, res) => {
   try {
     let user = req.user;
@@ -31,78 +68,65 @@ const editUserProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    console.log(req.body)
 
     let ALLOWED_POSTAL_CODES = await getAllowedPostalCodes();
     ALLOWED_POSTAL_CODES = ALLOWED_POSTAL_CODES.map(normalizePostcode);
 
-    // ----------------- UPDATE FIELDS -----------------
+    // ----------------- BASIC FIELDS -----------------
     if (req.body["name[first]"]) user.name.first = req.body["name[first]"];
     if (req.body["name[last]"]) user.name.last = req.body["name[last]"];
     if (req.body.email) user.email = req.body.email;
     if (req.body.phone) user.phone = req.body.phone;
     if (req.body.gender) user.gender = req.body.gender;
 
-    // ----------------- UPDATE PROFILE IMAGE -----------------
-    if (req.files && req.files.profileImage) {
-      const file = req.files.profileImage;
-      try {
-        const uploaded = await cloudinary.uploader.upload(file.tempFilePath, {
-          folder: "client",
-        });
-        user.avatar_url = uploaded.secure_url;
-        console.log("uploaded")
-      } catch (uploadErr) {
-        console.error("Error uploading image:", uploadErr);
-        return res.status(500).json({ message: "Image upload failed", error: uploadErr.message });
-      }
-    }
-
+    
     // ----------------- PRIMARY ADDRESS -----------------
-    if (req.body.address) {
-      const newAddr = {
-        Building_No: req.body.address.Building_No || "",
-        Street: req.body.address.Street || "",
-        Locality: req.body.address.Locality || "",
-        PostTown: req.body.address.PostTown || "LONDON",
-        PostalCode: normalizePostcode(req.body.address.PostalCode || ""),
-      };
-
-      const outward = newAddr.PostalCode.split(" ")[0]; // ✅ outward code check
+    const newAddr = buildPrimaryAddressFromFlatBody(req.body) || req.body.address;
+    if (newAddr) {
+      const outward = newAddr.PostalCode.split(" ")[0];
       if (!ALLOWED_POSTAL_CODES.includes(outward)) {
         return res.status(400).json({ message: "Postal code not allowed", invalidCode: outward });
       }
-
       user.address = newAddr;
     }
 
     // ----------------- ALL ADDRESSES -----------------
+    let allAddresses = [];
     if (req.body.allAddresses && Array.isArray(req.body.allAddresses)) {
+      allAddresses = req.body.allAddresses;
+    } else {
+      allAddresses = buildAllAddressesFromFlatBody(req.body);
+    }
+
+    if (allAddresses.length > 0) {
       const validatedAddresses = [];
-      for (const addr of req.body.allAddresses) {
-        const pc = normalizePostcode(addr.PostalCode || "");
-        const outward = pc.split(" ")[0];
+      for (const addr of allAddresses) {
+        const outward = addr.PostalCode.split(" ")[0];
         if (!ALLOWED_POSTAL_CODES.includes(outward)) {
           return res.status(400).json({
             message: "Some postal codes in allAddresses are not allowed",
             invalidCode: outward,
           });
         }
-        validatedAddresses.push({
-          Building_No: addr.Building_No || "",
-          Street: addr.Street || "",
-          Locality: addr.Locality || "",
-          PostTown: addr.PostTown || "LONDON",
-          PostalCode: pc,
-          _id: addr._id,
-        });
+        validatedAddresses.push(addr);
       }
       user.allAddresses = validatedAddresses;
+    }
+// ----------------- PROFILE IMAGE -----------------
+    if (req.files && req.files.profileImage) {
+      try {
+        const uploaded = await cloudinary.uploader.upload(req.files.profileImage.tempFilePath, {
+          folder: "client",
+        });
+        user.avatar_url = uploaded.secure_url;
+      } catch (uploadErr) {
+        console.error("Error uploading image:", uploadErr);
+        return res.status(500).json({ message: "Image upload failed", error: uploadErr.message });
+      }
     }
 
     // ----------------- SAVE -----------------
     const updatedUser = await user.save();
-    // console.log("last update",updatedUser)
     res.status(200).json({ message: "User profile updated successfully", user: updatedUser });
 
   } catch (err) {
