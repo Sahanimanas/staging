@@ -15,9 +15,10 @@ const BookingSchema = new Schema({
   paymentIntentId: String,
   paymentStatus: { type: String, enum: ["pending", "paid", "failed"], default: "pending" },
   customerEmail: String,
-  price: { amount: Number, currency: String },
+  price: { amount: Number},
   eliteHourSurcharge: { type: Boolean, default: false },
-  notes: String
+  notes: String,
+  isReviewed: { type: Boolean, default: false }
 }, { timestamps: true });
 
 // 🔹 Pre-save hook to generate sequential bookingCode

@@ -1,6 +1,7 @@
 const { createOtp} = require("../../services/otpservice"); // wherever you save it
 const nodemailer = require("nodemailer");
-const express = require('express')
+const express = require('express');
+const sendMail = require("../../utils/sendmail");
 require('dotenv').config();
 
 const transporter = nodemailer.createTransport({

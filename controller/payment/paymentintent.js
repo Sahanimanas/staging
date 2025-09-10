@@ -22,7 +22,6 @@ router.post("/create-intent", async (req, res) => {
     // ✅ Create PaymentIntent in Stripe
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
-      currency: booking.price.currency || "inr",
       metadata: { bookingId: booking._id.toString() },
     });
 

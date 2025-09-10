@@ -13,7 +13,8 @@ const getDashboardStats = async (req, res) => {
       startDate = new Date(today);
       endDate = new Date(today);
       endDate.setUTCHours(23, 59, 59, 999);
-    } else if (filter === "week") {
+    }
+     else if (filter === "week") {
       const firstDayOfWeek = new Date(today);
       firstDayOfWeek.setDate(today.getDate() - today.getDay());
       firstDayOfWeek.setUTCHours(0, 0, 0, 0);
@@ -24,11 +25,13 @@ const getDashboardStats = async (req, res) => {
 
       startDate = firstDayOfWeek;
       endDate = lastDayOfWeek;
-    } else if (filter === "month") {
+    } 
+    else if (filter === "month") {
       startDate = new Date(today.getFullYear(), today.getMonth(), 1);
       endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
       endDate.setUTCHours(23, 59, 59, 999);
-    } else {
+    } 
+    else {
       return res.status(400).json({ error: "Invalid filter" });
     }
 
@@ -41,18 +44,18 @@ const getDashboardStats = async (req, res) => {
     });
 
     // Active therapists
-    const activeTherapists = await Therapist.countDocuments({ isActive: true });
+    const activeTherapists = await Therapist.countDocuments({ active: true });
 
     // Completed sessions (in the date range)
     const todaysSessions = await Booking.countDocuments({
       date: dateCondition,
-      status: "completed",
+      status: "confirmed",
     });
 
-    // Pending bookings in the date range
-    const pendingBookings = await Booking.countDocuments({
+    // Declined bookings in the date range
+    const declinedBookings = await Booking.countDocuments({
       createdAt: dateCondition,
-      status: "pending",
+      status: "declined",
     });
 
     // Cancelled bookings in the date range
@@ -69,13 +72,14 @@ const getDashboardStats = async (req, res) => {
 
     // Revenue for completed bookings
     const revenueAgg = await Booking.aggregate([
-      {
-        $match: {
-          createdAt: dateCondition,
-          status: "completed",
-        },
-      },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
+        {
+    $match: {
+      date: dateCondition,                 // ✅ use booking date, not createdAt
+      status: "confirmed",                 // only confirmed sessions
+      paymentStatus: "paid"                // only paid bookings
+    },
+  },
+      { $group: { _id: null, total: { $sum: "$price.amount" } } },
     ]);
 
     const revenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
@@ -84,7 +88,7 @@ const getDashboardStats = async (req, res) => {
       totalBookings,
       activeTherapists,
       todaysSessions,
-      pendingBookings,
+      declinedBookings,
       cancelledBookings,
       upcoming,
       revenue,

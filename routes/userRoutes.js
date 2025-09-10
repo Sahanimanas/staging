@@ -11,4 +11,6 @@ router.get('/profile', authtoken, require('../controller/client/profile/getProfi
 router.get('/:userId/bookings', require('../controller/client/profile/booking.js'));
 
 router.put('/editprofile', authtoken, require('../controller/client/profile/editprofile.js'));
+
+router.get('/booking/order/:bookingId', require('../controller/client/profile/order.js'));
 module.exports = router;
