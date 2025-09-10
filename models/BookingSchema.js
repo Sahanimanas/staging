@@ -18,8 +18,17 @@ const BookingSchema = new Schema({
   price: { amount: Number},
   eliteHourSurcharge: { type: Boolean, default: false },
   notes: String,
-  isReviewed: { type: Boolean, default: false }
-}, { timestamps: true });
+  isReviewed: { type: Boolean, default: false },
+  review: { 
+    type: {
+      rating: { type: Number, min: 1, max: 5 },
+      Comment: String,
+    },
+    default: null,
+  },
+}, { timestamps: true } );
+
+  
 
 // 🔹 Pre-save hook to generate sequential bookingCode
 BookingSchema.pre("save", async function (next) {

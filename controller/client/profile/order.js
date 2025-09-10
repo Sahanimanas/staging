@@ -9,7 +9,7 @@ const _id = bookingId;
   
     // Populate references for better response
     const bookings = await Booking.findById({_id:_id})
-      .populate("clientId", "name email phone")  // returns basic user info
+      .populate("clientId", "name email phone avatar_url")  // returns basic user info
       .populate("therapistId", "title") // returns therapist info
       .populate("serviceId", "name duration options.price.amount")
       .sort({ createdAt: -1 }); // newest first

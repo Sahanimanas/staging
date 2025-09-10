@@ -41,6 +41,7 @@ const webhook = async (req, res) => {
         await BookingSchema.findByIdAndUpdate(
           bookingId,
           {
+            status: "confirmed",
             paymentStatus: "paid",
             paymentIntentId: session.payment_intent,
             customerEmail: session.customer_details?.email,

@@ -132,7 +132,7 @@ newdate.setUTCHours(0, 0, 0, 0);
       date: newdate,
       slotStart,
       slotEnd,
-      status: "confirmed",
+      status: "pending",
       paymentStatus: "pending",
       price: { amount: finalPrice, currency: "gbp" },
       eliteHourSurcharge: surcharge,
