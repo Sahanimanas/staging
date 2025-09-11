@@ -4,6 +4,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const sendSMS = require("../utils/twilio");
 const BookingSchema = require("../models/BookingSchema.js");
 const sendMail = require("../utils/sendmail.js"); 
+const TherapistProfile = require("../models/TherapistProfiles.js");
 // ✅ Stripe needs raw body to verify signature
 const webhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
@@ -25,10 +26,13 @@ const webhook = async (req, res) => {
       case "checkout.session.completed": {
         const session = event.data.object;
         const bookingId = session.metadata?.bookingId;
+      
          const booking = await BookingSchema.findById(bookingId).populate('therapistId').populate('clientId').populate('serviceId');
+         const therapist = await TherapistProfile.findById(booking.therapistId).populate('userId');
+         
          if(booking){
-           sendSMS(booking.clientId.phone, `Your booking is confirmed for ${booking.serviceId.name} on date ${booking.date.toDateString()} from ${new Date(booking.slotStart).toLocaleTimeString()} to ${new Date(booking.slotEnd).toLocaleTimeString()}. Therapist name: ${booking.therapistId.title}, Email: ${booking.clientId.email}, Phone: ${booking.clientId.phone}, paymentStatus: ${booking.paymentStatus}, Price: £${booking.price}, address: ${booking.clientId.address}`);
-           sendSMS(booking.clientId.phone, `New booking for ${booking.date.toDateString()} from ${new Date(booking.slotStart).toLocaleTimeString()} to ${new Date(booking.slotEnd).toLocaleTimeString()}. Client: ${booking.clientId.name}, Email: ${booking.clientId.email}, Phone: ${booking.clientId.phone}, paymentStatus: ${booking.paymentStatus}, Price: £${booking.price}, address: ${booking.clientId.address}`);
+           sendSMS(booking.clientId.phone, `Your booking is confirmed for ${booking.serviceId.name} on date ${booking.date.toDateString()} from ${new Date(booking.slotStart).toLocaleTimeString()} to ${new Date(booking.slotEnd).toLocaleTimeString()}. Therapist name: ${therapist.title}, Email: ${therapist.userId.email}, Phone: ${therapist.userId.phone}, paymentStatus: ${booking.paymentStatus}, Price: £${booking.price}, address: ${booking.clientId.address}`);
+           sendSMS(therapist.userId.phone, `New booking for ${booking.date.toDateString()} from ${new Date(booking.slotStart).toLocaleTimeString()} to ${new Date(booking.slotEnd).toLocaleTimeString()}. Client: ${booking.clientId.name}, Email: ${booking.clientId.email}, Phone: ${booking.clientId.phone}, paymentStatus: ${booking.paymentStatus}, Price: £${booking.price}, address: ${booking.clientId.address}`);
          }
         if (!bookingId) {
           console.warn("⚠️ No bookingId found in metadata");

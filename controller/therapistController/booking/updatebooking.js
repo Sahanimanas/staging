@@ -56,7 +56,16 @@ const declineBooking = async (req, res) => {
     if (!booking) {
       return res.status(404).json({ error: "Booking not found" });
     }
-
+    const html = `
+<p><strong>Booking Update:</strong></p>
+<p>Your booking has been <strong style="color:red;">declined</strong> by the therapist for the BookingId: ${bookingId}.</p>
+<p>We're sorry for the inconvenience.</p>
+`;
+      await sendMail(
+        booking.clientId.email,
+        "Booking Declined by therapist, try with new slot",
+        html
+      );
     res.json({ message: "Booking declined", booking });
   } catch (err) {
     console.error(err);
