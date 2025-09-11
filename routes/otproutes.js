@@ -15,7 +15,8 @@ router.post('/login',
 
 
 router.post('/register',((req,res,next)=>{
-    req.body.purpose = "registration";next();
+    req.body.purpose = "registration";
+    next();
 }), verify_user);
 router.post('/invite',((req,res,next)=>{
     req.body.purpose = "invite";next();

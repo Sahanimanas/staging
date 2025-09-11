@@ -21,7 +21,7 @@ const verifyEmailOtp = async (req, res) => {
       used: false,
       expiresAt: { $gt: new Date() } // not expired
     });
-          
+       
     if (!record) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
