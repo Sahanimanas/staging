@@ -45,7 +45,9 @@ const webhook = async (req, res) => {
             paymentStatus: "paid",
             paymentIntentId: session.payment_intent,
             customerEmail: session.customer_details?.email,
-            price: session.amount_total, 
+            price: {
+              amount: session.amount_total,
+            },
           },
           { new: true }
         );

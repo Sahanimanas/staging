@@ -29,4 +29,7 @@ router.get('/dashboard', verifyadmin, dashboard);
 router.get('/revenue', require('../controller/admin/revenue.js'));
 router.get('/bookings/therapist/:therapistId', require('../controller/admin/bookingbytherapist.js'));
 
+//users management
+router.get('/users', require('../controller/admin/usermanagement/users.js'));
+
 module.exports = router;
