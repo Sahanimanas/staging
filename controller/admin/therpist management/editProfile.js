@@ -33,7 +33,12 @@ function normalizePostcode(postcode) {
 
 // ✅ Edit Therapist Profile
 const editTherapistProfile = async (req, res) => {
-    console.log(req.body)
+  const check = req.user;
+  if(req.user.role !== "admin") {
+  return res.status(403).json({ message: "Forbidden: Admins only" });
+  }
+
+    console.log("admin edit therapist called");
   try {
     const therapistId = req.params.therapistId; // TherapistProfile _id
    

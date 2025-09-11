@@ -27,8 +27,8 @@ router.get('/filter', require('../controller/therapistController/GetTherapist/ge
 
 router.get('/list', require('../controller/therapistController/GetTherapist/bytherpist/getTherapist.js'));
 router.get('/:therapistId/services', require('../controller/services/therapistServices.js'));
-//router.put('/editprofile/:id', require('../controller/therapistController/Profile/editProfile.js'));
-//by id
+router.put('/edittherapist/:therapistId',authMiddleware, require('../controller/therapistController/Profile/editprofile.js'));
+
 
 
 //edit profile
