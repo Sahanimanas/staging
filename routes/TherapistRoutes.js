@@ -38,7 +38,7 @@ router.get('/:therapistId/services', require('../controller/services/therapistSe
 //bookings
 router.get('/getbookings',authMiddleware, require('../controller/therapistController/booking/booking.js'));
 router.put('/completebooking/:bookingId',authMiddleware, require('../controller/therapistController/booking/updatebooking.js').MarkComplete);
-router.put('/declinebooking/:bookingId',authMiddleware, require('../controller/therapistController/booking/updatebooking.js').declineBooking);
+router.put('/decline/:bookingId',authMiddleware, require('../controller/therapistController/booking/updatebooking.js').declineBooking);
 //get by id
 router.get('/:id', require('../controller/therapistController/GetTherapist/therapistByID.js'));
 module.exports = router;
