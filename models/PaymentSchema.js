@@ -7,7 +7,7 @@ const PaymentSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   provider: String,
   providerPaymentId: String,
-  amount: { amount: Number, currency: String },
+  amount: { amount: Number},
   status: { type: String, enum: ["pending", "completed", "failed"], default: "pending" },
   method: String,
   refund: String
