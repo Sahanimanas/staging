@@ -4,8 +4,7 @@ const User = require("../../models/userSchema");
 const AvailabilitySchema = require("../../models/AvailabilitySchema");
 const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const checkoutsession = require('../../models/temporary');
-
+const Payment = require('../../models/PaymentSchema')
 /**
  * Helper to split availability blocks after a booking
  */
@@ -138,7 +137,15 @@ newdate.setUTCHours(0, 0, 0, 0);
       eliteHourSurcharge: surcharge,
       notes,
     });
-
+ // 2️⃣ Create payment record linked to booking
+    const payment = await Payment.create({
+      bookingId: booking._id,
+      userId: booking.clientId,
+      provider:"stripe",
+      amount: { amount: finalPrice },
+      status: "pending",
+      method: method || "card"
+    });
     // Block the booked slot from availability
     const availabilityDoc = await AvailabilitySchema.findOne({
       therapistId,
@@ -152,28 +159,83 @@ newdate.setUTCHours(0, 0, 0, 0);
     // console.log("Updated availability blocks", availabilityDoc.blocks);
     // Stripe checkout session
     const amount = Math.round(finalPrice * 100);
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "gbp",
-            product_data: {
-              name: serviceDoc.name,
-              description: `Booking ID: ${booking._id}`,
-            },
-            unit_amount: amount,
-          },
-          quantity: 1,
-        },
-      ],
-      success_url: `${process.env.FRONTEND_URL}/paymentsuccess?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/paymentfailed`,
-      customer_email: user.email,
-      metadata: { bookingId: booking._id.toString() },
+   const session = await stripe.checkout.sessions.create({
+  payment_method_types: [
+    "card", // ✅ Standard credit/debit cards
+    "link", // ✅ Stripe Link (saved payment)
+    "klarna", // ✅ Pay later (popular in UK/EU)
+    "afterpay_clearpay" // ✅ BNPL option (Clearpay in UK)
+    // Optionally: "paypal" if you have Stripe PayPal integration enabled
+  ],
+  mode: "payment",
 
-    });
+  customer_email: user.email, // ✅ Required for receipt + Radar checks
+  customer_creation: "if_required", // ✅ Auto-create customer in Stripe if doesn't exist
+
+  client_reference_id: booking._id.toString(), // ✅ Good for tracking in Stripe Dashboard
+
+  // ✅ Collect billing address
+  billing_address_collection: "required",
+
+  // ✅ Optionally collect shipping (if needed for physical services/goods)
+  // shipping_address_collection: {
+  //   allowed_countries: ["GB", "IE", "US"], // Only allow countries you serve
+  // },
+
+  payment_method_options: {
+    card: {
+      request_three_d_secure: "automatic", // ✅ 3D Secure for safer EU payments
+    },
+  },
+
+  payment_intent_data: {
+    description: `Booking for ${serviceDoc.name} on ${booking.date.toDateString()}`,
+    metadata: {
+      bookingId: booking._id.toString(),
+      clientId: user._id.toString(),
+      clientName: `${user.name.first} ${user.name.last}`,
+      clientPhone: user.phone,
+    },
+    shipping: user.address
+      ? {
+          name: `${user.name.first} ${user.name.last}`,
+          address: {
+            line1: user.address?.Street || "N/A",
+            city: user.address?.Locality || "N/A",
+            postal_code: user.address?.PostalCode || "N/A",
+            country: user.address?.Country || "GB",
+          },
+          phone: user.phone,
+        }
+      : undefined,
+  },
+
+  line_items: [
+    {
+      price_data: {
+        currency: "gbp",
+        product_data: {
+          name: serviceDoc.name,
+          description: `Booking ID: ${booking._id}`,
+        },
+        unit_amount: amount,
+      },
+      quantity: 1,
+    },
+  ],
+  adaptive_pricing: {
+    enabled: false // 🔑 disables INR option & conversion dropdown
+  },
+
+  success_url: `${process.env.FRONTEND_URL}/paymentsuccess?session_id={CHECKOUT_SESSION_ID}`,
+  cancel_url: `${process.env.FRONTEND_URL}/paymentfailed`,
+
+  metadata: {
+    bookingId: booking._id.toString(),
+    serviceName: serviceDoc.name,
+  },
+});
+
 
     
     return res.json({ url: session.url });

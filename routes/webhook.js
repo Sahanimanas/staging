@@ -4,7 +4,7 @@ const sendSMS = require("../utils/twilio");
 const BookingSchema = require("../models/BookingSchema.js");
 const sendMail = require("../utils/sendmail.js");
 const TherapistProfile = require("../models/TherapistProfiles.js");
-// ✅ Stripe needs raw body to verify signature
+const Payment = require('../models/PaymentSchema.js')
 const webhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   let event;
@@ -13,23 +13,28 @@ const webhook = async (req, res) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET // 👉 found in dashboard
+      process.env.STRIPE_WEBHOOK_SECRET
     );
     console.log("📩 Event received:", event.type);
   } catch (err) {
     console.error("⚠️ Webhook signature verification failed.", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-  // 🔹 Handle events
+
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object;
       const bookingId = session.metadata?.bookingId;
+      if (!bookingId) {
+        console.warn("⚠️ No bookingId found in metadata");
+        break;
+      }
 
       const booking = await BookingSchema.findById(bookingId)
         .populate("therapistId")
         .populate("clientId")
         .populate("serviceId");
+
       const therapist = await TherapistProfile.findById(
         booking.therapistId
       ).populate("userId");
@@ -39,7 +44,7 @@ const webhook = async (req, res) => {
           booking.clientId.phone,
           `Your booking is confirmed for ${
             booking.serviceId.name
-          } on date ${booking.date.toDateString()} from ${new Date(
+          } on ${booking.date.toDateString()} from ${new Date(
             booking.slotStart
           ).toLocaleTimeString()} to ${new Date(
             booking.slotEnd
@@ -53,9 +58,9 @@ const webhook = async (req, res) => {
           therapist.userId.phone,
           `New booking for ${booking.date.toDateString()} \n from ${new Date(
             booking.slotStart
-          ).toLocaleTimeString()} to ${new Date(
+          ).toLocaleTimeString()} - ${new Date(
             booking.slotEnd
-          ).toLocaleTimeString()}.\n Client: ${booking.clientId.name.first}  ${
+          ).toLocaleTimeString()} from ${booking.clientId.name.first} ${
             booking.clientId.name.last
           },\n Email: ${booking.clientId.email},\n Phone: ${
             booking.clientId.phone
@@ -83,33 +88,57 @@ const webhook = async (req, res) => {
           paymentStatus: "paid",
           paymentIntentId: session.payment_intent,
           customerEmail: session.customer_details?.email,
-          price: {
-            amount: session.amount_total,
-          },
+          price: { amount: session.amount_total },
         },
         { new: true }
       );
-      console.log("booking updated", updated);
+      await Payment.findOneAndUpdate(
+  { bookingId },
+  {
+    status: "completed",
+    providerPaymentId: session.payment_intent,
+  },
+  { new: true }
+);
+
+
       console.log(`✅ Booking ${bookingId} marked as paid`);
-      // ✅ Prepare mail content
-      const clientMail = `
-    <h2>Booking Confirmation</h2>
-    <p>Hi ${booking.clientId.name.first} ${booking.clientId.name.last},</p>
-    <p>Your booking is confirmed!</p>
-    <ul>
-      <li><b>Service:</b> ${booking.serviceId.name}</li>
-      <li><b>Date:</b> ${booking.date.toDateString()}</li>
-      <li><b>Time:</b> ${new Date(
-        booking.slotStart
-      ).toLocaleTimeString()} - ${new Date(
-        booking.slotEnd
-      ).toLocaleTimeString()}</li>
-      <li><b>Therapist:</b> ${booking.therapistId.title}</li>
-      <li><b>Price:</b> £${booking.price.amount}</li>
-      <li><b>Status:</b> Paid ✅</li>
-    </ul>
-    <p>Thank you for booking with Noira.</p>
-  `;
+      break;
+    }
+
+    case "charge.updated": {
+      const charge = event.data.object;
+      console.log(`💳 Charge updated: ${charge.id}`);
+
+      // Find booking by paymentIntent (safe way)
+      if (!charge.payment_intent) {
+        console.warn("⚠️ No payment_intent on charge.updated");
+        break;
+      }
+
+      const booking = await BookingSchema.findOneAndUpdate(
+        { paymentIntentId: charge.payment_intent },
+        { $set: { receiptUrl: charge.receipt_url } },
+        { new: true }
+      );
+
+      if (booking) {
+        console.log(
+          `📎 Receipt URL saved for booking ${booking._id}: ${charge.receipt_url}`
+        );
+
+        // Send email with receipt link
+        const clientMail = `
+          <h2>Booking Receipt</h2>
+          <p>Hi ${booking.clientId?.name?.first || "Client"},</p>
+          <p>Your payment was successfully processed.</p>
+          ${
+            charge.receipt_url
+              ? `<p><a href="${charge.receipt_url}" target="_blank" style="background:#0d6efd;color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;">Download Your Receipt</a></p>`
+              : "<p>Receipt not available yet.</p>"
+          }
+          <p>Thank you for booking with Noira.</p>
+        `;
 
       const therapistMail = `
     <h2>New Booking Alert</h2>
@@ -145,7 +174,7 @@ const webhook = async (req, res) => {
 
       break;
     }
-
+  }
     case "payment_intent.succeeded": {
       const intent = event.data.object;
       console.log("💰 Payment succeeded:", intent.id);
@@ -156,30 +185,34 @@ const webhook = async (req, res) => {
 
     case "payment_intent.payment_failed": {
       const failedPayment = event.data.object;
-      const bookingId = failedPayment.metadata?.bookingId;
-
-      if (bookingId) {
+      if (failedPayment.metadata?.bookingId) {
         await BookingSchema.findByIdAndUpdate(
-          bookingId,
+          failedPayment.metadata.bookingId,
           { paymentStatus: "failed" },
           { new: true }
         );
-        console.log(`❌ Booking ${bookingId} marked as failed`);
+        console.log(
+          `❌ Booking ${failedPayment.metadata.bookingId} marked as failed`
+        );
       }
       break;
     }
 
     case "checkout.session.expired": {
       const session = event.data.object;
-      const bookingId = session.metadata?.bookingId;
-
-      if (bookingId) {
+      if (session.metadata?.bookingId) {
         await BookingSchema.findByIdAndUpdate(
-          bookingId,
+          session.metadata.bookingId,
           { paymentStatus: "failed" },
           { new: true }
         );
-        console.log(`⚠️ Booking ${bookingId} marked as failed`);
+        await Payment.findOneAndUpdate(
+  { bookingId: failedPayment.metadata.bookingId },
+  { status: "failed" },
+  { new: true }
+);
+
+        console.log(`⚠️ Booking ${session.metadata.bookingId} marked as failed`);
       }
       break;
     }
