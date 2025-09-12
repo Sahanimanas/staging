@@ -17,8 +17,8 @@ const mongoose = require('mongoose');
 
 // ===============================
 
-// dotenv.config({ path: '/etc/secrets/stripe.env' });
-dotenv.config({ path: './.env' });
+dotenv.config({ path: './etc/secrets/stripe.env' });
+// dotenv.config({ path: './.env' });
 // Debug env
 
 console.log("STRIPE_SECRET_KEY:", process.env.STRIPE_SECRET_KEY ? "Loaded" : "Missing");
