@@ -10,7 +10,7 @@ const resetPassword = async (req, res) => {
 
     // ✅ Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(decoded.userId).select("+passwordHash");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     // ✅ Hash and update password

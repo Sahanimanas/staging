@@ -9,7 +9,7 @@ const forgotPassword = async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+passwordHash")
     if (!user) return res.status(404).json({ message: "User not found" });
 
     // ✅ Create JWT token for reset
@@ -18,7 +18,7 @@ const forgotPassword = async (req, res) => {
     });
    
     const resetUrl = `${process.env.FRONTEND_URL}/auth/resetpassword/${resetToken}`;
-    console.log(process.env.FRONTEND_URL);
+    
     // ✅ Send email with reset link
     const transporter = nodemailer.createTransport({
       service: "gmail", // or your email service

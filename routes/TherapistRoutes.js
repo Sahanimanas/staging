@@ -27,13 +27,9 @@ router.get('/filter', require('../controller/therapistController/GetTherapist/ge
 
 router.get('/list', require('../controller/therapistController/GetTherapist/bytherpist/getTherapist.js'));
 router.get('/:therapistId/services', require('../controller/services/therapistServices.js'));
+
+//profile 
 router.put('/edittherapist/:therapistId',authMiddleware, require('../controller/therapistController/Profile/editprofile.js'));
-
-
-
-//edit profile
-//pending
-// router.post('/edit/:therapistId', require('../controller/therapistController/Profile/editProfile.js'));
 
 //bookings
 router.get('/getbookings',authMiddleware, require('../controller/therapistController/booking/booking.js'));

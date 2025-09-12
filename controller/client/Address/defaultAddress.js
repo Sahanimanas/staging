@@ -9,7 +9,7 @@ const setDefaultAddress = async (req, res) => {
       return res.status(400).json({ message: "Address ID is required." });
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select("-passwordHash");
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }

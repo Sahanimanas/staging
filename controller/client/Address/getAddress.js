@@ -3,7 +3,7 @@ const User = require("../../../models/userSchema"); // adjust path if needed
 const getAddress = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select("-passwordHash");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

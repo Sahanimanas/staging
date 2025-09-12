@@ -52,7 +52,7 @@ const therapistlist = async (req, res) => {
 
     // --- Query therapists and populate full User data ---
     const therapists = await TherapistProfile.find(filter)
-      .populate("userId", "-_id") // full user object
+      .populate("userId", "-_id -passwordHash") // full user object
       .skip(skip)
       .limit(pageSize);
 

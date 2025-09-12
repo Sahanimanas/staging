@@ -9,7 +9,7 @@ const PaymentSchema = new Schema({
   providerPaymentId: String,
   amount: { amount: Number},
   paymentStatus: { type: String, enum: ["pending", "completed", "failed"], default: "pending" },
-  method: String,
+  method: Object,
   refund: String
 }, { timestamps: true });
 

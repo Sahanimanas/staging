@@ -50,7 +50,7 @@ const registerUser = async (req, res) => {
   //  }
 
     // 1. Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
 
     if (existingUser) {
       if (!existingUser.emailVerified) {

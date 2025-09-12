@@ -3,12 +3,12 @@ const TherapistProfiles = require("../../../models/TherapistProfiles.js");
 
 const bookingUser = async (req, res) => {
   const userId = req.user._id;
-  const therapist = await TherapistProfiles.findOne({ userId:userId });
+  const therapist = await TherapistProfiles.findOne({ userId:userId }).select("-passwordHash");
   if(!therapist){
     return res.status(404).json({ error: "Therapist not found" });
   }
   const therapistId = therapist._id.toString();
-  console.log(therapistId)
+  // console.log(therapistId)
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
@@ -20,7 +20,7 @@ const bookingUser = async (req, res) => {
 
     // Find all bookings for this therapist
     const bookings = await Booking.find({ therapistId })
-      .populate("clientId") // populate client's info
+      .populate("clientId","-passwordHash") // populate client's info
       .populate("serviceId") // populate service info
       .sort({ createdAt: -1 })
       .lean();

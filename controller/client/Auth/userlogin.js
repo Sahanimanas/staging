@@ -10,7 +10,7 @@ const login_User = async (req, res) => {
     const { email, password} = req.body;
 
     // 1️⃣ Check if user exists
-    const user = await User.findOne({ email: email.toLowerCase()});
+    const user = await User.findOne({ email: email.toLowerCase()}).select("+passwordHash");
     
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });

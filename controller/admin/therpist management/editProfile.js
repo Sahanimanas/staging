@@ -42,7 +42,7 @@ const editTherapistProfile = async (req, res) => {
   try {
     const therapistId = req.params.therapistId; // TherapistProfile _id
    
-    const therapistProfile = await TherapistProfile.findById(therapistId).populate("userId");
+    const therapistProfile = await TherapistProfile.findById(therapistId).populate("userId","-passwordHash");
 
     if (!therapistProfile) {
       return res.status(404).json({ message: "Therapist profile not found" });

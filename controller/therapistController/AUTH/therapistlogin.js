@@ -15,8 +15,8 @@ const login_User = async (req, res) => {
     }
 
     // ✅ 1. Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
+      const user = await User.findOne({ email: email.toLowerCase() }).select("+passwordHash");
+      if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
@@ -35,7 +35,7 @@ const login_User = async (req, res) => {
     await User.findByIdAndUpdate(user._id, { lastSignInAt: new Date() });
 
     // ✅ 5. Get Therapist Profile
-    const therapist = await TherapistProfiles.findOne({ userId: user._id }).populate('userId');
+    const therapist = await TherapistProfiles.findOne({ userId: user._id }).populate('userId',"-passwordHash");
     if (!therapist) {
       return res.status(404).json({ message: "Therapist profile not found" });
     }

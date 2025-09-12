@@ -138,14 +138,7 @@ newdate.setUTCHours(0, 0, 0, 0);
       notes,
     });
  // 2️⃣ Create payment record linked to booking
-    const payment = await Payment.create({
-      bookingId: booking._id,
-      userId: booking.clientId,
-      provider:"stripe",
-      amount: { amount: finalPrice },
-      status: "pending",
-      method: method || "card"
-    });
+    
     // Block the booked slot from availability
     const availabilityDoc = await AvailabilitySchema.findOne({
       therapistId,
@@ -235,7 +228,14 @@ newdate.setUTCHours(0, 0, 0, 0);
     serviceName: serviceDoc.name,
   },
 });
-
+const payment = await Payment.create({
+      bookingId: booking._id,
+      userId: booking.clientId,
+      provider:"stripe",
+      amount: { amount: finalPrice },
+      status: "pending",
+      method: "null"
+    });
 
     
     return res.json({ url: session.url });

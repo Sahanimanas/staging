@@ -27,7 +27,7 @@ const UserSchema = new Schema(
     gender: { type: String, enum: ["male", "female", "other"], default: "other" },
     phone: String,
     phoneVerified: { type: Boolean, default: false },
-    passwordHash: String,
+    passwordHash: {type:String,select:false},
     role: {
       type: String,
       enum: ["client", "therapist", "admin"],

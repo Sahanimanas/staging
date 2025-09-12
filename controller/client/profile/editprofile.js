@@ -63,7 +63,7 @@ const editUserProfile = async (req, res) => {
     }
 
     if (!user.save) {
-      user = await User.findById(user._id || user.userId);
+      user = await User.findById(user._id || user.userId).select('-passwordHash');
     }
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -127,7 +127,7 @@ const editUserProfile = async (req, res) => {
 
     // ----------------- SAVE -----------------
     const updatedUser = await user.save();
-    res.status(200).json({ message: "User profile updated successfully", user: updatedUser });
+    res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
 
   } catch (err) {
     console.error("Error updating user profile:", err);

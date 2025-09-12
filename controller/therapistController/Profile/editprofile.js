@@ -32,11 +32,9 @@ function normalizePostcode(postcode) {
 const editTherapistProfile = async (req, res) => {
   try {
     let therapistProfile;
-
-    
       const therapistId = req.params.therapistId; // TherapistProfile _id
-        therapistProfile = await TherapistProfile.findById(therapistId).populate("userId");
-        console.log(req.body);
+        therapistProfile = await TherapistProfile.findById(therapistId).populate("userId","-passwordHash");
+   
     // console.log(therapistProfile);
     const userId = therapistProfile.userId;
     const id = new mongoose.Types.ObjectId(userId);
@@ -78,6 +76,7 @@ const editTherapistProfile = async (req, res) => {
     // ----------------------------
     // Update TherapistProfile fields
     // ----------------------------
+    therapistProfile.title = `${user.name.first} ${user.name.last}` 
     if (req.body.bio) therapistProfile.bio = req.body.bio;
     if (req.body.experience) therapistProfile.experience = Number(req.body.experience);
 

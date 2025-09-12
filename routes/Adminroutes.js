@@ -7,11 +7,14 @@ const verifyadmin = require('../models/middlewares/verifyadmin.js');
 const dashboard = require('../controller/admin/dashboard.js');
 const authMiddleware = require('../models/middlewares/authtoken.js');
 
+// Admin profile
 
+router.get('/profile',authMiddleware,require('../controller/admin/adminProfile/getProfile.js'))
+router.put('/editprofile', authMiddleware, require('../controller/admin/adminProfile/editprofile'))
+router.get('/adminlist',authMiddleware,require('../controller/admin/admin management/getAdmin'))
+//therapist Routes
 router.get('/therapist',  require('../controller/therapistController/GetTherapist/admin_get_therapsit.js'));
 router.delete('/therapist/:id',require('../controller/therapistController/Add&DeleteTherapist/deletetherapist.js'));
-
-//therapist Routes
 router.get('/therapist/list', require('../controller/admin/therpist management/alltherapist.js'));
 router.post('/createtherapist', require('./Admin/createTherpist.js'));
 router.post('/therapist/bulkaction', require('../controller/admin/therpist management/bulkAction.js'));
@@ -32,5 +35,8 @@ router.get('/bookings/therapist/:therapistId', require('../controller/admin/book
 
 //users management
 router.get('/users', require('../controller/admin/usermanagement/users.js'));
+
+//admin management
+router.post('/createadmin',authMiddleware, require('../controller/admin/admin management/addAdmin.js'))
 
 module.exports = router;

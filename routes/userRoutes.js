@@ -14,4 +14,5 @@ router.put('/editprofile', authtoken, require('../controller/client/profile/edit
 
 router.get('/booking/order/:bookingId', require('../controller/client/profile/order.js'));
 router.put('/booking/:id/review', require('../controller/client/booking.js/review.js'));
+router.put('/deleteaddress/:addressId',authtoken,require('../controller/client/Address/delete'))
 module.exports = router;

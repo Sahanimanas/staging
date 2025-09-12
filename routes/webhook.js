@@ -89,6 +89,7 @@ const webhook = async (req, res) => {
           paymentIntentId: session.payment_intent,
           customerEmail: session.customer_details?.email,
           price: { amount: session.amount_total },
+          paymentStatus: session.payment_status
         },
         { new: true }
       );
@@ -97,6 +98,7 @@ const webhook = async (req, res) => {
   {
     status: "completed",
     providerPaymentId: session.payment_intent,
+
   },
   { new: true }
 );
@@ -121,7 +123,17 @@ const webhook = async (req, res) => {
         { $set: { receiptUrl: charge.receipt_url } },
         { new: true }
       );
+     
+       await Payment.findOneAndUpdate(
+  { providerPaymentId },
+  {
+   method:charge.payment_method_details
+  },
+  { new: true }
+);
 
+      
+      
       if (booking) {
         console.log(
           `📎 Receipt URL saved for booking ${booking._id}: ${charge.receipt_url}`
