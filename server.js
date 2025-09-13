@@ -17,8 +17,8 @@ const mongoose = require('mongoose');
 
 // ===============================
 
-dotenv.config({ path: '/etc/secrets/stripe.env' });
-// dotenv.config({ path: './.env' });
+// dotenv.config({ path: '/etc/secrets/stripe.env' });
+dotenv.config({ path: './.env' });
 // Debug env
 
 console.log("STRIPE_SECRET_KEY:", process.env.STRIPE_SECRET_KEY ? "Loaded" : "Missing");
@@ -47,7 +47,7 @@ connectDB();
 
 app.use((req, res, next) => {
 
-  if (req.originalUrl === "/webhook") {
+  if (req.originalUrl === "/api/webhook") {
 
     next();
 
@@ -80,7 +80,7 @@ app.use(fileUpload({
 
 // ===============================
 
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
 
   res.json({
 
@@ -120,44 +120,39 @@ const login_Therapist = require('./controller/therapistController/AUTH/therapist
 const { googleAuthCallback } = require('./routes/google.js');
 
 
-app.post('/webhook', express.raw({ type: 'application/json' }), require('./routes/webhook'));
+app.post('/api/webhook', express.raw({ type: 'application/json' }), require('./routes/webhook'));
 
 
-app.get('/', (req, res) => res.send("Hello from server"));
+app.get('/api/', (req, res) => res.send("Hello from server"));
 
 
-app.use('/auth', require('./routes/google.js'));
+app.use('/api/auth', require('./routes/google.js'));
 
-app.use('/auth/user', userAuth);
+app.use('/api/auth/user', userAuth);
 
-app.use('/user', require('./routes/userRoutes.js'));
+app.use('/api/user', require('./routes/userRoutes.js'));
 
-app.use('/admin', Adminroutes);
+app.use('/api/admin', Adminroutes);
 
-app.use('/verifyotp', require('./routes/otproutes.js'));
+app.use('/api/verifyotp', require('./routes/otproutes.js'));
 
-app.post('/auth/admin/login', login_User);
+app.post('/api/auth/admin/login', login_User);
 
-app.use('/auth/therapist/login', login_Therapist);
+app.use('/api/auth/therapist/login', login_Therapist);
 
-app.use('/therapist', therapistRoutes);
+app.use('/api/therapist', therapistRoutes);
 
-app.use('/services', require('./routes/servicesRoute.js'));
+app.use('/api/services', require('./routes/servicesRoute.js'));
 
-app.get('/auth/verifytoken', tokenHandler);
+app.get('/api/auth/verifytoken', tokenHandler);
 
-app.post('/payment/create-checkout-session', require("./controller/booking/create_booking.js"));
+app.post('/api/payment/create-checkout-session', require("./controller/booking/create_booking.js"));
 
-app.use('/bookings', Bookingroute);
+app.use('/api/bookings', Bookingroute);
 
-app.use('/auth', require('./routes/forgotpasswordRoute/forgotpass.js'));
-
-
-// ===============================
+app.use('/api/auth', require('./routes/forgotpasswordRoute/forgotpass.js'));
 
 // Start server
-
-// ===============================
 
 app.listen(PORT, '0.0.0.0', () => {
 
