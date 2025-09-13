@@ -167,14 +167,6 @@ newdate.setUTCHours(0, 0, 0, 0);
 
   client_reference_id: booking._id.toString(), // ✅ Good for tracking in Stripe Dashboard
 
-  // ✅ Collect billing address
-  billing_address_collection: "required",
-
-  // ✅ Optionally collect shipping (if needed for physical services/goods)
-  // shipping_address_collection: {
-  //   allowed_countries: ["GB", "IE", "US"], // Only allow countries you serve
-  // },
-
   payment_method_options: {
     card: {
       request_three_d_secure: "automatic", // ✅ 3D Secure for safer EU payments
@@ -232,7 +224,7 @@ const payment = await Payment.create({
       bookingId: booking._id,
       userId: booking.clientId,
       provider:"stripe",
-      amount: { amount: finalPrice },
+      amount:  finalPrice ,
       status: "pending",
       method: "null"
     });

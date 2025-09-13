@@ -7,9 +7,9 @@ const PaymentSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   provider: String,
   providerPaymentId: String,
-  amount: { amount: Number},
+  amount: Number,
   paymentStatus: { type: String, enum: ["pending", "completed", "failed"], default: "pending" },
-  method: Object,
+  method: { type: Schema.Types.Mixed },
   refund: String
 }, { timestamps: true });
 

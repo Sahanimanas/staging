@@ -4,7 +4,7 @@ const sendSMS = require("../utils/twilio");
 const BookingSchema = require("../models/BookingSchema.js");
 const sendMail = require("../utils/sendmail.js");
 const TherapistProfile = require("../models/TherapistProfiles.js");
-const Payment = require('../models/PaymentSchema.js')
+const Payment = require("../models/PaymentSchema.js");
 const webhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   let event;
@@ -88,21 +88,18 @@ const webhook = async (req, res) => {
           paymentStatus: "paid",
           paymentIntentId: session.payment_intent,
           customerEmail: session.customer_details?.email,
-          price: { amount: session.amount_total },
-          paymentStatus: session.payment_status
+          paymentStatus: session.payment_status,
         },
         { new: true }
       );
       await Payment.findOneAndUpdate(
-  { bookingId },
-  {
-    status: "completed",
-    providerPaymentId: session.payment_intent,
-
-  },
-  { new: true }
-);
-
+        { bookingId },
+        {
+          paymentStatus: "paid",
+          providerPaymentId: session.payment_intent,
+        },
+        { new: true }
+      );
 
       console.log(`✅ Booking ${bookingId} marked as paid`);
       break;
@@ -123,17 +120,15 @@ const webhook = async (req, res) => {
         { $set: { receiptUrl: charge.receipt_url } },
         { new: true }
       );
-     
-       await Payment.findOneAndUpdate(
-  { providerPaymentId },
-  {
-   method:charge.payment_method_details
-  },
-  { new: true }
-);
 
-      
-      
+      await Payment.findOneAndUpdate(
+        { providerPaymentId },
+        {
+          method: charge.payment_method_details,
+        },
+        { new: true }
+      );
+
       if (booking) {
         console.log(
           `📎 Receipt URL saved for booking ${booking._id}: ${charge.receipt_url}`
@@ -152,41 +147,41 @@ const webhook = async (req, res) => {
           <p>Thank you for booking with Noira.</p>
         `;
 
-      const therapistMail = `
+        const therapistMail = `
     <h2>New Booking Alert</h2>
     <p>Hello ${booking.therapistId.title},</p>
     <p>You have a new booking.</p>
     <ul>
       <li><b>Client:</b> ${booking.clientId.name} (${booking.clientId.email}, ${
-        booking.clientId.phone
-      })</li>
+          booking.clientId.phone
+        })</li>
       <li><b>Service:</b> ${booking.serviceId.name}</li>
       <li><b>Date:</b> ${booking.date.toDateString()}</li>
       <li><b>Time:</b> ${new Date(
         booking.slotStart
       ).toLocaleTimeString()} - ${new Date(
-        booking.slotEnd
-      ).toLocaleTimeString()}</li>
+          booking.slotEnd
+        ).toLocaleTimeString()}</li>
       <li><b>Price:</b> £${booking.price.amount}</li>
       <li><b>Status:</b> Paid ✅</li>
     </ul>
   `;
 
-      // ✅ Send emails
-      await sendMail(
-        booking.clientId.email,
-        "Booking Confirmation - Noira",
-        clientMail
-      );
-      await sendMail(
-        therapist.userId.email,
-        "New Booking Alert - Noira",
-        therapistMail
-      );
+        // ✅ Send emails
+        await sendMail(
+          booking.clientId.email,
+          "Booking Confirmation - Noira",
+          clientMail
+        );
+        await sendMail(
+          therapist.userId.email,
+          "New Booking Alert - Noira",
+          therapistMail
+        );
 
-      break;
+        break;
+      }
     }
-  }
     case "payment_intent.succeeded": {
       const intent = event.data.object;
       console.log("💰 Payment succeeded:", intent.id);
@@ -219,12 +214,14 @@ const webhook = async (req, res) => {
           { new: true }
         );
         await Payment.findOneAndUpdate(
-  { bookingId: failedPayment.metadata.bookingId },
-  { status: "failed" },
-  { new: true }
-);
+          { bookingId: failedPayment.metadata.bookingId },
+          { paymentStatus: "failed" },
+          { new: true }
+        );
 
-        console.log(`⚠️ Booking ${session.metadata.bookingId} marked as failed`);
+        console.log(
+          `⚠️ Booking ${session.metadata.bookingId} marked as failed`
+        );
       }
       break;
     }
