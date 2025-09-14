@@ -1,16 +1,7 @@
 const { createOtp} = require("../../services/otpservice"); // wherever you save it
-const nodemailer = require("nodemailer");
-const express = require('express');
 const sendMail = require("../../utils/sendmail");
 require('dotenv').config();
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 const sendotp = async (userID, email, purpose) => {
   if (!email) throw new Error("Email is required");
@@ -39,7 +30,7 @@ const sendotp = async (userID, email, purpose) => {
     `;
 
     // Send via reusable util
-    await sendMail(email, `Your ${otp.purpose} OTP for NOIRA`, html);
+    await sendMail(email, `Your ${otp.purpose} OTP for NOIRA`, html, "otp");
 
   return "OTP sent successfully";
   } catch (err) {

@@ -171,12 +171,12 @@ const webhook = async (req, res) => {
         await sendMail(
           booking.clientId.email,
           "Booking Confirmation - Noira",
-          clientMail
+          clientMail,"booking"
         );
         await sendMail(
           therapist.userId.email,
           "New Booking Alert - Noira",
-          therapistMail
+          therapistMail,"booking"
         );
 
         break;

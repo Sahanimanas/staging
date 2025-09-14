@@ -4,6 +4,27 @@ const nodemailer = require("nodemailer");
 const tokenSchema = require("../models/tokenSchema");
 require('dotenv').config();
 
+const { Client } = require("@microsoft/microsoft-graph-client");
+const { ClientSecretCredential } = require("@azure/identity");
+require("isomorphic-fetch");
+
+
+const tenantId = process.env.TENANT_ID;
+const clientId = process.env.CLIENT_ID;
+const clientSecret = process.env.CLIENT_SECRET;
+
+const credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+//microsoft
+async function getGraphClient() {
+  const token = await credential.getToken("https://graph.microsoft.com/.default");
+
+  return Client.init({
+    authProvider: (done) => {
+      done(null, token.token);
+    },
+  });
+}
+
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -19,29 +40,50 @@ const forgotPassword = async (req, res) => {
    
     const resetUrl = `${process.env.FRONTEND_URL}/auth/resetpassword/${resetToken}`;
     
-    // ✅ Send email with reset link
-    const transporter = nodemailer.createTransport({
-      service: "gmail", // or your email service
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    // // ✅ Send email with reset link
+    // const transporter = nodemailer.createTransport({
+    //   service: "gmail", // or your email service
+    //   auth: {
+    //     user: process.env.EMAIL_USER,
+    //     pass: process.env.EMAIL_PASS
+    //   }
+    // });
     const token = await tokenSchema.create({
       userId: user._id,
       token: resetToken,
       type: "password_reset",
       expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
     });
+      
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: user.email,
+     const client = await getGraphClient();
+
+    const message = {                                 
       subject: "Password Reset Request",
-      html: `<p>You requested a password reset</p>
+      body: {
+        contentType: "HTML",
+        content: `<p>You requested a password reset</p>
              <p>Click here to reset: <a href="${resetUrl}">${resetUrl}</a></p>
-             <p>This link expires in 15 minutes.</p>`
-    });
+            <p>This link expires in 15 minutes.</p>`,
+      },
+      toRecipients: [
+        {
+          emailAddress: { address: user.email },
+        },
+      ],
+    };
+
+    // Send from noreply mailbox
+    await client.api(`/users/${process.env.EMAIL_NOREPLY}/sendMail`).post({ message });
+
+    // await transporter.sendMail({
+    //   from: process.env.EMAIL_USER,
+    //   to: user.email,
+    //   subject: "Password Reset Request",
+    //   html: `<p>You requested a password reset</p>
+    //          <p>Click here to reset: <a href="${resetUrl}">${resetUrl}</a></p>
+    //          <p>This link expires in 15 minutes.</p>`
+    // });
 
     res.json({ message: "Password reset email sent" });
   } catch (err) {

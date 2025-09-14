@@ -21,7 +21,7 @@ booking.status = "completed";
       await sendMail(
         booking.clientId.email,
         "We value your feedback – Review your recent session",
-        html
+        html,"booking"
       );
     }
 
@@ -64,7 +64,7 @@ const declineBooking = async (req, res) => {
       await sendMail(
         booking.clientId.email,
         "Booking Declined by therapist, try with new slot",
-        html
+        html,"booking"
       );
     res.json({ message: "Booking declined", booking });
   } catch (err) {
