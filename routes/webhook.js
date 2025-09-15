@@ -26,7 +26,7 @@ const webhook = async (req, res) => {
   case "charge.updated": {
     // ✅ Shared logic: find booking
     let session, charge, bookingId;
-
+console.log(event.type)
     if (event.type === "checkout.session.completed") {
       session = event.data.object;
       bookingId = session.metadata?.bookingId;
@@ -59,7 +59,7 @@ const webhook = async (req, res) => {
       console.warn("⚠️ No booking found for event");
       break;
     }
-
+console.log(session)
     // ✅ If checkout.session.completed: update booking + payment status
     if (session) {
       await BookingSchema.findByIdAndUpdate(
@@ -156,6 +156,7 @@ const webhook = async (req, res) => {
 
       await sendMail(booking.clientId.email, "Booking Confirmation - Noira", clientMail, "booking");
       await sendMail(booking.therapistId.userId.email, "New Booking Alert - Noira", therapistMail, "booking");
+      console.log()
     }
 
     break;
