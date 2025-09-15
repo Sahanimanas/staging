@@ -69,7 +69,7 @@ const editUserProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    let ALLOWED_POSTAL_CODES = await getAllowedPostalCodes();
+    // let ALLOWED_POSTAL_CODES = await getAllowedPostalCodes();
 
 
     // ----------------- BASIC FIELDS -----------------
