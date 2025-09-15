@@ -9,9 +9,9 @@ const authMiddleware = require('../models/middlewares/authtoken.js');
 
 // Admin profile
 
-router.get('/profile', authMiddleware , require('../controller/admin/adminProfile/getProfile.js'))
-router.put('/editprofile', authMiddleware, require('../controller/admin/adminProfile/editprofile'))
-router.get('/adminlist',authMiddleware,require('../controller/admin/admin management/getAdmin'))
+router.get('/profile',verifyadmin, authMiddleware , require('../controller/admin/adminProfile/getProfile.js'))
+router.put('/editprofile',verifyadmin, authMiddleware, require('../controller/admin/adminProfile/editprofile'))
+router.get('/adminlist', verifyadmin, authMiddleware,require('../controller/admin/admin management/getAdmin'))
 //therapist Routes
 router.get('/therapist', verifyadmin ,  require('../controller/therapistController/GetTherapist/admin_get_therapsit.js'));
 router.delete('/therapist/:id', verifyadmin ,  require('../controller/therapistController/Add&DeleteTherapist/deletetherapist.js'));

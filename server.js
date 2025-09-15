@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 // ===============================
 // Load environment variables
 // ===============================
-dotenv.config({ path: '/etc/secrets/stripe.env' });
+// dotenv.config({ path: '/etc/secrets/stripe.env' });
 dotenv.config({ path: './.env' });
 
 const PORT = process.env.PORT && !isNaN(process.env.PORT) ? parseInt(process.env.PORT, 10) : 3000;

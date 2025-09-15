@@ -31,6 +31,7 @@ async function getGraphClient() {
 // });
 const sendMail = async (to, subject, html, type) => {
   let USE_EMAIL;
+  console.log(type)
   if(type === 'booking') {
     USE_EMAIL = process.env.EMAIL_BOOKING
   }
@@ -61,10 +62,7 @@ const sendMail = async (to, subject, html, type) => {
 
     // Send from noreply mailbox
     await client.api(`/users/${USE_EMAIL}/sendMail`).post({ message });
-
-
-
-  
+console.log("mail sent",  message)
   } catch (err) {
     console.error("❌ Failed to send email:", err.message);
   }
