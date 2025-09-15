@@ -112,11 +112,19 @@ const createBooking = async (req, res) => {
     // Price calculation
     let finalPrice = option.price.amount;
     let surcharge = false;
-    const hour = slotStart.getUTCHours();
-    if (hour >= 22 || hour < 8) {
-      surcharge = true;
-      finalPrice += 15;
-    }
+   const hour = parseInt(
+  new Date(slotStart).toLocaleString("en-GB", {
+    timeZone: "Europe/London",
+    hour: "2-digit",
+    hour12: false,
+  }),
+  10
+);
+
+if (hour >= 23 || hour < 9) {
+  surcharge = true;
+  finalPrice += 15;
+}
  
 const newdate = new Date(slotStart); // copy original date
 newdate.setUTCHours(0, 0, 0, 0);
