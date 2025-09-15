@@ -23,10 +23,13 @@ const jwt = require('jsonwebtoken')
 
     // 2️⃣ Check if user exists
     let user = await User.findOne({ email: googleUser.email });
-    if(user.role !== 'client'){
+    if(user){
+ if(user.role !== 'client'){
       return res.status(401).json({message:"unauthorised user"})
     }
 
+    }
+   
     // 3️⃣ If not, create a new user
     if (!user) {
       user = new User({
