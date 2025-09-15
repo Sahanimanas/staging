@@ -174,7 +174,7 @@ newdate.setUTCHours(0, 0, 0, 0);
   customer_creation: "if_required", // ✅ Auto-create customer in Stripe if doesn't exist
 
   client_reference_id: booking._id.toString(), // ✅ Good for tracking in Stripe Dashboard
-
+ phone_number_collection: {"enabled": true},
   payment_method_options: {
     card: {
       request_three_d_secure: "automatic", // ✅ 3D Secure for safer EU payments
@@ -188,19 +188,7 @@ newdate.setUTCHours(0, 0, 0, 0);
       clientId: user._id.toString(),
       clientName: `${user.name.first} ${user.name.last}`,
       clientPhone: user.phone,
-    },
-    shipping: user.address
-      ? {
-          name: `${user.name.first} ${user.name.last}`,
-          address: {
-            line1: user.address?.Street || "N/A",
-            city: user.address?.Locality || "N/A",
-            postal_code: user.address?.PostalCode || "N/A",
-            country: user.address?.Country || "GB",
-          },
-          phone: user.phone,
-        }
-      : undefined,
+    }
   },
 
   line_items: [
