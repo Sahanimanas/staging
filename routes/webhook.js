@@ -126,7 +126,7 @@ const paymentIntent = await stripe.paymentIntents.retrieve(
     <p>Dear ${booking.therapistId.title},</p>
     <p>You have a new booking.</p>
     <ul>
-      <li><b>Client:</b> ${booking.clientId.name} (${booking.clientId.email}, ${
+      <li><b>Client:</b> ${booking.clientId.name.first} ${booking.clientId.name.last} (${
         booking.clientId.phone
       })</li>
       <li><b>Service:</b> ${booking.serviceId.name}</li>
