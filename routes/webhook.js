@@ -114,8 +114,8 @@ const paymentIntent = await stripe.paymentIntents.retrieve(
     <p><strong>Service:</strong> ${booking.serviceId.name}</p>
     <p><strong>Price:</strong> £${booking.price.amount}</p>
     <p><strong>Payment Mode:</strong> Card</p> <p><strong>Location:</strong></p>
-    <p>${booking.clientId.address.Building_No}, ${booking.clientId.address.Street}, ${booking.clientId.address.Locality}, ${booking.clientId.address.PostalCode}</p>
-    <p><strong>Receipt:</strong> £${booking.receipt_url}</p>
+    <p><strong>${booking.clientId.address.Building_No}, ${booking.clientId.address.Street}, ${booking.clientId.address.Locality}, ${booking.clientId.address.PostalCode}</strong></p>
+    <p><strong>Receipt:</strong> £${updated.receipt_url}</p>
     <p>For any assistance, please call us at +44 7350 700055.</p>
     <p>We look forward to serving you.</p>
 
@@ -124,22 +124,20 @@ const paymentIntent = await stripe.paymentIntents.retrieve(
       const therapistMail = `
     <h2>New Booking Alert</h2>
     <p>Dear ${booking.therapistId.title},</p>
-    <p>You have a new booking.</p>
-    <ul>
-      <li><b>Client:</b> ${booking.clientId.name.first} ${booking.clientId.name.last} (${
-        booking.clientId.phone
-      })</li>
-      <li><b>Service:</b> ${booking.serviceId.name}</li>
-      <li><b>Date:</b> ${booking.date.toDateString()}</li>
-      <li><b>Time:</b> ${new Date(
-        booking.slotStart
-      ).toLocaleTimeString()} - ${new Date(
-        booking.slotEnd
-      ).toLocaleTimeString()}</li>
-      <li><b>Price:</b> £${booking.price.amount}</li>
-      <li><b>Status:</b> Paid ✅</li>
-    </ul>
-  `;
+    <p>You have a new booking. Please find the details below:</p>
+
+    <p><strong>Client:</strong> ${booking.clientId.name.first} ${booking.clientId.name.last}</p>
+    <p><strong>Contact:</strong> ${booking.clientId.phone}</p>
+    <p><strong>Service:</strong> ${booking.serviceId.name}</p>
+    <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
+    <p><strong>Time:</strong> ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(booking.slotEnd).toLocaleTimeString()}</p>
+    <p><strong>Price:</strong> £${booking.price.amount}</p>
+    <p><strong>Status:</strong> Paid ✅</p>
+    
+    <p>For any assistance, please call the client at ${booking.clientId.phone}.</p>
+    
+    <p>Best regards,<br>Team NOIRA</p>
+`;
 
       // ✅ Send emails
       await sendMail(
