@@ -22,48 +22,66 @@ const webhook = async (req, res) => {
   }
 
   switch (event.type) {
-  case "checkout.session.completed":
-  case "charge.updated": {
-    // ✅ Shared logic: find booking
-    let session, charge, bookingId;
-console.log(event.type)
-    if (event.type === "checkout.session.completed") {
-      session = event.data.object;
-      bookingId = session.metadata?.bookingId;
+    case "checkout.session.completed": {
+      const session = event.data.object;
+      const bookingId = session.metadata?.bookingId;
       if (!bookingId) {
         console.warn("⚠️ No bookingId found in metadata");
         break;
       }
-    } else if (event.type === "charge.updated") {
-      charge = event.data.object;
-      if (!charge.payment_intent) {
-        console.warn("⚠️ No payment_intent on charge.updated");
+
+      const booking = await BookingSchema.findById(bookingId)
+        .populate("therapistId")
+        .populate("clientId")
+        .populate("serviceId");
+
+      const therapist = await TherapistProfile.findById(
+        booking.therapistId
+      ).populate("userId");
+
+      if (booking) {
+        sendSMS(
+          booking.clientId.phone,
+          `Your booking is confirmed for ${
+            booking.serviceId.name
+          } on ${booking.date.toDateString()} from ${new Date(
+            booking.slotStart
+          ).toLocaleTimeString()} to ${new Date(
+            booking.slotEnd
+          ).toLocaleTimeString()}. Therapist name: ${therapist.title}, Email: ${
+            therapist.userId.email
+          }, Phone: ${therapist.userId.phone}, paymentStatus: ${
+            booking.paymentStatus
+          }, Price: £${booking.price}, address: ${booking.clientId.address}`
+        );
+        sendSMS(
+          therapist.userId.phone,
+          `New booking for ${booking.date.toDateString()} \n from ${new Date(
+            booking.slotStart
+          ).toLocaleTimeString()} - ${new Date(
+            booking.slotEnd
+          ).toLocaleTimeString()} from ${booking.clientId.name.first} ${
+            booking.clientId.name.last
+          },\n Email: ${booking.clientId.email},\n Phone: ${
+            booking.clientId.phone
+          },\n paymentStatus: ${booking.paymentStatus},\n Price: £${
+            booking.price.amount
+          }, address: \n${booking.clientId.address.Building_No}\n ${
+            booking.clientId.address.Street
+          }\n ${booking.clientId.address.Locality}\n ${
+            booking.clientId.address.PostalCode
+          } `
+        );
+      }
+      if (!bookingId) {
+        console.warn("⚠️ No bookingId found in metadata");
         break;
       }
-    }
+ 
 
-    let booking;
-    if (bookingId) {
-      booking = await BookingSchema.findById(bookingId)
-        .populate("therapistId")
-        .populate("clientId")
-        .populate("serviceId");
-    } else if (charge) {
-      booking = await BookingSchema.findOne({ paymentIntentId: charge.payment_intent })
-        .populate("therapistId")
-        .populate("clientId")
-        .populate("serviceId");
-    }
-
-    if (!booking) {
-      console.warn("⚠️ No booking found for event");
-      break;
-    }
-console.log(session)
-    // ✅ If checkout.session.completed: update booking + payment status
-    if (session) {
-      await BookingSchema.findByIdAndUpdate(
-        booking._id,
+      // Mark booking as paid
+      const updated = await BookingSchema.findByIdAndUpdate(
+        bookingId,
         {
           status: "confirmed",
           paymentStatus: "paid",
@@ -73,175 +91,138 @@ console.log(session)
         },
         { new: true }
       );
-
       await Payment.findOneAndUpdate(
-        { bookingId: booking._id },
+        { bookingId },
         {
           paymentStatus: "paid",
           providerPaymentId: session.payment_intent,
         },
         { new: true }
       );
+const clientMail = `
+          <h2>Booking Receipt</h2>
+          <p>Hi ${booking.clientId?.name?.first || "Client"},</p>
+          <p>Your payment was successfully processed.</p>
+          ${
+            charge.receipt_url
+              ? `<p><a href= target="_blank" style="background:#0d6efd;color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;">Download Your Receipt</a></p>`
+              : "<p>Receipt not available yet.</p>"
+          }
+          <p>Thank you for booking with Noira.</p>
+        `;
 
-      // sendSMS(
-      //   booking.clientId.phone,
-      //   `Your booking is confirmed for ${booking.serviceId.name} on ${booking.date.toDateString()} from ${new Date(
-      //     booking.slotStart
-      //   ).toLocaleTimeString()} to ${new Date(
-      //     booking.slotEnd
-      //   ).toLocaleTimeString()}. Therapist: ${booking.therapistId.title}, Email: ${
-      //     booking.therapistId.userId.email
-      //   }, Phone: ${booking.therapistId.userId.phone}, Payment: ${
-      //     booking.paymentStatus
-      //   }, Price: £${booking.price.amount}, Address: ${booking.clientId.address}`
-      // );
+        const therapistMail = `
+    <h2>New Booking Alert</h2>
+    <p>Hello ${booking.therapistId.title},</p>
+    <p>You have a new booking.</p>
+    <ul>
+      <li><b>Client:</b> ${booking.clientId.name} (${booking.clientId.email}, ${
+          booking.clientId.phone
+        })</li>
+      <li><b>Service:</b> ${booking.serviceId.name}</li>
+      <li><b>Date:</b> ${booking.date.toDateString()}</li>
+      <li><b>Time:</b> ${new Date(
+        booking.slotStart
+      ).toLocaleTimeString()} - ${new Date(
+          booking.slotEnd
+        ).toLocaleTimeString()}</li>
+      <li><b>Price:</b> £${booking.price.amount}</li>
+      <li><b>Status:</b> Paid ✅</li>
+    </ul>
+  `;
 
-      // sendSMS(
-      //   booking.therapistId.userId.phone,
-      //   `New booking for ${booking.date.toDateString()} from ${new Date(
-      //     booking.slotStart
-      //   ).toLocaleTimeString()} - ${new Date(
-      //     booking.slotEnd
-      //   ).toLocaleTimeString()} by ${booking.clientId.name.first} ${
-      //     booking.clientId.name.last
-      //   }, Email: ${booking.clientId.email}, Phone: ${booking.clientId.phone}, Price: £${
-      //     booking.price.amount
-      //   }, Address: ${booking.clientId.address.Building_No}, ${booking.clientId.address.Street}, ${booking.clientId.address.Locality}, ${booking.clientId.address.PostalCode}`
-      // );
-
-        // ${
-        //   charge.receipt_url
-        //     ? `<p><a href="${charge.receipt_url}" target="_blank" style="background:#0d6efd;color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;">Download Your Receipt</a></p>`
-        //     : "<p>Receipt not available yet.</p>"
-        // }
-      
-//         const start = new Date(booking.slotStart);
-// const end = new Date(booking.slotEnd);
-
-// // Difference in milliseconds
-// const diffMs = end - start;
-
-// // Convert to hours and minutes
-// const diffMins = Math.floor(diffMs / 60000); // total minutes
-// const hours = Math.floor(diffMins / 60);
-// const minutes = diffMins % 60;
-
-// const duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-
-
-//  `
-//        <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
-//   <div style="max-width: 600px; margin: auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px;">
-//     <p style="font-size: 16px; color: #333;">Dear <b>${booking.clientId.name.first} ${booking.clientId.name.last}</b>,</p>
-//     <p style="font-size: 16px; color: #333;">
-//       Your appointment at <b>Noira Massage Therapy</b> is confirmed. Please find the details below:
-//     </p>
-//     <p style="font-size: 15px; color: #333; line-height: 1.6;">
-//       <b>Date:</b>${booking.date.toDateString()}<br>
-//       <b>Time:</b>  ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(
-//         booking.slotEnd
-//       ).toLocaleTimeString()}<br>
-//       <b>Duration:</b> ${duration} <br>
-//       <b>Focus:</b>${booking.serviceId.name} <br>
-//       <b>Price:</b> ${booking.price.amount} <br>
-      
-//     </p>
-//     <p style="font-size: 15px; color: #333; line-height: 1.6;">
-//       <b>Location:</b><br>
-//      ${booking.clientId.address}
-//     </p>
-//     <p style="font-size: 15px; color: #333;">
-//       For any assistance, please call us at <b>+44 7350 700055</b>.
-//     </p>
-//     <p style="font-size: 15px; color: #333;">
-//       We look forward to serving you.
-//     </p>
-//     <p style="font-size: 15px; color: #333;">
-//       Best regards,<br>
-//       <b>Team NOIRA</b>
-//     </p>
-//   </div>
-// </div>
-
-//       `
-
-      const clientMail ="<div>booking done</div>"
-
-
-      // `
-      //   <h2>New Booking Alert</h2>
-      //   <p>Hello ${booking.therapistId.title},</p>
-      //   <p>You have a new booking.</p>
-      //   <ul>
-      //     <li><b>Client:</b> ${booking.clientId.name.first} ${booking.clientId.name.last} (${booking.clientId.email}, ${booking.clientId.phone})</li>
-      //     <li><b>Service:</b> ${booking.serviceId.name}</li>
-      //     <li><b>Date:</b> ${booking.date.toDateString()}</li>
-      //     <li><b>Time:</b> ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(
-      //   booking.slotEnd
-      // ).toLocaleTimeString()}</li>
-      //     <li><b>Price:</b> £${booking.price.amount}</li>
-      //     <li><b>Status:</b> Paid ✅</li>
-      //   </ul>
-      // `;
-      const therapistMail = "<div>therpist done</div>"
-
-      await sendMail(booking.clientId.email, "Booking Confirmation - Noira", clientMail, "booking");
-      await sendMail(booking.therapistId.userId.email, "New Booking Alert - Noira", therapistMail, "booking");
-      console.log()
+        // ✅ Send emails
+        await sendMail(
+          booking.clientId.email,
+          "Booking Confirmation - Noira",
+          clientMail,"booking"
+        );
+        await sendMail(
+          therapist.userId.email,
+          "New Booking Alert - Noira",
+          therapistMail,"booking"
+        );
+    
+      break;
     }
 
-    // ✅ If charge.updated: update receipt + send emails
-    if (charge) {
-      await BookingSchema.findByIdAndUpdate(
-        booking._id,
+    case "charge.updated": {
+      const charge = event.data.object;
+    
+
+      // Find booking by paymentIntent (safe way)
+      if (!charge.payment_intent) {
+        console.warn("⚠️ No payment_intent on charge.updated");
+        break;
+      }
+
+      const booking = await BookingSchema.findOneAndUpdate(
+        { paymentIntentId: charge.payment_intent },
         { $set: { receiptUrl: charge.receipt_url } },
         { new: true }
       );
 
       await Payment.findOneAndUpdate(
-        { providerPaymentId: charge.payment_intent },
+        { providerPaymentId },
         {
           method: charge.payment_method_details,
         },
         { new: true }
       );
 
-      const clientMail = `
-        <h2>Booking Receipt</h2>
-        <p>Hi ${booking.clientId?.name?.first || "Client"},</p>
-        <p>Your payment was successfully processed.</p>
-        ${
-          charge.receipt_url
-            ? `<p><a href="${charge.receipt_url}" target="_blank" style="background:#0d6efd;color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;">Download Your Receipt</a></p>`
-            : "<p>Receipt not available yet.</p>"
-        }
-        <p>Thank you for booking with Noira.</p>
-      `;
+      if (booking) {
+        console.log(
+          `📎 Receipt URL saved for booking ${booking._id}: ${charge.receipt_url}`
+        );
 
-      const therapistMail = `
-        <h2>New Booking Alert</h2>
-        <p>Hello ${booking.therapistId.title},</p>
-        <p>You have a new booking.</p>
-        <ul>
-          <li><b>Client:</b> ${booking.clientId.name.first} ${booking.clientId.name.last} (${booking.clientId.email}, ${booking.clientId.phone})</li>
-          <li><b>Service:</b> ${booking.serviceId.name}</li>
-          <li><b>Date:</b> ${booking.date.toDateString()}</li>
-          <li><b>Time:</b> ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(
-        booking.slotEnd
-      ).toLocaleTimeString()}</li>
-          <li><b>Price:</b> £${booking.price.amount}</li>
-          <li><b>Status:</b> Paid ✅</li>
-        </ul>
-      `;
+        // Send email with receipt link
+        const clientMail = `
+          <h2>Booking Receipt</h2>
+          <p>Hi ${booking.clientId?.name?.first || "Client"},</p>
+          <p>Your payment was successfully processed.</p>
+          ${
+            charge.receipt_url
+              ? `<p><a href="${charge.receipt_url}" target="_blank" style="background:#0d6efd;color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;">Download Your Receipt</a></p>`
+              : "<p>Receipt not available yet.</p>"
+          }
+          <p>Thank you for booking with Noira.</p>
+        `;
 
-      await sendMail(booking.clientId.email, "Booking Confirmation - Noira", clientMail, "booking");
-      await sendMail(booking.therapistId.userId.email, "New Booking Alert - Noira", therapistMail, "booking");
-      console.log()
+        const therapistMail = `
+    <h2>New Booking Alert</h2>
+    <p>Hello ${booking.therapistId.title},</p>
+    <p>You have a new booking.</p>
+    <ul>
+      <li><b>Client:</b> ${booking.clientId.name} (${booking.clientId.email}, ${
+          booking.clientId.phone
+        })</li>
+      <li><b>Service:</b> ${booking.serviceId.name}</li>
+      <li><b>Date:</b> ${booking.date.toDateString()}</li>
+      <li><b>Time:</b> ${new Date(
+        booking.slotStart
+      ).toLocaleTimeString()} - ${new Date(
+          booking.slotEnd
+        ).toLocaleTimeString()}</li>
+      <li><b>Price:</b> £${booking.price.amount}</li>
+      <li><b>Status:</b> Paid ✅</li>
+    </ul>
+  `;
+
+        // ✅ Send emails
+        await sendMail(
+          booking.clientId.email,
+          "Booking Confirmation - Noira",
+          clientMail,"booking"
+        );
+        await sendMail(
+          therapist.userId.email,
+          "New Booking Alert - Noira",
+          therapistMail,"booking"
+        );
+
+        break;
+      }
     }
-
-    break;
-  }
-
     case "payment_intent.succeeded": {
       const intent = event.data.object;
 
