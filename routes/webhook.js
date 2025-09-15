@@ -94,6 +94,8 @@ const webhook = async (req, res) => {
         {
           paymentStatus: "paid",
           providerPaymentId: session.payment_intent,
+          stripeCheckoutSessionId: session.id,
+          stripeClient_reference_id: session.client_reference_id,
         },
         { new: true }
       );
@@ -142,126 +144,126 @@ const webhook = async (req, res) => {
       break;
     }
 
-  //   case "charge.updated": {
-  //     const charge = event.data.object;
+    case "charge.updated": {
+      const charge = event.data.object;
+      const previous_attributes = event.data.previous_attributes;
+      // Find booking by paymentIntent (safe way)
+      if (!charge.payment_intent) {
+        console.warn("⚠️ No payment_intent on charge.updated");
+        break;
+      }
 
-  //     // Find booking by paymentIntent (safe way)
-  //     if (!charge.payment_intent) {
-  //       console.warn("⚠️ No payment_intent on charge.updated");
-  //       break;
-  //     }
+      const booking = await BookingSchema.findOneAndUpdate(
+        { paymentIntentId: charge.payment_intent },
+        { $set: { receipt_url: previous_attributes.receipt_url } },
+        { new: true }
+      );
 
-  //     const booking = await BookingSchema.findOneAndUpdate(
-  //       { paymentIntentId: charge.payment_intent },
-  //       { $set: { receiptUrl: charge.receipt_url } },
-  //       { new: true }
-  //     );
+      await Payment.findOneAndUpdate(
+        { providerPaymentId },
+        {
+          payment_method_type: charge.payment_method_details.type,
+        },
+        { new: true }
+      );
 
-  //     await Payment.findOneAndUpdate(
-  //       { providerPaymentId },
-  //       {
-  //         method: charge.payment_method_details,
-  //       },
-  //       { new: true }
-  //     );
+      if (booking) {
+        console.log(
+          `📎 Receipt URL saved for booking ${booking._id}: ${previous_attributes.receipt_url}`
+        );
 
-  //     if (booking) {
-  //       console.log(
-  //         `📎 Receipt URL saved for booking ${booking._id}: ${charge.receipt_url}`
-  //       );
+        // Send email with receipt link
+        const clientMail = `
+          <h2>Booking Receipt</h2>
+          <p>Hi ${booking.clientId?.name?.first || "Client"},</p>
+          <p>Your payment was successfully processed.</p>
+          ${
+            charge.receipt_url
+              ? `<p><a href="${previous_attributes.receipt_url}" target="_blank" style="background:#0d6efd;color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;">Download Your Receipt</a></p>`
+              : "<p>Receipt not available yet.</p>"
+          }
+          <p>Thank you for booking with Noira.</p>
+        `;
 
-  //       // Send email with receipt link
-  //       const clientMail = `
-  //         <h2>Booking Receipt</h2>
-  //         <p>Hi ${booking.clientId?.name?.first || "Client"},</p>
-  //         <p>Your payment was successfully processed.</p>
-  //         ${
-  //           charge.receipt_url
-  //             ? `<p><a href="${charge.receipt_url}" target="_blank" style="background:#0d6efd;color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;">Download Your Receipt</a></p>`
-  //             : "<p>Receipt not available yet.</p>"
-  //         }
-  //         <p>Thank you for booking with Noira.</p>
-  //       `;
+        const therapistMail = `
+    <h2>New Booking Alert</h2>
+    <p>Hello ${booking.therapistId.title},</p>
+    <p>You have a new booking.</p>
+    <ul>
+      <li><b>Client:</b> ${booking.clientId.name} (${booking.clientId.email}, ${
+          booking.clientId.phone
+        })</li>
+      <li><b>Service:</b> ${booking.serviceId.name}</li>
+      <li><b>Date:</b> ${booking.date.toDateString()}</li>
+      <li><b>Time:</b> ${new Date(
+        booking.slotStart
+      ).toLocaleTimeString()} - ${new Date(
+          booking.slotEnd
+        ).toLocaleTimeString()}</li>
+      <li><b>Price:</b> £${booking.price.amount}</li>
+      <li><b>Status:</b> Paid ✅</li>
+    </ul>
+  `;
 
-  //       const therapistMail = `
-  //   <h2>New Booking Alert</h2>
-  //   <p>Hello ${booking.therapistId.title},</p>
-  //   <p>You have a new booking.</p>
-  //   <ul>
-  //     <li><b>Client:</b> ${booking.clientId.name} (${booking.clientId.email}, ${
-  //         booking.clientId.phone
-  //       })</li>
-  //     <li><b>Service:</b> ${booking.serviceId.name}</li>
-  //     <li><b>Date:</b> ${booking.date.toDateString()}</li>
-  //     <li><b>Time:</b> ${new Date(
-  //       booking.slotStart
-  //     ).toLocaleTimeString()} - ${new Date(
-  //         booking.slotEnd
-  //       ).toLocaleTimeString()}</li>
-  //     <li><b>Price:</b> £${booking.price.amount}</li>
-  //     <li><b>Status:</b> Paid ✅</li>
-  //   </ul>
-  // `;
+        // ✅ Send emails
+        await sendMail(
+          booking.clientId.email,
+          "Booking Confirmation - Noira",
+          clientMail,
+          "booking"
+        );
+        await sendMail(
+          therapist.userId.email,
+          "New Booking Alert - Noira",
+          therapistMail,
+          "booking"
+        );
 
-  //       // ✅ Send emails
-  //       await sendMail(
-  //         booking.clientId.email,
-  //         "Booking Confirmation - Noira",
-  //         clientMail,
-  //         "booking"
-  //       );
-  //       await sendMail(
-  //         therapist.userId.email,
-  //         "New Booking Alert - Noira",
-  //         therapistMail,
-  //         "booking"
-  //       );
+        break;
+      }
+    }
+    //   case "payment_intent.succeeded": {
+    //     const intent = event.data.object;
 
-  //       break;
-  //     }
-  //   }
-  //   case "payment_intent.succeeded": {
-  //     const intent = event.data.object;
+    //     // This can be optional if you handle everything in checkout.session.completed
+    //     break;
+    //   }
 
-  //     // This can be optional if you handle everything in checkout.session.completed
-  //     break;
-  //   }
+    //   case "payment_intent.payment_failed": {
+    //     const failedPayment = event.data.object;
+    //     if (failedPayment.metadata?.bookingId) {
+    //       await BookingSchema.findByIdAndUpdate(
+    //         failedPayment.metadata.bookingId,
+    //         { paymentStatus: "failed" },
+    //         { new: true }
+    //       );
+    //       console.log(
+    //         `❌ Booking ${failedPayment.metadata.bookingId} marked as failed`
+    //       );
+    //     }
+    //     break;
+    //   }
 
-  //   case "payment_intent.payment_failed": {
-  //     const failedPayment = event.data.object;
-  //     if (failedPayment.metadata?.bookingId) {
-  //       await BookingSchema.findByIdAndUpdate(
-  //         failedPayment.metadata.bookingId,
-  //         { paymentStatus: "failed" },
-  //         { new: true }
-  //       );
-  //       console.log(
-  //         `❌ Booking ${failedPayment.metadata.bookingId} marked as failed`
-  //       );
-  //     }
-  //     break;
-  //   }
+    //   case "checkout.session.expired": {
+    //     const session = event.data.object;
+    //     if (session.metadata?.bookingId) {
+    //       await BookingSchema.findByIdAndUpdate(
+    //         session.metadata.bookingId,
+    //         { paymentStatus: "failed" },
+    //         { new: true }
+    //       );
+    //       await Payment.findOneAndUpdate(
+    //         { bookingId: failedPayment.metadata.bookingId },
+    //         { paymentStatus: "failed" },
+    //         { new: true }
+    //       );
 
-  //   case "checkout.session.expired": {
-  //     const session = event.data.object;
-  //     if (session.metadata?.bookingId) {
-  //       await BookingSchema.findByIdAndUpdate(
-  //         session.metadata.bookingId,
-  //         { paymentStatus: "failed" },
-  //         { new: true }
-  //       );
-  //       await Payment.findOneAndUpdate(
-  //         { bookingId: failedPayment.metadata.bookingId },
-  //         { paymentStatus: "failed" },
-  //         { new: true }
-  //       );
-
-  //       console.log(
-  //         `⚠️ Booking ${session.metadata.bookingId} marked as failed`
-  //       );
-  //     }
-  //     break;
-  //   }
+    //       console.log(
+    //         `⚠️ Booking ${session.metadata.bookingId} marked as failed`
+    //       );
+    //     }
+    //     break;
+    //   }
 
     default:
       console.log(`⚠️ Unhandled event type ${event.type}`);
