@@ -83,31 +83,106 @@ console.log(session)
         { new: true }
       );
 
-      sendSMS(
-        booking.clientId.phone,
-        `Your booking is confirmed for ${booking.serviceId.name} on ${booking.date.toDateString()} from ${new Date(
-          booking.slotStart
-        ).toLocaleTimeString()} to ${new Date(
-          booking.slotEnd
-        ).toLocaleTimeString()}. Therapist: ${booking.therapistId.title}, Email: ${
-          booking.therapistId.userId.email
-        }, Phone: ${booking.therapistId.userId.phone}, Payment: ${
-          booking.paymentStatus
-        }, Price: £${booking.price.amount}, Address: ${booking.clientId.address}`
-      );
+      // sendSMS(
+      //   booking.clientId.phone,
+      //   `Your booking is confirmed for ${booking.serviceId.name} on ${booking.date.toDateString()} from ${new Date(
+      //     booking.slotStart
+      //   ).toLocaleTimeString()} to ${new Date(
+      //     booking.slotEnd
+      //   ).toLocaleTimeString()}. Therapist: ${booking.therapistId.title}, Email: ${
+      //     booking.therapistId.userId.email
+      //   }, Phone: ${booking.therapistId.userId.phone}, Payment: ${
+      //     booking.paymentStatus
+      //   }, Price: £${booking.price.amount}, Address: ${booking.clientId.address}`
+      // );
 
-      sendSMS(
-        booking.therapistId.userId.phone,
-        `New booking for ${booking.date.toDateString()} from ${new Date(
-          booking.slotStart
-        ).toLocaleTimeString()} - ${new Date(
-          booking.slotEnd
-        ).toLocaleTimeString()} by ${booking.clientId.name.first} ${
-          booking.clientId.name.last
-        }, Email: ${booking.clientId.email}, Phone: ${booking.clientId.phone}, Price: £${
-          booking.price.amount
-        }, Address: ${booking.clientId.address.Building_No}, ${booking.clientId.address.Street}, ${booking.clientId.address.Locality}, ${booking.clientId.address.PostalCode}`
-      );
+      // sendSMS(
+      //   booking.therapistId.userId.phone,
+      //   `New booking for ${booking.date.toDateString()} from ${new Date(
+      //     booking.slotStart
+      //   ).toLocaleTimeString()} - ${new Date(
+      //     booking.slotEnd
+      //   ).toLocaleTimeString()} by ${booking.clientId.name.first} ${
+      //     booking.clientId.name.last
+      //   }, Email: ${booking.clientId.email}, Phone: ${booking.clientId.phone}, Price: £${
+      //     booking.price.amount
+      //   }, Address: ${booking.clientId.address.Building_No}, ${booking.clientId.address.Street}, ${booking.clientId.address.Locality}, ${booking.clientId.address.PostalCode}`
+      // );
+
+        // ${
+        //   charge.receipt_url
+        //     ? `<p><a href="${charge.receipt_url}" target="_blank" style="background:#0d6efd;color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;">Download Your Receipt</a></p>`
+        //     : "<p>Receipt not available yet.</p>"
+        // }
+      
+        const start = new Date(booking.slotStart);
+const end = new Date(booking.slotEnd);
+
+// Difference in milliseconds
+const diffMs = end - start;
+
+// Convert to hours and minutes
+const diffMins = Math.floor(diffMs / 60000); // total minutes
+const hours = Math.floor(diffMins / 60);
+const minutes = diffMins % 60;
+
+const duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
+      const clientMail = `
+       <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
+  <div style="max-width: 600px; margin: auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px;">
+    <p style="font-size: 16px; color: #333;">Dear <b>${booking.clientId.name.first} ${booking.clientId.name.last}</b>,</p>
+    <p style="font-size: 16px; color: #333;">
+      Your appointment at <b>Noira Massage Therapy</b> is confirmed. Please find the details below:
+    </p>
+    <p style="font-size: 15px; color: #333; line-height: 1.6;">
+      <b>Date:</b>${booking.date.toDateString()}<br>
+      <b>Time:</b>  ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(
+        booking.slotEnd
+      ).toLocaleTimeString()}<br>
+      <b>Duration:</b> ${duration} <br>
+      <b>Focus:</b>${booking.serviceId.name} <br>
+      <b>Price:</b> ${booking.price.amount} <br>
+      
+    </p>
+    <p style="font-size: 15px; color: #333; line-height: 1.6;">
+      <b>Location:</b><br>
+     ${booking.clientId.address}
+    </p>
+    <p style="font-size: 15px; color: #333;">
+      For any assistance, please call us at <b>+44 7350 700055</b>.
+    </p>
+    <p style="font-size: 15px; color: #333;">
+      We look forward to serving you.
+    </p>
+    <p style="font-size: 15px; color: #333;">
+      Best regards,<br>
+      <b>Team NOIRA</b>
+    </p>
+  </div>
+</div>
+
+      `;
+
+      const therapistMail = `
+        <h2>New Booking Alert</h2>
+        <p>Hello ${booking.therapistId.title},</p>
+        <p>You have a new booking.</p>
+        <ul>
+          <li><b>Client:</b> ${booking.clientId.name.first} ${booking.clientId.name.last} (${booking.clientId.email}, ${booking.clientId.phone})</li>
+          <li><b>Service:</b> ${booking.serviceId.name}</li>
+          <li><b>Date:</b> ${booking.date.toDateString()}</li>
+          <li><b>Time:</b> ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(
+        booking.slotEnd
+      ).toLocaleTimeString()}</li>
+          <li><b>Price:</b> £${booking.price.amount}</li>
+          <li><b>Status:</b> Paid ✅</li>
+        </ul>
+      `;
+
+      await sendMail(booking.clientId.email, "Booking Confirmation - Noira", clientMail, "booking");
+      await sendMail(booking.therapistId.userId.email, "New Booking Alert - Noira", therapistMail, "booking");
+      console.log()
     }
 
     // ✅ If charge.updated: update receipt + send emails
