@@ -115,70 +115,75 @@ console.log(session)
         //     : "<p>Receipt not available yet.</p>"
         // }
       
-        const start = new Date(booking.slotStart);
-const end = new Date(booking.slotEnd);
+//         const start = new Date(booking.slotStart);
+// const end = new Date(booking.slotEnd);
 
-// Difference in milliseconds
-const diffMs = end - start;
+// // Difference in milliseconds
+// const diffMs = end - start;
 
-// Convert to hours and minutes
-const diffMins = Math.floor(diffMs / 60000); // total minutes
-const hours = Math.floor(diffMins / 60);
-const minutes = diffMins % 60;
+// // Convert to hours and minutes
+// const diffMins = Math.floor(diffMs / 60000); // total minutes
+// const hours = Math.floor(diffMins / 60);
+// const minutes = diffMins % 60;
 
-const duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+// const duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 
-      const clientMail = `
-       <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
-  <div style="max-width: 600px; margin: auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px;">
-    <p style="font-size: 16px; color: #333;">Dear <b>${booking.clientId.name.first} ${booking.clientId.name.last}</b>,</p>
-    <p style="font-size: 16px; color: #333;">
-      Your appointment at <b>Noira Massage Therapy</b> is confirmed. Please find the details below:
-    </p>
-    <p style="font-size: 15px; color: #333; line-height: 1.6;">
-      <b>Date:</b>${booking.date.toDateString()}<br>
-      <b>Time:</b>  ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(
-        booking.slotEnd
-      ).toLocaleTimeString()}<br>
-      <b>Duration:</b> ${duration} <br>
-      <b>Focus:</b>${booking.serviceId.name} <br>
-      <b>Price:</b> ${booking.price.amount} <br>
+
+//  `
+//        <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
+//   <div style="max-width: 600px; margin: auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px;">
+//     <p style="font-size: 16px; color: #333;">Dear <b>${booking.clientId.name.first} ${booking.clientId.name.last}</b>,</p>
+//     <p style="font-size: 16px; color: #333;">
+//       Your appointment at <b>Noira Massage Therapy</b> is confirmed. Please find the details below:
+//     </p>
+//     <p style="font-size: 15px; color: #333; line-height: 1.6;">
+//       <b>Date:</b>${booking.date.toDateString()}<br>
+//       <b>Time:</b>  ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(
+//         booking.slotEnd
+//       ).toLocaleTimeString()}<br>
+//       <b>Duration:</b> ${duration} <br>
+//       <b>Focus:</b>${booking.serviceId.name} <br>
+//       <b>Price:</b> ${booking.price.amount} <br>
       
-    </p>
-    <p style="font-size: 15px; color: #333; line-height: 1.6;">
-      <b>Location:</b><br>
-     ${booking.clientId.address}
-    </p>
-    <p style="font-size: 15px; color: #333;">
-      For any assistance, please call us at <b>+44 7350 700055</b>.
-    </p>
-    <p style="font-size: 15px; color: #333;">
-      We look forward to serving you.
-    </p>
-    <p style="font-size: 15px; color: #333;">
-      Best regards,<br>
-      <b>Team NOIRA</b>
-    </p>
-  </div>
-</div>
+//     </p>
+//     <p style="font-size: 15px; color: #333; line-height: 1.6;">
+//       <b>Location:</b><br>
+//      ${booking.clientId.address}
+//     </p>
+//     <p style="font-size: 15px; color: #333;">
+//       For any assistance, please call us at <b>+44 7350 700055</b>.
+//     </p>
+//     <p style="font-size: 15px; color: #333;">
+//       We look forward to serving you.
+//     </p>
+//     <p style="font-size: 15px; color: #333;">
+//       Best regards,<br>
+//       <b>Team NOIRA</b>
+//     </p>
+//   </div>
+// </div>
 
-      `;
+//       `
 
-      const therapistMail = `
-        <h2>New Booking Alert</h2>
-        <p>Hello ${booking.therapistId.title},</p>
-        <p>You have a new booking.</p>
-        <ul>
-          <li><b>Client:</b> ${booking.clientId.name.first} ${booking.clientId.name.last} (${booking.clientId.email}, ${booking.clientId.phone})</li>
-          <li><b>Service:</b> ${booking.serviceId.name}</li>
-          <li><b>Date:</b> ${booking.date.toDateString()}</li>
-          <li><b>Time:</b> ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(
-        booking.slotEnd
-      ).toLocaleTimeString()}</li>
-          <li><b>Price:</b> £${booking.price.amount}</li>
-          <li><b>Status:</b> Paid ✅</li>
-        </ul>
-      `;
+      const clientMail ="<div?>booking done</div?"
+
+
+      // `
+      //   <h2>New Booking Alert</h2>
+      //   <p>Hello ${booking.therapistId.title},</p>
+      //   <p>You have a new booking.</p>
+      //   <ul>
+      //     <li><b>Client:</b> ${booking.clientId.name.first} ${booking.clientId.name.last} (${booking.clientId.email}, ${booking.clientId.phone})</li>
+      //     <li><b>Service:</b> ${booking.serviceId.name}</li>
+      //     <li><b>Date:</b> ${booking.date.toDateString()}</li>
+      //     <li><b>Time:</b> ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(
+      //   booking.slotEnd
+      // ).toLocaleTimeString()}</li>
+      //     <li><b>Price:</b> £${booking.price.amount}</li>
+      //     <li><b>Status:</b> Paid ✅</li>
+      //   </ul>
+      // `;
+      const therapistMail = "<div?>therpist done</div?"
 
       await sendMail(booking.clientId.email, "Booking Confirmation - Noira", clientMail, "booking");
       await sendMail(booking.therapistId.userId.email, "New Booking Alert - Noira", therapistMail, "booking");
