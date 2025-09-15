@@ -6,7 +6,7 @@ const MarkComplete = async (req, res) => {
   try {
     
     const bookingId = req.params.bookingId;
-  console.log("mark booking",bookingId);
+  
     const booking = await Booking.findById(bookingId).populate("clientId", "email name");
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
@@ -17,7 +17,7 @@ booking.status = "completed";
 
     if (booking.status === "completed" && booking.clientId?.email) {
       const html = generateReviewEmail(booking.clientId.name.first, booking._id);
-      console.log(booking.clientId.email)
+       
       await sendMail(
         booking.clientId.email,
         "We value your feedback – Review your recent session",
@@ -64,7 +64,7 @@ const declineBooking = async (req, res) => {
       await sendMail(
         booking.clientId.email,
         "Booking Declined by therapist, try with new slot",
-        html,"booking"
+        html,"booking","booking"
       );
     res.json({ message: "Booking declined", booking });
   } catch (err) {

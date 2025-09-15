@@ -40,9 +40,7 @@ function normalizePostcode(postcode) {
 const createTherapist = async (req, res) => {
   // Use a try/catch to handle initial validation and user creation errors.
   try {
-    console.log("Body received:", req.body);
-    console.log("Files received:", req.files ? req.files.profileImage : "No file");
-
+    
     // Check if user exists (no changes)
     let user = await User.findOne({ email: req.body.email });
     if (user) {
@@ -114,11 +112,11 @@ const createTherapist = async (req, res) => {
 
     // 3️⃣ Perform the slow upload in the background (fire-and-forget)
     if (req.files && req.files.profileImage) {
-        console.log(`Starting background upload for user: ${newUser.email}`);
+      
         uploadToCloudinary(req.files.profileImage)
             .then(result => {
                 const avatarUrl = result.secure_url;
-                console.log(`Upload successful for ${newUser.email}. URL: ${avatarUrl}`);
+               
                 // Update the user document with the real URL
                 return User.updateOne({ _id: newUser._id }, { $set: { avatar_url: avatarUrl } });
             })

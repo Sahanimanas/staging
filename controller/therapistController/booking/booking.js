@@ -8,7 +8,7 @@ const bookingUser = async (req, res) => {
     return res.status(404).json({ error: "Therapist not found" });
   }
   const therapistId = therapist._id.toString();
-  // console.log(therapistId)
+ 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;

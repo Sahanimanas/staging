@@ -7,7 +7,7 @@ const verifyTherapist = async (req, res, next) => {
     const therapistProfile = await TherapistProfile.findOne({ _id: therapistId });
 
     if (!therapistProfile) {
-      return res.status(403).json({ message: "Access denied. Therapist profile not found." });
+      return res.status(403).json({ message: "Access denied!" });
     }
 
     req.therapistProfileId = therapistProfile._id.toString();

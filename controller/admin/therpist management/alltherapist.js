@@ -4,7 +4,7 @@ const User = require("../../../models/userSchema.js");
 const therapistlist = async (req, res) => {
   try {
     const { page, limit, search, status } = req.query;
-    console.log("Query parameters:");
+   
     const pageNumber = parseInt(page) || 1;
     const pageSize = parseInt(limit) || 10;
     const skip = (pageNumber - 1) * pageSize;

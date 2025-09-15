@@ -37,7 +37,7 @@ const editTherapistProfile = async (req, res) => {
   return res.status(403).json({ message: "Forbidden: Admins only" });
   }
 
-    console.log("admin edit therapist called");
+    
   try {
     const therapistId = req.params.therapistId; // TherapistProfile _id
    
@@ -107,7 +107,7 @@ const editTherapistProfile = async (req, res) => {
 
       therapistProfile.servicesInPostalCodes = [...new Set(codes)];
     }
-    console.log(therapistProfile);
+   //printed
     // Save therapist profile
     await therapistProfile.save();
  
@@ -124,11 +124,11 @@ const editTherapistProfile = async (req, res) => {
     // Background upload for profile image
     // ----------------------------
     if (req.files && req.files.profileImage) {
-      console.log(`Starting background upload for user: ${user.email}`);
+     
       uploadToCloudinary(req.files.profileImage)
         .then((result) => {
           const avatarUrl = result.secure_url;
-          console.log(`Upload successful for ${user.email}. URL: ${avatarUrl}`);
+       
           return User.updateOne({ _id: user._id }, { $set: { avatar_url: avatarUrl } });
         })
         .then(() => {

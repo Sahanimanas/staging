@@ -8,14 +8,14 @@ const Payment = require("../models/PaymentSchema.js");
 const webhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   let event;
-  console.log("webhook called");
+ 
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
-    console.log("📩 Event received:", event.type);
+     
   } catch (err) {
     console.error("⚠️ Webhook signature verification failed.", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -77,8 +77,7 @@ const webhook = async (req, res) => {
         console.warn("⚠️ No bookingId found in metadata");
         break;
       }
-
-      console.log(`✅ Checkout completed for booking: ${bookingId}`);
+ 
 
       // Mark booking as paid
       const updated = await BookingSchema.findByIdAndUpdate(
@@ -101,13 +100,13 @@ const webhook = async (req, res) => {
         { new: true }
       );
 
-      console.log(`✅ Booking ${bookingId} marked as paid`);
+    
       break;
     }
 
     case "charge.updated": {
       const charge = event.data.object;
-      console.log(`💳 Charge updated: ${charge.id}`);
+    
 
       // Find booking by paymentIntent (safe way)
       if (!charge.payment_intent) {
@@ -184,7 +183,7 @@ const webhook = async (req, res) => {
     }
     case "payment_intent.succeeded": {
       const intent = event.data.object;
-      console.log("💰 Payment succeeded:", intent.id);
+
 
       // This can be optional if you handle everything in checkout.session.completed
       break;

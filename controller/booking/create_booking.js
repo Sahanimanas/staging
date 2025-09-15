@@ -79,12 +79,12 @@ const createBooking = async (req, res) => {
       time,
       notes,
     } = req.body;
-    console.log(req.body)
+    
 
     if (!email || !therapistId || !serviceId || !date || !time || optionIndex === undefined) {
       return res.status(400).json({ message: "Missing required fields" });
     }
-console.log(req.body)
+ 
     const ritualPurchaseId = ritualPurchaseid || null;
 
     // Find client
@@ -113,7 +113,7 @@ console.log(req.body)
     let finalPrice = option.price.amount;
     let surcharge = false;
     const hour = slotStart.getUTCHours();
-    if (hour >= 23 || hour < 9) {
+    if (hour >= 22 || hour < 8) {
       surcharge = true;
       finalPrice += 15;
     }

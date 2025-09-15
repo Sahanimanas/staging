@@ -20,9 +20,7 @@ const uploadToCloudinary = async (file) => {
 // Create Service
 const createService = async (req, res) => {
   try {
-    console.log("Body received:", req.body);
-    console.log("File received:", req.files ? req.files.image : "No file");
-
+   
     // Validate
     if (!req.body.name) {
       return res.status(400).json({ message: "Service name is required" });
@@ -40,7 +38,7 @@ const createService = async (req, res) => {
     // Normalize options like languages[]
     // Accept JSON string or object
     // -----------------------------
-    console.log(req.body.options)
+     
     let options = [];
 if (req.body.options) {
   try {
@@ -70,18 +68,18 @@ if (req.body.options) {
 
     // Perform upload in background
     if (req.files && req.files.image) {
-      console.log(`Starting background upload for service: ${newService.name}`);
+ 
       uploadToCloudinary(req.files.image)
         .then(result => {
           const imageUrl = result.secure_url;
-          console.log(`Upload successful for ${newService.name}. URL: ${imageUrl}`);
+         
           return Service.updateOne(
             { _id: newService._id },
             { $set: { image_url: imageUrl } }
           );
         })
         .then(() => {
-          console.log(`Service document updated with real image URL for: ${newService.name}`);
+ 
         })
         .catch(err => {
           console.error(`BACKGROUND UPLOAD FAILED for service ${newService.name}:`, err);

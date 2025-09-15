@@ -16,7 +16,7 @@ const _id = bookingId;
       .populate("serviceId", "name duration options.price.amount")
       .sort({ createdAt: -1 }); // newest first
  const therapist = await TherapistProfiles.findById(bookings.therapistId).populate('userId',"-passwordHash");
- console.log(therapist)
+ 
 bookings.therapistId = therapist;
     res.status(200).json({
       success: true,

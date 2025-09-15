@@ -31,7 +31,7 @@ let passwordHash = await bcrypt.hash(req.body.password,10);
     });
     // ----------------- SAVE -----------------
    const adminuser = await User.findById(newuser._id);
-    console.log("updatedUser", newuser);
+   
     res
       .status(201)
       .json({ message: "Profile updated successfully", user: adminuser });

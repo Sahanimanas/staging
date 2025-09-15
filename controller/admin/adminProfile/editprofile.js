@@ -26,7 +26,7 @@ const editprofile = async(req,res) => {
           folder: "client",
         });
         user.avatar_url = uploaded.secure_url;
-        console.log("uploaded",uploaded.secure_url)
+        
       } catch (uploadErr) {
         console.error("Error uploading image:", uploadErr);
         return res.status(500).json({ message: "Image upload failed", error: uploadErr.message });
@@ -34,7 +34,7 @@ const editprofile = async(req,res) => {
     }
      // ----------------- SAVE -----------------
     const updatedUser = await user.save();
-    console.log("updatedUser",updatedUser)
+    
    res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
 
   } catch (err) {

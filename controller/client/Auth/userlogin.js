@@ -21,8 +21,8 @@ const login_User = async (req, res) => {
     }
 
    // 4️⃣ Verify password
-    const isMatch =  bcrypt.compare(password, user.passwordHash);
-
+    const isMatch =await bcrypt.compare(password, user.passwordHash);
+    
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
@@ -39,7 +39,7 @@ const login_User = async (req, res) => {
        return res.status(500).json({ message: "Server error" });
     }
   } catch (error) {
-    console.log(error.message);
+ 
     return res.status(500).json({ message: "Server error" });
   }
 };

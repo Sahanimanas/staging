@@ -39,7 +39,7 @@ const login_User = async (req, res) => {
     if (!therapist) {
       return res.status(404).json({ message: "Therapist profile not found" });
     }
-    console.log(therapist);
+ 
 
     // ✅ 6. Generate JWT
     const token = jwt.sign(
@@ -47,7 +47,7 @@ const login_User = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-console.log(token)
+ 
     // ✅ 7. Save token in DB (optional)
     await Token.create({
       userId: user._id,

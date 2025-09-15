@@ -94,7 +94,7 @@ const editTherapistProfile = async (req, res) => {
 therapistProfile.specializations = specializations
   .filter((id) => mongoose.Types.ObjectId.isValid(id)) // ✅ keep only valid ObjectIds
   .map((id) => new mongoose.Types.ObjectId(id.trim()));
- console.log(therapistProfile.specializations);
+ 
     // Postal codes
     if (req.body.servicesInPostalcode) {
       const codes = req.body.servicesInPostalcode

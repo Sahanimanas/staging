@@ -17,7 +17,7 @@ const sendSMS = async (to, message) => {
       from: process.env.TWILIO_PHONE_NUMBER,
       to: to, // must be in +44xxxx format
     });
-    console.log("SMS sent:", response.sid);
+   
     return { success: true, sid: response.sid };
   } catch (error) {
     console.error("Twilio SMS Error:", error.message);

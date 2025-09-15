@@ -55,7 +55,7 @@ router.post("/", upload.single("profileImage"), async (req, res) => {
     });
 
     // ✅ You can also access other fields from req.body
-    console.log("Form Data:", req.body);
+
 
     res.json({
       message: "File uploaded successfully",

@@ -65,7 +65,7 @@ const getTherapists = async (req, res) => {
       .populate("userId", "email avatar_url")
       .populate("specializations", "name");
 
-console.log(therapists)
+ 
 
     if (!therapists.length) {
       return res.status(404).json({ therapists: [] });

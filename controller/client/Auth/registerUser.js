@@ -88,7 +88,7 @@ const registerUser = async (req, res) => {
       message: "Please verify your email with the OTP sent.",
     });
   } catch (err) {
-   console.log(err.message)
+    
     res.status(500).json({ message: "Server error" });
   }
 };

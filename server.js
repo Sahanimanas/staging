@@ -9,10 +9,8 @@ const mongoose = require('mongoose');
 // Load environment variables
 // ===============================
 dotenv.config({ path: '/etc/secrets/stripe.env' });
-// dotenv.config({ path: './.env' });
-// Debug env
-console.log("STRIPE_SECRET_KEY:", process.env.STRIPE_SECRET_KEY ? "Loaded" : "Missing");
-// Ensure PORT always defined
+dotenv.config({ path: './.env' });
+
 const PORT = process.env.PORT && !isNaN(process.env.PORT) ? parseInt(process.env.PORT, 10) : 3000;
 // ===============================
 // Express setup
@@ -55,9 +53,10 @@ const therapistRoutes = require('./routes/TherapistRoutes.js');
 const login_User = require('./controller/admin/adminlogin');
 const tokenHandler = require('./controller/tokenHandler.js');
 const login_Therapist = require('./controller/therapistController/AUTH/therapistlogin.js');
-// const { googleAuthCallback } = require('./routes/google.js');
+const verifyAdmin = require('./models/middlewares/verifyadmin.js');
+
 app.post('/api/webhook', express.raw({ type: 'application/json' }), require('./routes/webhook'));
-app.get('/api/', (req, res) => res.send("Hello from server"));
+app.get('/api/',  verifyAdmin  , (req, res) => res.send("Hello from server"));
 app.use('/api/auth', require('./routes/google.js'));
 app.use('/api/auth/user', userAuth);
 app.use('/api/user', require('./routes/userRoutes.js'));

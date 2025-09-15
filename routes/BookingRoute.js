@@ -1,7 +1,7 @@
 
 const express = require("express");
 const router = express.Router();
-
+const authMiddleware = require('../models/middlewares/authtoken.js')
 /*
 POST url/bookings/create → create
 
@@ -19,10 +19,10 @@ const {
   getBookingById,
 } = require("../controller/booking/get_booking.js");
 
-router.get("/", getAllBookings);
-router.get("/:id", getBookingById);
-router.put("/:id", require("../controller/booking/update_booking.js"));
-router.delete("/:id", require("../controller/booking/delete_booking.js"));
+router.get("/" , authMiddleware , getAllBookings);
+router.get("/:id", authMiddleware , getBookingById);
+router.put("/:id", authMiddleware , require("../controller/booking/update_booking.js"));
+router.delete("/:id", authMiddleware , require("../controller/booking/delete_booking.js"));
 
 module.exports = router;
 

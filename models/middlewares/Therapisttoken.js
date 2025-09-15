@@ -2,7 +2,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../userSchema.js");
 const mongoose = require("mongoose");
-const authMiddleware = async (req, res, next) => {
+const TherapistTokenMiddleware = async (req, res, next) => {
 
   const authHeader = req.headers.authorization;
 
@@ -15,7 +15,8 @@ const authMiddleware = async (req, res, next) => {
     
     const user = await User.findById(decoded.userId);
     if (!user) return res.status(401).json({ error: "User not found" });
-    req.user = user; // attach user object to request
+    if(user.role !== 'therapist')
+        return res.status(401).json({message:"invalid user"}) // attach user object to request
  
     next();
   } catch (err) {
@@ -23,5 +24,5 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
+module.exports = TherapistTokenMiddleware;
 

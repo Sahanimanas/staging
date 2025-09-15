@@ -49,7 +49,7 @@ const dashboard = async (req, res) => {
     ])|| null;
 
     const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
-console.log(totalRevenue)
+ 
     res.json({
       todaysSessions,
       pendingRequests,

@@ -51,7 +51,7 @@ const jwt = require('jsonwebtoken')
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-console.log(jwtToken)
+ 
     // 5️⃣ Save token in DB
     await tokenSchema.create({
       userId: user._id,

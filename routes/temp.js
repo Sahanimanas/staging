@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 router.post("/create-checkout-session", async (req, res) => {
   try {
     const { items, customerEmail } = req.body;
-console.log(items, customerEmail);
+ 
     // Convert cart items to Stripe line items
     const line_items = items.map(item => ({
       price_data: {
