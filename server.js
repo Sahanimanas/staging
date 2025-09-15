@@ -55,7 +55,7 @@ const therapistRoutes = require('./routes/TherapistRoutes.js');
 const login_User = require('./controller/admin/adminlogin');
 const tokenHandler = require('./controller/tokenHandler.js');
 const login_Therapist = require('./controller/therapistController/AUTH/therapistlogin.js');
-const { googleAuthCallback } = require('./routes/google.js');
+// const { googleAuthCallback } = require('./routes/google.js');
 app.post('/api/webhook', express.raw({ type: 'application/json' }), require('./routes/webhook'));
 app.get('/api/', (req, res) => res.send("Hello from server"));
 app.use('/api/auth', require('./routes/google.js'));

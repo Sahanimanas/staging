@@ -65,7 +65,8 @@ console.log(jwtToken)
     });
   } catch (err) {
     console.error("Google Auth Error:", err);
-    res.status(500).json({ message: "Internal Server Error" });
+    const error = err.message;
+    res.status(500).json({ message: `Internal Server Error ${error}` });
   }
 });
 
