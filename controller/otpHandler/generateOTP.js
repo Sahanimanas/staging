@@ -16,7 +16,7 @@ const user = await User.findById(userID)
       <p>Dear <b>${user.name.first} ${user.name.last}</b>,</p>
       <p>
         Your OTP for booking/verification at <b>Noira Massage Therapy</b> is 
-        <b style="font-size: 20px; letter-spacing: 3px; background: #f1f1f1; padding: 5px 10px; border-radius: 4px;">${otp}</b>.
+        <b style="font-size: 20px; letter-spacing: 3px; background: #f1f1f1; padding: 5px 10px; border-radius: 4px;">${otp.otpCode}</b>.
       </p>
       <p>
         Please use this code to complete your process.
