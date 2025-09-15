@@ -65,6 +65,7 @@ const sendMail = async (to, subject, html, type) => {
 console.log("mail sent",  message)
   } catch (err) {
     console.error("❌ Failed to send email:", err.message);
+    return res.status(500).json({message:"mail sent error"})
   }
 };
 
