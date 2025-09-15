@@ -38,6 +38,13 @@ const webhook = async (req, res) => {
         booking.therapistId
       ).populate("userId");
 
+const paymentIntent = await stripe.paymentIntents.retrieve(
+    session.payment_intent,
+    { expand: ["latest_charge"] }
+  );
+
+  const receiptUrl = paymentIntent.latest_charge?.receipt_url;
+
       // if (booking) {
       //   sendSMS(
       //     booking.clientId.phone,
@@ -72,10 +79,7 @@ const webhook = async (req, res) => {
       //     } `
       //   );
       // }
-      if (!bookingId) {
-        console.warn("⚠️ No bookingId found in metadata");
-        break;
-      }
+     
 
       // Mark booking as paid
       const updated = await BookingSchema.findByIdAndUpdate(
@@ -86,6 +90,7 @@ const webhook = async (req, res) => {
           paymentIntentId: session.payment_intent,
           customerEmail: session.customer_details?.email,
           paymentStatus: session.payment_status,
+          receipt_url: receiptUrl,
         },
         { new: true }
       );
@@ -99,17 +104,26 @@ const webhook = async (req, res) => {
         },
         { new: true }
       );
-      const clientMail = `
-          <h2>Booking Receipt</h2>
-          <p>Hi ${booking.clientId?.name?.first || "Client"},</p>
-          <p>Your payment was successfully processed.</p>
-         
-          <p>Thank you for booking with Noira.</p>
-        `;
+     const clientMail = `
+    <h2>Booking Confirmed</h2>
+    <p>Dear ${booking.clientId?.name?.first},</p>
+    <p>Your appointment at Noira Massage Therapy is confirmed. Please find the details below:</p>
 
+    <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
+    <p><strong>Time:</strong> ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(booking.slotEnd).toLocaleTimeString()}</p>
+    <p><strong>Service:</strong> ${booking.serviceId.name}</p>
+    <p><strong>Price:</strong> £${booking.price.amount}</p>
+    <p><strong>Payment Mode:</strong> Card</p> <p><strong>Location:</strong></p>
+    <p>${booking.clientId.address.Building_No}, ${booking.clientId.address.Street}, ${booking.clientId.address.Locality}, ${booking.clientId.address.PostalCode}</p>
+    <p><strong>Receipt:</strong> £${booking.receipt_url}</p>
+    <p>For any assistance, please call us at +44 7350 700055.</p>
+    <p>We look forward to serving you.</p>
+
+    <p>Best regards,<br>Team NOIRA</p>
+`;
       const therapistMail = `
     <h2>New Booking Alert</h2>
-    <p>Hello ${booking.therapistId.title},</p>
+    <p>Dear ${booking.therapistId.title},</p>
     <p>You have a new booking.</p>
     <ul>
       <li><b>Client:</b> ${booking.clientId.name} (${booking.clientId.email}, ${
@@ -144,84 +158,84 @@ const webhook = async (req, res) => {
       break;
     }
 
-    case "charge.updated": {
-      const charge = event.data.object;
-      const previous_attributes = event.data.previous_attributes;
-      // Find booking by paymentIntent (safe way)
-      if (!charge.payment_intent) {
-        console.warn("⚠️ No payment_intent on charge.updated");
-        break;
-      }
+  //   case "charge.updated": {
+  //     const charge = event.data.object;
+  //     const previous_attributes = event.data.previous_attributes;
+  //     // Find booking by paymentIntent (safe way)
+  //     if (!charge.payment_intent) {
+  //       console.warn("⚠️ No payment_intent on charge.updated");
+  //       break;
+  //     }
 
-      const booking = await BookingSchema.findOneAndUpdate(
-        { paymentIntentId: charge.payment_intent },
-        { $set: { receipt_url: previous_attributes.receipt_url } },
-        { new: true }
-      );
+  //     const booking = await BookingSchema.findOneAndUpdate(
+  //       { paymentIntentId: charge.payment_intent },
+  //       { $set: { receipt_url: previous_attributes.receipt_url } },
+  //       { new: true }
+  //     );
 
-      await Payment.findOneAndUpdate(
-        { providerPaymentId },
-        {
-          payment_method_type: charge.payment_method_details.type,
-        },
-        { new: true }
-      );
+  //     await Payment.findOneAndUpdate(
+  //       { providerPaymentId },
+  //       {
+  //         payment_method_type: charge.payment_method_details.type,
+  //       },
+  //       { new: true }
+  //     );
 
-      if (booking) {
-        console.log(
-          `📎 Receipt URL saved for booking ${booking._id}: ${previous_attributes.receipt_url}`
-        );
+  //     if (booking) {
+  //       console.log(
+  //         `📎 Receipt URL saved for booking ${booking._id}: ${previous_attributes.receipt_url}`
+  //       );
 
-        // Send email with receipt link
-        const clientMail = `
-          <h2>Booking Receipt</h2>
-          <p>Hi ${booking.clientId?.name?.first || "Client"},</p>
-          <p>Your payment was successfully processed.</p>
-          ${
-            charge.receipt_url
-              ? `<p><a href="${previous_attributes.receipt_url}" target="_blank" style="background:#0d6efd;color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;">Download Your Receipt</a></p>`
-              : "<p>Receipt not available yet.</p>"
-          }
-          <p>Thank you for booking with Noira.</p>
-        `;
+  //       // Send email with receipt link
+  //       const clientMail = `
+  //         <h2>Booking Receipt</h2>
+  //         <p>Hi ${booking.clientId?.name?.first || "Client"},</p>
+  //         <p>Your payment was successfully processed.</p>
+  //         ${
+  //           charge.receipt_url
+  //             ? `<p><a href="${previous_attributes.receipt_url}" target="_blank" style="background:#0d6efd;color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;">Download Your Receipt</a></p>`
+  //             : "<p>Receipt not available yet.</p>"
+  //         }
+  //         <p>Thank you for booking with Noira.</p>
+  //       `;
 
-        const therapistMail = `
-    <h2>New Booking Alert</h2>
-    <p>Hello ${booking.therapistId.title},</p>
-    <p>You have a new booking.</p>
-    <ul>
-      <li><b>Client:</b> ${booking.clientId.name} (${booking.clientId.email}, ${
-          booking.clientId.phone
-        })</li>
-      <li><b>Service:</b> ${booking.serviceId.name}</li>
-      <li><b>Date:</b> ${booking.date.toDateString()}</li>
-      <li><b>Time:</b> ${new Date(
-        booking.slotStart
-      ).toLocaleTimeString()} - ${new Date(
-          booking.slotEnd
-        ).toLocaleTimeString()}</li>
-      <li><b>Price:</b> £${booking.price.amount}</li>
-      <li><b>Status:</b> Paid ✅</li>
-    </ul>
-  `;
+  //       const therapistMail = `
+  //   <h2>New Booking Alert</h2>
+  //   <p>Hello ${booking.therapistId.title},</p>
+  //   <p>You have a new booking.</p>
+  //   <ul>
+  //     <li><b>Client:</b> ${booking.clientId.name} (${booking.clientId.email}, ${
+  //         booking.clientId.phone
+  //       })</li>
+  //     <li><b>Service:</b> ${booking.serviceId.name}</li>
+  //     <li><b>Date:</b> ${booking.date.toDateString()}</li>
+  //     <li><b>Time:</b> ${new Date(
+  //       booking.slotStart
+  //     ).toLocaleTimeString()} - ${new Date(
+  //         booking.slotEnd
+  //       ).toLocaleTimeString()}</li>
+  //     <li><b>Price:</b> £${booking.price.amount}</li>
+  //     <li><b>Status:</b> Paid ✅</li>
+  //   </ul>
+  // `;
 
-        // ✅ Send emails
-        await sendMail(
-          booking.clientId.email,
-          "Booking Confirmation - Noira",
-          clientMail,
-          "booking"
-        );
-        await sendMail(
-          therapist.userId.email,
-          "New Booking Alert - Noira",
-          therapistMail,
-          "booking"
-        );
+  //       // ✅ Send emails
+  //       await sendMail(
+  //         booking.clientId.email,
+  //         "Booking Confirmation - Noira",
+  //         clientMail,
+  //         "booking"
+  //       );
+  //       await sendMail(
+  //         therapist.userId.email,
+  //         "New Booking Alert - Noira",
+  //         therapistMail,
+  //         "booking"
+  //       );
 
-        break;
-      }
-    }
+  //       break;
+  //     }
+  //   }
     //   case "payment_intent.succeeded": {
     //     const intent = event.data.object;
 
