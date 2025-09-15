@@ -165,7 +165,7 @@ console.log(session)
 
 //       `
 
-      const clientMail ="<div?>booking done</div?"
+      const clientMail ="<div>booking done</div>"
 
 
       // `
@@ -183,7 +183,7 @@ console.log(session)
       //     <li><b>Status:</b> Paid ✅</li>
       //   </ul>
       // `;
-      const therapistMail = "<div?>therpist done</div?"
+      const therapistMail = "<div>therpist done</div>"
 
       await sendMail(booking.clientId.email, "Booking Confirmation - Noira", clientMail, "booking");
       await sendMail(booking.therapistId.userId.email, "New Booking Alert - Noira", therapistMail, "booking");

@@ -32,7 +32,7 @@ async function getGraphClient() {
 const sendMail = async (to, subject, html, type) => {
   let USE_EMAIL;
   console.log(type)
-  if(type === 'booking') {
+  if(type === "booking") {
     USE_EMAIL = process.env.EMAIL_BOOKING
   }
   else{
