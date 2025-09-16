@@ -1,10 +1,11 @@
-const Booking = require("../../models/BookingSchema");
+const BookingSchema = require("../../models/BookingSchema");
 const Service = require("../../models/ServiceSchema");
 const User = require("../../models/userSchema");
 const AvailabilitySchema = require("../../models/AvailabilitySchema");
 const Stripe = require("stripe");
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const Payment = require('../../models/PaymentSchema')
+const TherapistProfile = require('../../models/TherapistProfiles')
+const sendMail = require("../../utils/sendmail")
 /**
  * Helper to split availability blocks after a booking
  */
@@ -131,7 +132,7 @@ newdate.setUTCHours(0, 0, 0, 0);
 
    
     // Create booking
-    const booking = await Booking.create({
+    const booking = await BookingSchema.create({
       clientId: user._id,
       serviceId,
       therapistId,
@@ -141,18 +142,12 @@ newdate.setUTCHours(0, 0, 0, 0);
       slotEnd,
       status: "pending",
       paymentStatus: "pending",
-      paymentMode:'online',
+      paymentMode:'cash',
       price: { amount: finalPrice, currency: "gbp" },
       eliteHourSurcharge: surcharge,
       notes,
     });
 
-
-
-    
-
- // 2️⃣ Create payment record linked to booking
-    
     // Block the booked slot from availability
     const availabilityDoc = await AvailabilitySchema.findOne({
       therapistId,
@@ -164,74 +159,71 @@ newdate.setUTCHours(0, 0, 0, 0);
       await availabilityDoc.save();
     }
 
-    const amount = Math.round(finalPrice * 100);
-   const session = await stripe.checkout.sessions.create({
-  payment_method_types: [
-    "card", 
-    "link", 
-    "klarna", 
-    "afterpay_clearpay" 
-   
-  ],
-  mode: "payment",
-
-  customer_email: user.email, 
-  customer_creation: "if_required", 
- expires_at: Math.floor(Date.now() / 1000) + 30 * 60, 
-  client_reference_id: booking._id.toString(), 
-  payment_method_options: {
-    card: {
-      request_three_d_secure: "automatic", // ✅ 3D Secure for safer EU payments
-    },
-  },
- 
-  payment_intent_data: {
-    description: `Booking for ${serviceDoc.name} on ${booking.date.toDateString()}`,
-    metadata: {
-      bookingId: booking._id.toString(),
-      clientId: user._id.toString(),
-      clientName: `${user.name.first} ${user.name.last}`,
-      clientPhone: user.phone,
-    }
-  },
-
-  line_items: [
-    {
-      price_data: {
-        currency: "gbp",
-        product_data: {
-          name: serviceDoc.name,
-          description: `Booking ID: ${booking._id}`,
-        },
-        unit_amount: amount,
-      },
-      quantity: 1,
-    },
-  ],
-  adaptive_pricing: {
-    enabled: false // 🔑 disables INR option & conversion dropdown
-  },
-
-  success_url: `${process.env.FRONTEND_URL}/paymentsuccess?session_id={CHECKOUT_SESSION_ID}`,
-  cancel_url: `${process.env.FRONTEND_URL}/paymentfailed`,
-
-  metadata: {
-    bookingId: booking._id.toString(),
-    serviceName: serviceDoc.name,
-  },
-});
-const payment = await Payment.create({
-      bookingId: booking._id,
-      userId: booking.clientId,
-      provider:"stripe",
-      amount:  finalPrice ,
-      status: "pending",
-      method: "null"
-    });
-
+    const bookingnew = await BookingSchema.findById(booking._id)
+            .populate("therapistId")
+            .populate("clientId")
+            .populate("serviceId");
     
-    return res.json({ url: session.url });
+          const therapist = await TherapistProfile.findById(
+            bookingnew.therapistId
+          ).populate("userId");
 
+      const clientMail = `
+    <h2>Booking Confirmed</h2>
+    <p>Dear ${bookingnew.clientId?.name?.first},</p>
+    <p>Your appointment at Noira Massage Therapy is confirmed. Please find the details below:</p>
+
+    <p><strong>Date:</strong> ${bookingnew.date.toDateString()}</p>
+    <p><strong>Time:</strong> ${new Date(bookingnew.slotStart).toLocaleTimeString()} - ${new Date(bookingnew.slotEnd).toLocaleTimeString()}</p>
+    <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
+    <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
+    <p><strong>Payment Mode:</strong> Card</p> <p><strong>Location:</strong></p>
+    <p><strong>${bookingnew.clientId.address.Building_No}, ${bookingnew.clientId.address.Street}, ${bookingnew.clientId.address.Locality}, ${bookingnew.clientId.address.PostalCode}</strong></p>
+    <p>For any assistance, please call us at +44 7350 700055.</p>
+    <p>We look forward to serving you.</p>
+
+    <p>Best regards,<br>Team NOIRA</p>
+`;
+      const therapistMail = `
+    <h2>New Booking Alert</h2>
+    <p>Dear ${bookingnew.therapistId.title},</p>
+    <p>You have a new booking. Please find the details below:</p>
+
+    <p><strong>Client:</strong> ${bookingnew.clientId.name.first} ${bookingnew.clientId.name.last}</p>
+    <p><strong>Contact:</strong> ${bookingnew.clientId.phone}</p>
+    <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
+    <p><strong>Date:</strong> ${bookingnew.date.toDateString()}</p>
+    <p><strong>Time:</strong> ${new Date(bookingnew.slotStart).toLocaleTimeString()} - ${new Date(bookingnew.slotEnd).toLocaleTimeString()}</p>
+    <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
+    <p><strong>Status:</strong> Paid ✅</p>
+    
+    <p>For any assistance, please call the client at ${bookingnew.clientId.phone}.</p>
+    
+    <p>Best regards,<br>Team NOIRA</p>
+`;
+
+      // ✅ Send emails
+      await sendMail(
+        bookingnew.clientId.email,
+        "Booking Confirmation - Noira",
+        clientMail,
+        "booking"
+      );
+      await sendMail(
+        therapist.userId.email,
+        "New Booking Alert - Noira",
+        therapistMail,
+        "booking"
+      );
+      const updated = await BookingSchema.findByIdAndUpdate(
+              bookingnew._id,
+              { 
+                status: "confirmed"
+              },
+              { new: true }
+            );
+   
+ return res.status(200).json({ message:"Booking confirmed" });
   } catch (error) {
     console.error("Booking creation failed:", error);
     return res.status(500).json({ message: "Server error", error: error.message });

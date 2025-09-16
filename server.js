@@ -68,6 +68,7 @@ app.use('/api/therapist', therapistRoutes);
 app.use('/api/services', require('./routes/servicesRoute.js'));
 app.get('/api/auth/verifytoken', tokenHandler);
 app.post('/api/payment/create-checkout-session', require("./controller/booking/create_booking.js"));
+app.post('/api/payment/cashbooking',require("./controller/booking/bycashbooking"))
 app.use('/api/bookings', Bookingroute);
 app.use('/api/auth', require('./routes/forgotpasswordRoute/forgotpass.js'));
 app.use('/api/otp',require('./routes/OTProute'))

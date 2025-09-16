@@ -156,28 +156,6 @@ const paymentIntent = await stripe.paymentIntents.retrieve(
       break;
     }
 
-  
-    //   case "payment_intent.succeeded": {
-    //     const intent = event.data.object;
-
-    //     // This can be optional if you handle everything in checkout.session.completed
-    //     break;
-    //   }
-
-    //   case "payment_intent.payment_failed": {
-    //     const failedPayment = event.data.object;
-    //     if (failedPayment.metadata?.bookingId) {
-    //       await BookingSchema.findByIdAndUpdate(
-    //         failedPayment.metadata.bookingId,
-    //         { paymentStatus: "failed" },
-    //         { new: true }
-    //       );
-    //       console.log(
-    //         `❌ Booking ${failedPayment.metadata.bookingId} marked as failed`
-    //       );
-    //     }
-    //     break;
-    //   }
 
       case "checkout.session.expired": {
   const session = event.data.object;

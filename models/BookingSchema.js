@@ -20,7 +20,7 @@ const BookingSchema = new Schema({
   notes: String,
   isReviewed: { type: Boolean, default: false },
   receipt_url: { type: String },
-
+  paymentMode:String,
   review: { 
     type: {
       rating: { type: Number, min: 1, max: 5 },
