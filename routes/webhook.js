@@ -113,7 +113,7 @@ const paymentIntent = await stripe.paymentIntents.retrieve(
     <p><strong>Time:</strong> ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(booking.slotEnd).toLocaleTimeString()}</p>
     <p><strong>Service:</strong> ${booking.serviceId.name}</p>
     <p><strong>Price:</strong> £${booking.price.amount}</p>
-    <p><strong>Payment Mode:</strong> Card</p> <p><strong>Location:</strong></p>
+    <p><strong>Payment Mode:</strong> ${booking.paymentMode}</p> <p><strong>Location:</strong></p>
     <p><strong>${booking.clientId.address.Building_No}, ${booking.clientId.address.Street}, ${booking.clientId.address.Locality}, ${booking.clientId.address.PostalCode}</strong></p>
     <p><strong>Receipt:</strong> £${updated.receipt_url}</p>
     <p>For any assistance, please call us at +44 7350 700055.</p>
