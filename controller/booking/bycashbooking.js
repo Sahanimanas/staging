@@ -177,7 +177,7 @@ newdate.setUTCHours(0, 0, 0, 0);
     <p><strong>Time:</strong> ${new Date(bookingnew.slotStart).toLocaleTimeString()} - ${new Date(bookingnew.slotEnd).toLocaleTimeString()}</p>
     <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
     <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
-    <p><strong>Payment Mode:</strong> Card</p> <p><strong>Location:</strong></p>
+    <p><strong>Payment Mode:</strong> ${bookingnew.paymentMode}</p> <p><strong>Location:</strong></p>
     <p><strong>${bookingnew.clientId.address.Building_No}, ${bookingnew.clientId.address.Street}, ${bookingnew.clientId.address.Locality}, ${bookingnew.clientId.address.PostalCode}</strong></p>
     <p>For any assistance, please call us at +44 7350 700055.</p>
     <p>We look forward to serving you.</p>
