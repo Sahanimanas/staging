@@ -179,40 +179,29 @@ const paymentIntent = await stripe.paymentIntents.retrieve(
     //     break;
     //   }
 
-case "checkout.session.expired": {
+      case "checkout.session.expired": {
   const session = event.data.object;
-
   if (session.metadata?.bookingId) {
     const bookingId = session.metadata.bookingId;
 
-    // Step 1: Get the booking before deleting
+    // Step 1: Find the booking to get its details before deletion
     const bookingToDelete = await BookingSchema.findById(bookingId);
 
     if (bookingToDelete) {
-      // Step 2: Delete booking record
+      // Step 2: Delete the booking record from the database
       await BookingSchema.findByIdAndDelete(bookingId);
 
-      // Step 3: Match availability by DATE (ignore time completely)
-      const bookingDate = new Date(bookingToDelete.slotStart);
-      const startOfDay = new Date(bookingDate);
-      startOfDay.setUTCHours(0, 0, 0, 0);
-
-      const endOfDay = new Date(bookingDate);
-      endOfDay.setUTCHours(23, 59, 59, 999);
-
+      // Step 3: Find the availability document for the booking date
       const availabilityDoc = await TherapistAvailability.findOne({
         therapistId: bookingToDelete.therapistId,
-        date: { $gte: startOfDay, $lte: endOfDay }, // ✅ date-only match
+        date: new Date(bookingToDelete.slotStart.setUTCHours(0, 0, 0, 0)),
       });
 
       if (availabilityDoc) {
-        // Step 4: Find slot by exact start/end times
-        const blockIndex = availabilityDoc.blocks.findIndex(
-          (block) =>
-            new Date(block.startTime).getTime() ===
-              bookingToDelete.slotStart.getTime() &&
-            new Date(block.endTime).getTime() ===
-              bookingToDelete.slotEnd.getTime()
+        // Step 4: Find the specific slot and mark it as available
+        const blockIndex = availabilityDoc.blocks.findIndex(block => 
+          new Date(block.startTime).getTime() === bookingToDelete.slotStart.getTime() &&
+          new Date(block.endTime).getTime() === bookingToDelete.slotEnd.getTime()
         );
 
         if (blockIndex !== -1) {
@@ -222,20 +211,18 @@ case "checkout.session.expired": {
         }
       }
 
-      console.log(`🗑️ Booking ${bookingId} deleted due to expired session.`);
+      console.log(`🗑️ Booking ${bookingId} has been deleted due to expired session.`);
     }
 
-    // Step 5: Mark payment as failed
+    // Step 5: Update the payment record to 'failed'
     await Payment.findOneAndUpdate(
-      { bookingId },
+      { bookingId: bookingId },
       { paymentStatus: "failed" },
       { new: true }
     );
   }
-
   break;
 }
-
 
     default:
       console.log(`⚠️ Unhandled event type ${event.type}`);

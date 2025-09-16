@@ -145,6 +145,11 @@ newdate.setUTCHours(0, 0, 0, 0);
       eliteHourSurcharge: surcharge,
       notes,
     });
+
+
+
+    
+
  // 2️⃣ Create payment record linked to booking
     
     // Block the booked slot from availability
@@ -157,23 +162,22 @@ newdate.setUTCHours(0, 0, 0, 0);
       availabilityDoc.blocks = blockBookedSlot(availabilityDoc.blocks, slotStart, slotEnd);
       await availabilityDoc.save();
     }
-    // console.log("Updated availability blocks", availabilityDoc.blocks);
-    // Stripe checkout session
+
     const amount = Math.round(finalPrice * 100);
    const session = await stripe.checkout.sessions.create({
   payment_method_types: [
-    "card", // ✅ Standard credit/debit cards
-    "link", // ✅ Stripe Link (saved payment)
-    "klarna", // ✅ Pay later (popular in UK/EU)
-    "afterpay_clearpay" // ✅ BNPL option (Clearpay in UK)
-    // Optionally: "paypal" if you have Stripe PayPal integration enabled
+    "card", 
+    "link", 
+    "klarna", 
+    "afterpay_clearpay" 
+   
   ],
   mode: "payment",
 
-  customer_email: user.email, // ✅ Required for receipt + Radar checks
-  customer_creation: "if_required", // ✅ Auto-create customer in Stripe if doesn't exist
+  customer_email: user.email, 
+  customer_creation: "if_required", 
 
-  client_reference_id: booking._id.toString(), // ✅ Good for tracking in Stripe Dashboard
+  client_reference_id: booking._id.toString(), 
   payment_method_options: {
     card: {
       request_three_d_secure: "automatic", // ✅ 3D Secure for safer EU payments
