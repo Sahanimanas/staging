@@ -13,12 +13,12 @@ router.post("/filter",authMiddleware,getTherapists);
 router.post('/addavailability',TherapistTokenMiddleware,require('../controller/therapistController/schedule/addAvailabilty'));
 router.post('/addtherapist',TherapistTokenMiddleware,require('../controller/therapistController/Add&DeleteTherapist/Addtherapist.js'));
 
-router.get('/getalltherapists',authMiddleware,require('../controller/therapistController/GetTherapist/therapis(accept=true).js'));
+router.get('/getalltherapists',require('../controller/therapistController/GetTherapist/therapis(accept=true).js'));
 router.post('/date',TherapistTokenMiddleware,require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityByDate);
 router.post('/blocks', TherapistTokenMiddleware, require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityBlocks);
-router.get('/availability/:id',authMiddleware , require('../controller/therapistController/schedule/getAvailabilityById.js'));
+router.get('/availability/:id' , require('../controller/therapistController/schedule/getAvailabilityById.js'));
 router.post('/availability/copy', TherapistTokenMiddleware ,require('../controller/therapistController/schedule/copyavailability.js'));
-router.get("/dashboard/:therapistId",TherapistTokenMiddleware ,require('../controller/therapistController/Dashboard/dashboard.js'));
+router.post("/dashboard/:therapistId",TherapistTokenMiddleware ,require('../controller/therapistController/Dashboard/dashboard.js'));
 router.post('/bookings/revenue', TherapistTokenMiddleware ,require('../controller/therapistController/Dashboard/revenue.js'));
 router.post("/reset",  require('../models/middlewares/verifyTherapist.js'), require('../controller/therapistController/schedule/DeleteEntireMonth.js'));
 router.post('/next7days', TherapistTokenMiddleware ,require('../controller/therapistController/schedule/next7days.js'));
