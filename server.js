@@ -70,6 +70,7 @@ app.get('/api/auth/verifytoken', tokenHandler);
 app.post('/api/payment/create-checkout-session', require("./controller/booking/create_booking.js"));
 app.use('/api/bookings', Bookingroute);
 app.use('/api/auth', require('./routes/forgotpasswordRoute/forgotpass.js'));
+app.use('/api/otp',require('./routes/OTProute'))
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server is running on port ${PORT}`);
