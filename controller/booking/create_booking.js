@@ -176,7 +176,7 @@ newdate.setUTCHours(0, 0, 0, 0);
 
   customer_email: user.email, 
   customer_creation: "if_required", 
- expires_at: Math.floor(Date.now() / 1000) + 2 * 60, 
+ expires_at: Math.floor(Date.now() / 1000) + 5 * 60, 
   client_reference_id: booking._id.toString(), 
   payment_method_options: {
     card: {
