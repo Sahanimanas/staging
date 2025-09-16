@@ -25,15 +25,24 @@ const dashboard = async (req, res) => {
         break;
 
       case "week": {
-        const now = new Date();
-        todayEnd = new Date(now);
-        todayEnd.setUTCHours(23, 59, 59, 999);
-        weekStart = new Date(now);
-        weekStart.setUTCDate(now.getUTCDate() - now.getUTCDay());
-        weekStart.setUTCHours(0, 0, 0, 0);
-        todayStart = new Date(weekStart); // so todaysSessions counts from weekStart
-        break;
-      }
+  const now = new Date();
+
+  // Start of the week (Sunday, 00:00:00 UTC)
+  weekStart = new Date(now);
+  weekStart.setUTCDate(now.getUTCDate() - now.getUTCDay());
+  weekStart.setUTCHours(0, 0, 0, 0);
+
+  // End of the week (Saturday, 23:59:59 UTC)
+  todayEnd = new Date(weekStart);
+  todayEnd.setUTCDate(weekStart.getUTCDate() + 6); // go to Saturday
+  todayEnd.setUTCHours(23, 59, 59, 999);
+
+  // Today start (if you need today's data only)
+  todayStart = new Date(now);
+  todayStart.setUTCHours(0, 0, 0, 0);
+
+  break;
+}
 
       case "month": {
         const now = new Date();
@@ -62,7 +71,7 @@ const dashboard = async (req, res) => {
         weekStart.setUTCDate(todayStart.getUTCDate() - todayStart.getUTCDay());
         break;
     }
-
+console.log(todayStart,todayEnd)
     // ✅ Today's Sessions (or range sessions)
     const todaysSessions = await Booking.countDocuments({
       therapistId,
@@ -73,7 +82,7 @@ const dashboard = async (req, res) => {
     // ✅ Pending Requests
     const pendingRequests = await Booking.countDocuments({
       therapistId,
-      paymentStatus: "pending",
+      status: "pending",
     }) || null;
 
     // ✅ This Week Sessions (or extended range sessions)
