@@ -179,7 +179,7 @@ newdate.setUTCHours(0, 0, 0, 0);
       request_three_d_secure: "automatic", // ✅ 3D Secure for safer EU payments
     },
   },
- expires_at: Math.floor(Date.now() / 1000) + 2 * 60,
+ 
   payment_intent_data: {
     description: `Booking for ${serviceDoc.name} on ${booking.date.toDateString()}`,
     metadata: {
