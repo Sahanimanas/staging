@@ -91,7 +91,7 @@ const dashboard = async (req, res) => {
       {
         $match: {
           therapistId: new mongoose.Types.ObjectId(therapistId),
-          status: "confirmed",
+          status: "completed",
           date: { $gte: weekStart, $lte: todayEnd },
         },
       },
