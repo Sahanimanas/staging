@@ -19,7 +19,7 @@ const BookingSchema = new Schema({
   eliteHourSurcharge: { type: Boolean, default: false },
   notes: String,
   isReviewed: { type: Boolean, default: false },
- receipt_url: { type: String },
+  receipt_url: { type: String },
 
   review: { 
     type: {

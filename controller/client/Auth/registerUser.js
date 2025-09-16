@@ -43,11 +43,11 @@ const registerUser = async (req, res) => {
     }
 
     // Validate phone number
-    // const { valid, formatted } = validateAndFormatUKPhone(phone);
-    // if (!valid) {
-    //   return res.status(400).json({ message: "Invalid UK phone number." });
-    // }
-  //  }
+    const { valid, formatted } = validateAndFormatUKPhone(phone);
+    if (!valid) {
+      return res.status(400).json({ message: "Invalid UK phone number." });
+    }
+   
 
     // 1. Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');

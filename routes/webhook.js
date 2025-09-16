@@ -156,84 +156,7 @@ const paymentIntent = await stripe.paymentIntents.retrieve(
       break;
     }
 
-  //   case "charge.updated": {
-  //     const charge = event.data.object;
-  //     const previous_attributes = event.data.previous_attributes;
-  //     // Find booking by paymentIntent (safe way)
-  //     if (!charge.payment_intent) {
-  //       console.warn("⚠️ No payment_intent on charge.updated");
-  //       break;
-  //     }
-
-  //     const booking = await BookingSchema.findOneAndUpdate(
-  //       { paymentIntentId: charge.payment_intent },
-  //       { $set: { receipt_url: previous_attributes.receipt_url } },
-  //       { new: true }
-  //     );
-
-  //     await Payment.findOneAndUpdate(
-  //       { providerPaymentId },
-  //       {
-  //         payment_method_type: charge.payment_method_details.type,
-  //       },
-  //       { new: true }
-  //     );
-
-  //     if (booking) {
-  //       console.log(
-  //         `📎 Receipt URL saved for booking ${booking._id}: ${previous_attributes.receipt_url}`
-  //       );
-
-  //       // Send email with receipt link
-  //       const clientMail = `
-  //         <h2>Booking Receipt</h2>
-  //         <p>Hi ${booking.clientId?.name?.first || "Client"},</p>
-  //         <p>Your payment was successfully processed.</p>
-  //         ${
-  //           charge.receipt_url
-  //             ? `<p><a href="${previous_attributes.receipt_url}" target="_blank" style="background:#0d6efd;color:#fff;padding:10px 15px;border-radius:8px;text-decoration:none;">Download Your Receipt</a></p>`
-  //             : "<p>Receipt not available yet.</p>"
-  //         }
-  //         <p>Thank you for booking with Noira.</p>
-  //       `;
-
-  //       const therapistMail = `
-  //   <h2>New Booking Alert</h2>
-  //   <p>Hello ${booking.therapistId.title},</p>
-  //   <p>You have a new booking.</p>
-  //   <ul>
-  //     <li><b>Client:</b> ${booking.clientId.name} (${booking.clientId.email}, ${
-  //         booking.clientId.phone
-  //       })</li>
-  //     <li><b>Service:</b> ${booking.serviceId.name}</li>
-  //     <li><b>Date:</b> ${booking.date.toDateString()}</li>
-  //     <li><b>Time:</b> ${new Date(
-  //       booking.slotStart
-  //     ).toLocaleTimeString()} - ${new Date(
-  //         booking.slotEnd
-  //       ).toLocaleTimeString()}</li>
-  //     <li><b>Price:</b> £${booking.price.amount}</li>
-  //     <li><b>Status:</b> Paid ✅</li>
-  //   </ul>
-  // `;
-
-  //       // ✅ Send emails
-  //       await sendMail(
-  //         booking.clientId.email,
-  //         "Booking Confirmation - Noira",
-  //         clientMail,
-  //         "booking"
-  //       );
-  //       await sendMail(
-  //         therapist.userId.email,
-  //         "New Booking Alert - Noira",
-  //         therapistMail,
-  //         "booking"
-  //       );
-
-  //       break;
-  //     }
-  //   }
+  
     //   case "payment_intent.succeeded": {
     //     const intent = event.data.object;
 
@@ -256,26 +179,63 @@ const paymentIntent = await stripe.paymentIntents.retrieve(
     //     break;
     //   }
 
-    //   case "checkout.session.expired": {
-    //     const session = event.data.object;
-    //     if (session.metadata?.bookingId) {
-    //       await BookingSchema.findByIdAndUpdate(
-    //         session.metadata.bookingId,
-    //         { paymentStatus: "failed" },
-    //         { new: true }
-    //       );
-    //       await Payment.findOneAndUpdate(
-    //         { bookingId: failedPayment.metadata.bookingId },
-    //         { paymentStatus: "failed" },
-    //         { new: true }
-    //       );
+case "checkout.session.expired": {
+  const session = event.data.object;
 
-    //       console.log(
-    //         `⚠️ Booking ${session.metadata.bookingId} marked as failed`
-    //       );
-    //     }
-    //     break;
-    //   }
+  if (session.metadata?.bookingId) {
+    const bookingId = session.metadata.bookingId;
+
+    // Step 1: Get the booking before deleting
+    const bookingToDelete = await BookingSchema.findById(bookingId);
+
+    if (bookingToDelete) {
+      // Step 2: Delete booking record
+      await BookingSchema.findByIdAndDelete(bookingId);
+
+      // Step 3: Match availability by DATE (ignore time completely)
+      const bookingDate = new Date(bookingToDelete.slotStart);
+      const startOfDay = new Date(bookingDate);
+      startOfDay.setUTCHours(0, 0, 0, 0);
+
+      const endOfDay = new Date(bookingDate);
+      endOfDay.setUTCHours(23, 59, 59, 999);
+
+      const availabilityDoc = await TherapistAvailability.findOne({
+        therapistId: bookingToDelete.therapistId,
+        date: { $gte: startOfDay, $lte: endOfDay }, // ✅ date-only match
+      });
+
+      if (availabilityDoc) {
+        // Step 4: Find slot by exact start/end times
+        const blockIndex = availabilityDoc.blocks.findIndex(
+          (block) =>
+            new Date(block.startTime).getTime() ===
+              bookingToDelete.slotStart.getTime() &&
+            new Date(block.endTime).getTime() ===
+              bookingToDelete.slotEnd.getTime()
+        );
+
+        if (blockIndex !== -1) {
+          availabilityDoc.blocks[blockIndex].isAvailable = true;
+          await availabilityDoc.save();
+          console.log(`✅ Slot for booking ${bookingId} has been freed.`);
+        }
+      }
+
+      console.log(`🗑️ Booking ${bookingId} deleted due to expired session.`);
+    }
+
+    // Step 5: Mark payment as failed
+    await Payment.findOneAndUpdate(
+      { bookingId },
+      { paymentStatus: "failed" },
+      { new: true }
+    );
+  }
+
+  break;
+}
+
 
     default:
       console.log(`⚠️ Unhandled event type ${event.type}`);
