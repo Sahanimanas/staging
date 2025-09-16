@@ -198,7 +198,7 @@ newdate.setUTCHours(0, 0, 0, 0);
     <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
     <p><strong>Status:</strong> Paid ✅</p>
     
-    <p>For any assistance, please call the client at ${bookingnew.clientId.phone}.</p>
+    <p>For any assistance, please call the client at  +44 7350 700055.</p>
     
     <p>Best regards,<br>Team NOIRA</p>
 `;
@@ -215,37 +215,30 @@ newdate.setUTCHours(0, 0, 0, 0);
         "booking"
       );
 
-      const clientmessage = `Dear ${bookingnew.clientId?.name?.first} ${bookingnew.clientId?.name?.last}, your Noira Massage Therapy appointment is confirmed.
+      const clientmessage = `Dear ${bookingnew.clientId?.name?.first} ${bookingnew.clientId?.name?.last}, Noira appointment is confirmed.
+Date: ${bookingnew.date.toDateString()} | Time:  ${new Date(bookingnew.slotStart).toLocaleTimeString()} - ${new Date(bookingnew.slotEnd).toLocaleTimeString()} |
+Focus: ${bookingnew.serviceId.name} | Price:  £${bookingnew.price.amount} (${bookingnew.paymentMode})
+Location: ${bookingnew.clientId.address.Building_No}, ${bookingnew.clientId.address.Street}, ${bookingnew.clientId.address.Locality}, ${bookingnew.clientId.address.PostalCode}
+Team NOIRA`;
+
+
+ const therapistmessage = `Dear ${bookingnew.therapistId.title}, You have a new booking.
 Date: ${bookingnew.date.toDateString()} | Time:  ${new Date(bookingnew.slotStart).toLocaleTimeString()} - ${new Date(bookingnew.slotEnd).toLocaleTimeString()} |
 Focus: ${bookingnew.serviceId.name} | Price:  £${bookingnew.price.amount} (${bookingnew.paymentMode})
 Location: ${bookingnew.clientId.address.Building_No}, ${bookingnew.clientId.address.Street}, ${bookingnew.clientId.address.Locality}, ${bookingnew.clientId.address.PostalCode}
 For assistance, call +44 7350 700055.
 Team NOIRA`;
-
-
- const therapistmessage = `Dear ${bookingnew.therapistId.title}, You have a new booking. Please find the details below:
-Date: ${bookingnew.date.toDateString()} | Time:  ${new Date(bookingnew.slotStart).toLocaleTimeString()} - ${new Date(bookingnew.slotEnd).toLocaleTimeString()} |
-Focus: ${bookingnew.serviceId.name} | Price:  £${bookingnew.price.amount} (${bookingnew.paymentMode})
-Location: ${bookingnew.clientId.address.Building_No}, ${bookingnew.clientId.address.Street}, ${bookingnew.clientId.address.Locality}, ${bookingnew.clientId.address.PostalCode}
-For assistance, call +44 7350 700055.
-Team NOIRA`;
- await sendCustomSMS(447367524129, clientmessage);
+ await sendCustomSMS(447598328055, clientmessage);
  
- await sendCustomSMS(447367524129, therapistmessage);
-
-
-
-
-
-
-      const updated = await BookingSchema.findByIdAndUpdate(
+ await sendCustomSMS(447598328055, therapistmessage);
+     const updated = await BookingSchema.findByIdAndUpdate(
               bookingnew._id,
               { 
                 status: "confirmed"
               },
               { new: true }
             );
-   
+   console.log(updated)
  return res.status(200).json({ message:"Booking confirmed" });
   } catch (error) {
     console.error("Booking creation failed:", error);

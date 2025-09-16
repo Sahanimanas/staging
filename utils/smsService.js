@@ -17,7 +17,7 @@ const sendCustomSMS = async (mobile, message) => {
         "Content-Type": "application/json"
       },
       data: JSON.stringify({
-        sender: "NOIRAS", // ✅ Must be a 6-char approved sender ID
+        sender: "NOIRA", // ✅ Must be a 6-char approved sender ID
         route: 4, // ✅ Transactional route
         country: 0, // 0 = International (don't auto-format)
         sms: [
@@ -31,11 +31,11 @@ const sendCustomSMS = async (mobile, message) => {
 
     const { data } = await axios.request(options);
     console.log("✅ SMS Sent:", data);
-    return res.status(200).json({ success: true, response: data });
+    return data;
 
   } catch (error) {
     console.error("❌ SMS Send Error:", error.response?.data || error.message);
-    return res.status(500).json({ error: "Failed to send SMS", details: error.response?.data || error.message });
+    return ({ error: "Failed to send SMS", details: error.response?.data || error.message });
   }
 };
 
