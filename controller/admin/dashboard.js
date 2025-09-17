@@ -75,9 +75,7 @@ const getDashboardStats = async (req, res) => {
         {
     $match: {
       date: dateCondition,                 // ✅ use booking date, not createdAt
-      status: "completed",                 // only confirmed sessions
-      paymentStatus: "paid"                // only paid bookings
-    },
+      status: "completed",                 // only confirmed sessions            
   },
       { $group: { _id: null, total: { $sum: "$price.amount" } } },
     ]);
