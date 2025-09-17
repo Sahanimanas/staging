@@ -104,18 +104,33 @@ const paymentIntent = await stripe.paymentIntents.retrieve(
         },
         { new: true }
       );
+
+      const start = new Date(updated.slotStart);
+const end = new Date(updated.slotEnd);
+
+// Format in UTC so it does NOT shift to local
+const startUTC = `${String(start.getUTCHours()).padStart(2, "0")}:${String(
+  start.getUTCMinutes()
+).padStart(2, "0")}`;
+const endUTC = `${String(end.getUTCHours()).padStart(2, "0")}:${String(
+  end.getUTCMinutes()
+).padStart(2, "0")}`;
+
+const durationMinutes = Math.round((end - start) / (1000 * 60));
+
      const clientMail = `
     <h2>Booking Confirmed</h2>
     <p>Dear ${booking.clientId?.name?.first},</p>
     <p>Your appointment at Noira Massage Therapy is confirmed. Please find the details below:</p>
 
     <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
-    <p><strong>Time:</strong> ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(booking.slotEnd).toLocaleTimeString()}</p>
+    <p><strong>Time:</strong> ${startUTC}</p>
+    <p><strong>Duration:</strong> ${durationMinutes}</p>
     <p><strong>Service:</strong> ${booking.serviceId.name}</p>
     <p><strong>Price:</strong> £${booking.price.amount}</p>
     <p><strong>Payment Mode:</strong> ${booking.paymentMode}</p> <p><strong>Location:</strong></p>
     <p><strong>${booking.clientId.address.Building_No}, ${booking.clientId.address.Street}, ${booking.clientId.address.Locality}, ${booking.clientId.address.PostalCode}</strong></p>
-    <p><strong>Receipt:</strong> £${updated.receipt_url}</p>
+    <p><strong>Receipt:</strong> ${updated.receipt_url}</p>
     <p>For any assistance, please call us at +44 7350 700055.</p>
     <p>We look forward to serving you.</p>
 
@@ -130,6 +145,7 @@ const paymentIntent = await stripe.paymentIntents.retrieve(
     <p><strong>Contact:</strong> ${booking.clientId.phone}</p>
     <p><strong>Service:</strong> ${booking.serviceId.name}</p>
     <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
+    <p><strong>Duration:</strong> ${durationMinutes}</p>
     <p><strong>Time:</strong> ${new Date(booking.slotStart).toLocaleTimeString()} - ${new Date(booking.slotEnd).toLocaleTimeString()}</p>
     <p><strong>Price:</strong> £${booking.price.amount}</p>
     <p><strong>Status:</strong> Paid ✅</p>
@@ -152,6 +168,25 @@ const paymentIntent = await stripe.paymentIntents.retrieve(
         therapistMail,
         "booking"
       );
+     
+      const clientmessage = `Your NOIRA massage is confirmed for  ${booking.date.toDateString()}, ${startUTC} ${durationMinutes}mins. Therapist:${booking.therapistId.title}. Please prepare a quiet space (bed/floor) and ensure comfort.`
+
+
+     const therapistmessage = `${booking.date.toLocaleDateString(
+      "en-GB"
+    )} ${startUTC} ${durationMinutes}mins £${
+      booking.price.amount
+    } ${booking.paymentMode.toUpperCase()}
+${booking.clientId?.name?.first?.toUpperCase()} ${therapist.userId.phone}
+at ${booking.clientId.address.Building_No}, ${
+      booking.clientId.address.Street
+    }, ${booking.clientId.address.Locality}, ${
+      booking.clientId.address.PostalCode
+    }
+, ${booking.serviceId.name},\nTeam Noira`;
+       await sendCustomSMS(booking.clientId.phone, clientmessage);
+       
+       await sendCustomSMS(therapist.userId.phone, therapistmessage);
 
       break;
     }

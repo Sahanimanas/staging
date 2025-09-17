@@ -43,6 +43,7 @@ app.get('/api/health', (req, res) => {
     port: PORT
   });
 });
+require('./bgwork/deleteBooking.js')
 // ===============================
 // Routes
 // ===============================
@@ -54,7 +55,7 @@ const login_User = require('./controller/admin/adminlogin');
 const tokenHandler = require('./controller/tokenHandler.js');
 const login_Therapist = require('./controller/therapistController/AUTH/therapistlogin.js');
 const verifyAdmin = require('./models/middlewares/verifyadmin.js');
-
+const authmiddleware = require('./models/middlewares/authtoken')
 app.post('/api/webhook', express.raw({ type: 'application/json' }), require('./routes/webhook'));
 app.get('/api/',  verifyAdmin  , (req, res) => res.send("Hello from server"));
 app.use('/api/auth', require('./routes/google.js'));
@@ -67,8 +68,10 @@ app.use('/api/auth/therapist/login', login_Therapist);
 app.use('/api/therapist', therapistRoutes);
 app.use('/api/services', require('./routes/servicesRoute.js'));
 app.get('/api/auth/verifytoken', tokenHandler);
-app.post('/api/payment/create-checkout-session', require("./controller/booking/create_booking.js"));
-app.post('/api/payment/cashbooking',require("./controller/booking/bycashbooking"))
+
+app.post('/api/payment/create-checkout-session',authmiddleware, require("./controller/booking/create_booking.js"));
+app.post('/api/payment/cashbooking',authmiddleware, require("./controller/booking/bycashbooking"))
+
 app.use('/api/bookings', Bookingroute);
 app.use('/api/auth', require('./routes/forgotpasswordRoute/forgotpass.js'));
 app.use('/api/otp',require('./routes/OTProute'))

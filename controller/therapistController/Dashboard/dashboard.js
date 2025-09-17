@@ -2,6 +2,37 @@ const Booking = require("../../../models/BookingSchema");
 const TherapistProfile = require("../../../models/TherapistProfiles");
 const mongoose = require("mongoose");
 
+async function getTherapistAverageRating(therapistId) {
+  // Convert to ObjectId if therapistId is string
+  const objectId = new mongoose.Types.ObjectId(therapistId);
+
+  const result = await Booking.aggregate([
+    {
+      $match: {
+        therapistId: objectId,
+        status: "completed",
+        "review.rating": { $exists: true, $ne: null } // only include with rating
+      }
+    },
+    {
+      $group: {
+        _id: "$therapistId",
+        avgRating: { $avg: "$review.rating" },
+        totalReviews: { $sum: 1 }
+      }
+    }
+  ]);
+
+  if (result.length === 0) {
+    return { avgRating: 0, totalReviews: 0 }; // no reviews found
+  }
+
+  return {
+    avgRating: result[0].avgRating.toFixed(1), // round to 1 decimal place
+    totalReviews: result[0].totalReviews
+  };
+}
+
 const dashboard = async (req, res) => {
   try {
     const { therapistId } = req.params;
@@ -93,7 +124,11 @@ console.log(todayStart,todayEnd)
     }) || null;
 
     // ✅ Therapist Profile
-    const therapist = await TherapistProfile.findById(therapistId, "rating ratingCount");
+     const { avgRating, totalReviews } = await getTherapistAverageRating(therapistId);
+
+console.log(`⭐ Average Rating: ${avgRating} (${totalReviews} reviews)`);
+// Output: ⭐ Average Rating: 4.7 (12 reviews)
+
 
     // ✅ Revenue Generated
     const revenueResult = await Booking.aggregate([
@@ -108,13 +143,14 @@ console.log(todayStart,todayEnd)
     ]) || null;
 
     const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
-
+  
     res.json({
       todaysSessions,
       pendingRequests,
       weekSessions,
-      averageRating: therapist ? therapist.rating : 0,
+      averageRating: avgRating,
       totalRevenue,
+      totalReviews
     });
 
   } catch (error) {

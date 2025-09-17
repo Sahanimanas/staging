@@ -3,17 +3,17 @@ const Service = require("../../models/ServiceSchema");
 const User = require("../../models/userSchema");
 const AvailabilitySchema = require("../../models/AvailabilitySchema");
 const Stripe = require("stripe");
-const Payment = require('../../models/PaymentSchema')
-const TherapistProfile = require('../../models/TherapistProfiles')
-const sendMail = require("../../utils/sendmail")
-const sendCustomSMS = require('../../utils/smsService')
+const Payment = require("../../models/PaymentSchema");
+const TherapistProfile = require("../../models/TherapistProfiles");
+const sendMail = require("../../utils/sendmail");
+const sendCustomSMS = require("../../utils/smsService");
 /**
  * Helper to split availability blocks after a booking
  */
 function blockBookedSlot(blocks, slotStart, slotEnd) {
   const newBlocks = [];
 
-  blocks.forEach(block => {
+  blocks.forEach((block) => {
     if (!block.isAvailable) {
       newBlocks.push(block);
       return;
@@ -21,10 +21,11 @@ function blockBookedSlot(blocks, slotStart, slotEnd) {
 
     const [bh, bm] = block.startTime.split(":").map(Number);
     const [eh, em] = block.endTime.split(":").map(Number);
-  
+
     const blockStart = bh * 60 + bm; // block start in minutes
     const blockEnd = eh * 60 + em;
-    const bookingStart = slotStart.getUTCHours() * 60 + slotStart.getUTCMinutes();
+    const bookingStart =
+      slotStart.getUTCHours() * 60 + slotStart.getUTCMinutes();
     const bookingEnd = slotEnd.getUTCHours() * 60 + slotEnd.getUTCMinutes();
 
     // If booking is completely outside this block
@@ -38,7 +39,7 @@ function blockBookedSlot(blocks, slotStart, slotEnd) {
       newBlocks.push({
         startTime: formatTime(blockStart),
         endTime: formatTime(bookingStart),
-        isAvailable: true
+        isAvailable: true,
       });
     }
 
@@ -46,7 +47,7 @@ function blockBookedSlot(blocks, slotStart, slotEnd) {
     newBlocks.push({
       startTime: formatTime(Math.max(bookingStart, blockStart)),
       endTime: formatTime(Math.min(bookingEnd, blockEnd)),
-      isAvailable: false
+      isAvailable: false,
     });
 
     // --- After booking ---
@@ -54,11 +55,11 @@ function blockBookedSlot(blocks, slotStart, slotEnd) {
       newBlocks.push({
         startTime: formatTime(bookingEnd),
         endTime: formatTime(blockEnd),
-        isAvailable: true
+        isAvailable: true,
       });
     }
   });
-// console.log(newBlocks)
+  // console.log(newBlocks)
   return newBlocks;
 }
 
@@ -81,12 +82,18 @@ const createBooking = async (req, res) => {
       time,
       notes,
     } = req.body;
-    
 
-    if (!email || !therapistId || !serviceId || !date || !time || optionIndex === undefined) {
+    if (
+      !email ||
+      !therapistId ||
+      !serviceId ||
+      !date ||
+      !time ||
+      optionIndex === undefined
+    ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
- 
+
     const ritualPurchaseId = ritualPurchaseid || null;
 
     // Find client
@@ -96,7 +103,9 @@ const createBooking = async (req, res) => {
     // Parse date + time in UTC
     const [year, month, day] = date.split("-").map(Number);
     const [hours, minutes] = time.split(":").map(Number);
-    const slotStart = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0, 0));
+    const slotStart = new Date(
+      Date.UTC(year, month - 1, day, hours, minutes, 0, 0)
+    );
 
     if (isNaN(slotStart.getTime())) {
       return res.status(400).json({ error: "Invalid date or time format" });
@@ -104,34 +113,36 @@ const createBooking = async (req, res) => {
 
     // Fetch service and option
     const serviceDoc = await Service.findById(serviceId);
-    if (!serviceDoc) return res.status(404).json({ error: "Service not found" });
+    if (!serviceDoc)
+      return res.status(404).json({ error: "Service not found" });
 
     const option = serviceDoc.options[optionIndex];
     if (!option) return res.status(400).json({ error: "Invalid option index" });
 
-    const slotEnd = new Date(slotStart.getTime() + option.durationMinutes * 60000);
+    const slotEnd = new Date(
+      slotStart.getTime() + option.durationMinutes * 60000
+    );
 
     // Price calculation
     let finalPrice = option.price.amount;
     let surcharge = false;
-   const hour = parseInt(
-  new Date(slotStart).toLocaleString("en-GB", {
-    timeZone: "Europe/London",
-    hour: "2-digit",
-    hour12: false,
-  }),
-  10
-);
+    const hour = parseInt(
+      new Date(slotStart).toLocaleString("en-GB", {
+        timeZone: "Europe/London",
+        hour: "2-digit",
+        hour12: false,
+      }),
+      10
+    );
 
-if (hour >= 23 || hour < 9) {
-  surcharge = true;
-  finalPrice += 15;
-}
- 
-const newdate = new Date(slotStart); // copy original date
-newdate.setUTCHours(0, 0, 0, 0);
+    if (hour >= 23 || hour < 9) {
+      surcharge = true;
+      finalPrice += 15;
+    }
 
-   
+    const newdate = new Date(slotStart); // copy original date
+    newdate.setUTCHours(0, 0, 0, 0);
+
     // Create booking
     const booking = await BookingSchema.create({
       clientId: user._id,
@@ -143,7 +154,7 @@ newdate.setUTCHours(0, 0, 0, 0);
       slotEnd,
       status: "pending",
       paymentStatus: "pending",
-      paymentMode:'cash',
+      paymentMode: "cash",
       price: { amount: finalPrice, currency: "gbp" },
       eliteHourSurcharge: surcharge,
       notes,
@@ -152,97 +163,134 @@ newdate.setUTCHours(0, 0, 0, 0);
     // Block the booked slot from availability
     const availabilityDoc = await AvailabilitySchema.findOne({
       therapistId,
-      date: newdate
+      date: newdate,
     });
 
     if (availabilityDoc) {
-      availabilityDoc.blocks = blockBookedSlot(availabilityDoc.blocks, slotStart, slotEnd);
+      availabilityDoc.blocks = blockBookedSlot(
+        availabilityDoc.blocks,
+        slotStart,
+        slotEnd
+      );
       await availabilityDoc.save();
     }
 
     const bookingnew = await BookingSchema.findById(booking._id)
-            .populate("therapistId")
-            .populate("clientId")
-            .populate("serviceId");
-    
-          const therapist = await TherapistProfile.findById(
-            bookingnew.therapistId
-          ).populate("userId");
+      .populate("therapistId")
+      .populate("clientId")
+      .populate("serviceId");
 
-      const clientMail = `
+    const therapist = await TherapistProfile.findById(
+      bookingnew.therapistId
+    ).populate("userId");
+
+    const start = new Date(bookingnew.slotStart);
+    const end = new Date(bookingnew.slotEnd);
+
+    // Format in UTC so it does NOT shift to local
+    const startUTC = `${String(start.getUTCHours()).padStart(2, "0")}:${String(
+      start.getUTCMinutes()
+    ).padStart(2, "0")}`;
+    const endUTC = `${String(end.getUTCHours()).padStart(2, "0")}:${String(
+      end.getUTCMinutes()
+    ).padStart(2, "0")}`;
+
+    const durationMinutes = Math.round((end - start) / (1000 * 60));
+
+    const clientMail = `
     <h2>Booking Confirmed</h2>
-    <p>Dear ${bookingnew.clientId?.name?.first} ${bookingnew.clientId?.name?.last},</p>
+    <p>Dear ${bookingnew.clientId?.name?.first} ${
+      bookingnew.clientId?.name?.last
+    },</p>
     <p>Your appointment at Noira Massage Therapy is confirmed. Please find the details below:</p>
-
     <p><strong>Date:</strong> ${bookingnew.date.toDateString()}</p>
-    <p><strong>Time:</strong> ${new Date(bookingnew.slotStart).toLocaleTimeString()} - ${new Date(bookingnew.slotEnd).toLocaleTimeString()}</p>
+    <p><strong>Time:</strong> ${startUTC}</p>
+    <p><strong>Duration:</strong> ${durationMinutes}</p>
     <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
-    <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
-    <p><strong>Payment Mode:</strong> ${bookingnew.paymentMode}</p> <p><strong>Location:</strong></p>
-    <p><strong>${bookingnew.clientId.address.Building_No}, ${bookingnew.clientId.address.Street}, ${bookingnew.clientId.address.Locality}, ${bookingnew.clientId.address.PostalCode}</strong></p>
+    <p><strong>Price:</strong> ${bookingnew.price.amount}</p>
+    <p><strong>Payment Mode:</strong> ${
+      bookingnew.paymentMode
+    }</p> <p><strong>Location:</strong></p>
+    <p><strong>${bookingnew.clientId.address.Building_No}, ${
+      bookingnew.clientId.address.Street
+    }, ${bookingnew.clientId.address.Locality}, ${
+      bookingnew.clientId.address.PostalCode
+    }</strong></p>
     <p>For any assistance, please call us at +44 7350 700055.</p>
     <p>We look forward to serving you.</p>
 
     <p>Best regards,<br>Team NOIRA</p>
 `;
-      const therapistMail = `
+    const therapistMail = `
     <h2>New Booking Alert</h2>
     <p>Dear ${bookingnew.therapistId.title},</p>
     <p>You have a new booking. Please find the details below:</p>
 
-    <p><strong>Client:</strong> ${bookingnew.clientId.name.first} ${bookingnew.clientId.name.last}</p>
+    <p><strong>Client:</strong> ${bookingnew.clientId.name.first} ${
+      bookingnew.clientId.name.last
+    }</p>
     <p><strong>Contact:</strong> ${bookingnew.clientId.phone}</p>
     <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
     <p><strong>Date:</strong> ${bookingnew.date.toDateString()}</p>
-    <p><strong>Time:</strong> ${new Date(bookingnew.slotStart).toLocaleTimeString()} - ${new Date(bookingnew.slotEnd).toLocaleTimeString()}</p>
-    <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
+    <p><strong>Time:</strong> ${startUTC} - ${endUTC}</p>
+    <p><strong>Price:</strong> ${bookingnew.price.amount}</p>
     <p><strong>Status:</strong> Paid ✅</p>
     
     <p>For any assistance, please call the client at  +44 7350 700055.</p>
     
     <p>Best regards,<br>Team NOIRA</p>
 `;
-      await sendMail(
-        bookingnew.clientId.email,
-        "Booking Confirmation - Noira",
-        clientMail,
-        "booking"
-      );
-      await sendMail(
-        therapist.userId.email,
-        "New Booking Alert - Noira",
-        therapistMail,
-        "booking"
-      );
+    await sendMail(
+      bookingnew.clientId.email,
+      "Booking Confirmation - Noira",
+      clientMail,
+      "booking"
+    );
+    await sendMail(
+      therapist.userId.email,
+      "New Booking Alert - Noira",
+      therapistMail,
+      "booking"
+    );
 
-      const clientmessage = `Dear ${bookingnew.clientId?.name?.first} ${bookingnew.clientId?.name?.last}, Noira appointment is confirmed.
-Date: ${bookingnew.date.toDateString()} | Time:  ${new Date(bookingnew.slotStart).toLocaleTimeString()} - ${new Date(bookingnew.slotEnd).toLocaleTimeString()} |
-Focus: ${bookingnew.serviceId.name} | Price:  £${bookingnew.price.amount} (${bookingnew.paymentMode})
-Location: ${bookingnew.clientId.address.Building_No}, ${bookingnew.clientId.address.Street}, ${bookingnew.clientId.address.Locality}, ${bookingnew.clientId.address.PostalCode}
-Team NOIRA`;
+    const message = `Your NOIRA massage is confirmed for ${bookingnew.date.toLocaleDateString(
+      "en-GB"
+    )}, ${startUTC} ${durationMinutes}mins. Therapist:${
+      bookingnew.therapistId.title
+    }. Please prepare a quiet space (bed/floor) and ensure comfort.`;
 
+    const therapistmessage = `${bookingnew.date.toLocaleDateString(
+      "en-GB"
+    )} ${startUTC} ${durationMinutes}mins £${
+      bookingnew.price.amount
+    } ${bookingnew.paymentMode.toUpperCase()}
+${bookingnew.clientId?.name?.first?.toUpperCase()}    
+${bookingnew.clientId.phone}
 
- const therapistmessage = `Dear ${bookingnew.therapistId.title}, You have a new booking.
-Date: ${bookingnew.date.toDateString()} | Time:  ${new Date(bookingnew.slotStart).toLocaleTimeString()} - ${new Date(bookingnew.slotEnd).toLocaleTimeString()} |
-Focus: ${bookingnew.serviceId.name} | Price:  £${bookingnew.price.amount} (${bookingnew.paymentMode})
-Location: ${bookingnew.clientId.address.Building_No}, ${bookingnew.clientId.address.Street}, ${bookingnew.clientId.address.Locality}, ${bookingnew.clientId.address.PostalCode}
-For assistance, call +44 7350 700055.
-Team NOIRA`;
- await sendCustomSMS(447598328055, clientmessage);
- 
- await sendCustomSMS(447598328055, therapistmessage);
-     const updated = await BookingSchema.findByIdAndUpdate(
-              bookingnew._id,
-              { 
-                status: "confirmed"
-              },
-              { new: true }
-            );
-   console.log(updated)
- return res.status(200).json({ message:"Booking confirmed" });
+at ${bookingnew.clientId.address.Building_No}, ${
+      bookingnew.clientId.address.Street
+    }, ${bookingnew.clientId.address.Locality}, ${
+      bookingnew.clientId.address.PostalCode
+    }
+, ${bookingnew.serviceId.name},\nTeam Noira`;
+
+    await sendCustomSMS(bookingnew.clientId.phone, message);
+    await sendCustomSMS(therapist.userId.phone, therapistmessage);
+
+    const updated = await BookingSchema.findByIdAndUpdate(
+      bookingnew._id,
+      {
+        status: "confirmed",
+      },
+      { new: true }
+    );
+    console.log(updated);
+    return res.status(200).json({ message: "Booking confirmed" });
   } catch (error) {
     console.error("Booking creation failed:", error);
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
