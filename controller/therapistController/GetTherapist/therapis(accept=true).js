@@ -48,11 +48,13 @@ const getAllTherapists = async (req, res) => {
               _id: profile._id,
               ...profile,
               specializations: profile.specializations?.map((s) => s.name) || [],
+         
             }
           : null,
       };
     });
 
+  console.log(result)
     return res.status(200).json({
       count: result.length, // count on this page
       total: totalTherapists, // total across all pages

@@ -7,13 +7,14 @@ const AddressSchema = new mongoose.Schema({
   Locality: { type: String },
   PostTown: { type: String, default: "LONDON" },
   PostalCode: {
-    type: String,
-    required: true,
-    validate: {
-      validator: (v) => /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i.test(v),
-      message: (props) => `${props.value} is not a valid UK postcode!`,
-    },
+  type: String,
+  required: true,
+  validate: {
+    // This regex is more comprehensive and covers all valid UK postcode formats
+    validator: (v) => /^(GIR 0AA|[A-PR-UWYZ]([0-9]{1,2}|([A-HK-Y][0-9]|[A-HK-Y][0-9][A-Z])|[A-Z][0-9][A-Z]?))\s?\d[A-Z]{2}$/i.test(v),
+    message: (props) => `${props.value} is not a valid UK postcode!`,
   },
+},
 });
 /* ------------------ USERS ------------------ */
 const UserSchema = new Schema(

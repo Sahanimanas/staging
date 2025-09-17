@@ -16,7 +16,6 @@ const TherapistProfileSchema = new Schema(
         type: Schema.Types.ObjectId,
         ref: "Service",
         required: false,
-        unique: true,
       },
     ],
     languages: [String],
