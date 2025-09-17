@@ -1,62 +1,42 @@
-// routes/auth.js
-
 const express = require("express");
 const bcrypt = require("bcrypt");
 const User = require("../../../models/userSchema.js");
 const sendotp = require("../../otpHandler/generateOTP.js");
-// const validatePostalcode = require('../../../Handlers/postalcode_validate')
-// POST /register - only for customers
-function validateAndFormatUKPhone(phone) {
-  if (!phone) return { valid: false, formatted: null };
 
-  // Remove all spaces, dashes, brackets
-  let cleaned = phone.replace(/[\s\-()]/g, "");
+// ✅ Helper function to format phone number
+function formatPhoneNumber(phone) {
+  // Remove spaces, dashes, etc.
+  let cleaned = phone.replace(/\D/g, "");
 
-  // Handle common UK formats
-  if (cleaned.startsWith("0044")) {
-    cleaned = "+" + cleaned.slice(2); // 0044xxxx → +44xxxx
-  } else if (cleaned.startsWith("07")) {
-    cleaned = "+44" + cleaned.slice(1); // 07xxxxxx → +447xxxxxx
+  if (cleaned.length === 10) {
+    return `44${cleaned}`; // add UK country code
+  } else if (cleaned.length === 12) {
+    return cleaned; // already formatted with country code
+  } else {
+    return null; // invalid number
   }
-
-  // Must start with +44
-  if (!cleaned.startsWith("+44")) {
-    return { valid: false, formatted: null };
-  }
-
-  // UK numbers are usually 10 digits after +44
-  const ukRegex = /^\+44\d{9,10}$/;
-  if (!ukRegex.test(cleaned)) {
-    return { valid: false, formatted: null };
-  }
-
-  return { valid: true, formatted: cleaned };
 }
 
 const registerUser = async (req, res) => {
   try {
-    
-    const { email, password, name: { first: firstName, last: lastName } , phone} = req.body;
+    const { email, password, name: { first: firstName, last: lastName }, phone } = req.body;
 
-    if(!email || !password || !firstName || !phone) {
+    if (!email || !password || !firstName || !phone) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    // Validate phone number
-    const { valid, formatted } = validateAndFormatUKPhone(phone);
-    if (!valid) {
+    // ✅ Format phone number
+    const formattedPhone = formatPhoneNumber(phone);
+    if (!formattedPhone) {
       return res.status(400).json({ message: "Invalid UK phone number." });
     }
-   
 
     // 1. Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
-
     if (existingUser) {
       if (!existingUser.emailVerified) {
-         await User.findByIdAndDelete(existingUser._id);
-      } 
-      else {
+        await User.findByIdAndDelete(existingUser._id);
+      } else {
         return res.status(400).json({
           message: "Email already exists, please register with a different email.",
         });
@@ -67,7 +47,7 @@ const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 3. Create new customer (force role to 'customer')
+    // 3. Create new user
     const user = await User.create({
       name: {
         first: firstName,
@@ -76,23 +56,22 @@ const registerUser = async (req, res) => {
       email: email.toLowerCase(),
       passwordHash: hashedPassword,
       role: "client",
-      phone: phone,  //foramtted  
+      phone: formattedPhone, // ✅ use formatted phone
     });
- 
+
     const otp = await sendotp(user._id, email, "registration");
     if (otp !== "OTP sent successfully") {
       await User.findByIdAndDelete(user._id); // Rollback user creation
       return res.status(500).json({ message: "Failed to send OTP" });
     }
+
     return res.status(201).json({
       message: "Please verify your email with the OTP sent.",
     });
   } catch (err) {
-    
+    console.error("Error registering user:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 module.exports = registerUser;
-
-

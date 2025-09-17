@@ -41,6 +41,7 @@ const jwt = require('jsonwebtoken')
         emailVerified: true,
         googleId: googleUser.id,
         role: "client", // default role
+        passwordHash:"$2b$10$BNSB9VccrgX75TSVQHbMHeS7dY1UPhODKCwD7.ePt2vRsLiahk6z.",
       });
       await user.save();
     }
@@ -60,7 +61,7 @@ const jwt = require('jsonwebtoken')
       type: "login",
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
-   
+   console.log(user)
     res.json({
       message: "Google login successful",
       token: jwtToken,
