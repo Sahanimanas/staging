@@ -70,7 +70,7 @@ const createTherapist = async (req, res) => {
         gender: req.body.gender || "other",
         role: "therapist",
         // Use a placeholder or default URL initially
-        avatar_url: "null",
+        avatar_url: "https://www.citypng.com/public/uploads/preview/white-user-member-guest-icon-png-image-701751695037005zdurfaim0y.png?v=2025073005",
         address: newAddress,
     });
     await newUser.save();
@@ -87,10 +87,10 @@ const createTherapist = async (req, res) => {
     let languages = req.body["languages[]"] || [];
     if (!Array.isArray(languages)) languages = [languages];
     languages = languages.filter(l => l);
-
+const Username = req.body.username?req.body.username:`${req.body.firstName} ${req.body.lastName}`;
     // Create TherapistProfile (no changes)
     const newTherapistProfile = new TherapistProfile({
-        title: `${req.body.firstName} ${req.body.lastName}`,
+        title: `${Username}`,
         userId: newUser._id,
         bio: req.body.bio || "",
         experience: Number(req.body.experience) || 0,
