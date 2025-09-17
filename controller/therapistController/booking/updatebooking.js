@@ -68,6 +68,21 @@ const declineBooking = async (req, res) => {
     }
     const updatebooking = await BookingSchema.findById(bookingId).populate('therapistId').populate('clientId');
 
+
+ const start = new Date(updatebooking.slotStart);
+    const end = new Date(updatebooking.slotEnd);
+
+    // Format in UTC so it does NOT shift to local
+    const startUTC = `${String(start.getUTCHours()).padStart(2, "0")}:${String(
+      start.getUTCMinutes()
+    ).padStart(2, "0")}`;
+    const endUTC = `${String(end.getUTCHours()).padStart(2, "0")}:${String(
+      end.getUTCMinutes()
+    ).padStart(2, "0")}`;
+
+    const durationMinutes = Math.round((end - start) / (1000 * 60));
+
+
     const adminhtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border-radius: 10px; border: 1px solid #ddd;">
   <h2 style="color: #333;">Booking Declined by Therapist</h2>
@@ -84,10 +99,11 @@ const declineBooking = async (req, res) => {
     <li><strong>Booking ID:</strong> <span style="color: #888;">${bookingId}</span></li>
     <li><strong>Therapist:</strong> <span style="color: #888;">${updatebooking.therapistId.title}</span></li>
     <li><strong>Client:</strong> <span style="color: #888;">${updatebooking.clientId.name.first} ${updatebooking.clientId.name.last}</span></li>
-    <li><strong>Session Date:</strong> <span style="color: #888;">${booking.date}</span></li>
-    <li><strong>Session Time:</strong> <span style="color: #888;">${booking.slotStart}</span></li>
+    <li><strong>Session Date:</strong> <span style="color: #888;">${booking.date.toDateString()}</span></li>
+    <li><strong>Session Time:</strong> <span style="color: #888;">${startUTC}</span></li>
     
     <li><strong>Price:</strong> <span style="color: #888;">${booking.price.amount}</span></li>
+    <li><strong>Reason:</strong> <span style="color: #888;">${req.body.reason}</span></li>
   </ul>
   <p style="color: #888; font-size: 14px; margin-top: 20px;">
     Please take appropriate action to notify the client and manage this booking.

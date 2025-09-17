@@ -33,7 +33,7 @@ function cancellationValidator(req, res, next) {
       allowedReasons: CANCELLATION_REASONS
     });
   }
-
+ req.body.reason = reason;
   next();
 }
 
