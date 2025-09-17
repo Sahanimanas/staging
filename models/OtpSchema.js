@@ -3,9 +3,9 @@ const { Schema } = mongoose;
 /* ------------------ OTPs ------------------ */
 const OTPSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: false },
-  email: { type: String, required: true, unique: false },
+  email: { type: String, required: false, unique: false },
   otpCode: { type: String, required: true }, // hash in production
-  purpose: { type: String,  enum: [ "password_reset", "email_verification","registration", "invite"], required: true },
+  purpose: { type: String,  enum: [ "password_reset", "email_verification","registration", "invite","phoneverification"], required: true },
   expiresAt: Date,
   attempts: { type: Number, default: 0 },
   used: { type: Boolean, default: false }
