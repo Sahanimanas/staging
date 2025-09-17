@@ -15,6 +15,9 @@ const MarkComplete = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
     booking.status = "completed";
+    if(booking.paymentStatus!=="paid"){
+      booking.paymentStatus = "paid"
+    }
 
     await booking.save();
 
