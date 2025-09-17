@@ -70,6 +70,7 @@ function formatTime(minutes) {
 const createBooking = async (req, res) => {
   try {
     const {
+      couponCode,
       email,
       therapistId,
       serviceId,
@@ -126,6 +127,16 @@ if (hour >= 23 || hour < 9) {
   finalPrice += 15;
 }
  
+// 🔹 MODIFIED: Apply coupon code discount
+    if (couponCode) {
+      const formattedCode = couponCode.trim().toUpperCase();
+      if (formattedCode === "RELAX10") {
+        finalPrice = finalPrice * 0.9; // 10% discount
+      } else if (formattedCode === "RELAX100") {
+        finalPrice = 0; // 100% discount
+      }
+    }
+    // 🔹 END MODIFICATION
 const newdate = new Date(slotStart); // copy original date
 newdate.setUTCHours(0, 0, 0, 0);
 

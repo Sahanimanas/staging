@@ -73,6 +73,7 @@ function formatTime(minutes) {
 const createBooking = async (req, res) => {
   try {
     const {
+      couponCode,
       email,
       therapistId,
       serviceId,
@@ -139,7 +140,16 @@ const createBooking = async (req, res) => {
       surcharge = true;
       finalPrice += 15;
     }
-
+// 🔹 MODIFIED: Apply coupon code discount
+    if (couponCode) {
+      const formattedCode = couponCode.trim().toUpperCase();
+      if (formattedCode === "RELAX10") {
+        finalPrice = finalPrice * 0.9; // 10% discount
+      } else if (formattedCode === "RELAX100") {
+        finalPrice = 0; // 100% discount
+      }
+    }
+    // 🔹 END MODIFICATION
     const newdate = new Date(slotStart); // copy original date
     newdate.setUTCHours(0, 0, 0, 0);
 
@@ -194,6 +204,8 @@ const createBooking = async (req, res) => {
     const endUTC = `${String(end.getUTCHours()).padStart(2, "0")}:${String(
       end.getUTCMinutes()
     ).padStart(2, "0")}`;
+console.log(bookingnew)
+
 
     const durationMinutes = Math.round((end - start) / (1000 * 60));
 
