@@ -91,7 +91,7 @@ therapistProfile.specializations = specializations
   .map((id) => new mongoose.Types.ObjectId(id.trim()));
  
     // Postal codes
-    if (!req.body.servicesInPostalcode) return;
+    if (req.body.servicesInPostalcode){
 
   const codes = req.body.servicesInPostalcode
     .split(",")
@@ -107,6 +107,7 @@ therapistProfile.specializations = specializations
       console.log(`Added new outward code to Location collection: ${code}`);
     }
   }
+}
 
     await therapistProfile.save();
 
