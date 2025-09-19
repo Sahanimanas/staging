@@ -60,7 +60,7 @@ const login_Therapist = require('./controller/therapistController/AUTH/therapist
 const verifyAdmin = require('./models/middlewares/verifyadmin.js');
 const authmiddleware = require('./models/middlewares/authtoken')
 app.post('/api/webhook', express.raw({ type: 'application/json' }), require('./routes/webhook'));
-app.get('/api/',  verifyAdmin  , (req, res) => res.send("Hello from server"));
+app.get('/api/'  , (req, res) => res.send("Hello from server"));
 app.use('/api/auth', require('./routes/google.js'));
 app.use('/api/auth/user', userAuth);
 app.use('/api/user', require('./routes/userRoutes.js'));
