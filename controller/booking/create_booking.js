@@ -132,7 +132,7 @@ if (hour >= 23 || hour < 9) {
       const formattedCode = couponCode.trim().toUpperCase();
       if (formattedCode === "RELAX10") {
         finalPrice = finalPrice * 0.9; // 10% discount
-      } else if (formattedCode === "RELAX99") {
+      } else if (formattedCode === "RELAX100") {
         finalPrice = 0.013; // 100% discount
       }
     }
