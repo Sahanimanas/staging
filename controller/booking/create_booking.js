@@ -133,7 +133,7 @@ if (hour >= 23 || hour < 9) {
       if (formattedCode === "RELAX10") {
         finalPrice = finalPrice * 0.9; // 10% discount
       } else if (formattedCode === "RELAX100") {
-        finalPrice = 0.013; // 100% discount
+        finalPrice =finalPrice* 0.013; // 100% discount
       }
     }
     // 🔹 END MODIFICATION
