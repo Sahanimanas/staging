@@ -26,7 +26,7 @@ const UserSchema = new Schema(
     email: { type: String, required: true, unique: true, lowercase: true },
     emailVerified: { type: Boolean, default: false },
     gender: { type: String, enum: ["male", "female", "other"], default: "other" },
-    phone: String,
+    phone: {type:String, default:null},
     phoneVerified: { type: Boolean, default: false },
     passwordHash: {type:String,select:false},
     role: {
@@ -37,8 +37,14 @@ const UserSchema = new Schema(
     googleId: String,
     appleId: String,
     avatar_url: String,
-    address: AddressSchema,
-    allAddresses: [AddressSchema],
+    address: {
+    type: AddressSchema,
+    default: null, // ✅ Will be null if not provided
+  },
+  allAddresses: {
+    type: [AddressSchema],
+    default: [], // ✅ Will be empty array if not provided
+  },
     mfaEnabled: { type: Boolean, default: false },
     profileComplete: { type: Boolean, default: false },
     lastSignInAt: Date,

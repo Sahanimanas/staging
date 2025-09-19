@@ -111,9 +111,7 @@ const editTherapistProfile = async (req, res) => {
     // Save therapist profile
     await therapistProfile.save();
  
-    // ----------------------------
-    // Respond immediately
-    // ----------------------------
+   
     res.status(200).json({
       message: "Therapist profile updated successfully. Image update (if any) is in progress.",
       user: { ...user.toObject(), passwordHash: undefined },

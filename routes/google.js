@@ -29,7 +29,7 @@ const jwt = require('jsonwebtoken')
     }
 
     }
-   
+
     // 3️⃣ If not, create a new user
     if (!user) {
       user = new User({
@@ -61,7 +61,7 @@ const jwt = require('jsonwebtoken')
       type: "login",
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
-   console.log(user)
+ 
     res.json({
       message: "Google login successful",
       token: jwtToken,

@@ -20,14 +20,9 @@ const uploadToCloudinary = async (file) => {
 function normalizePostcode(postcode) {
   if (!postcode) return "";
   const cleaned = postcode.replace(/\s+/g, "").toUpperCase();
-  if (cleaned.length > 3) {
-    const outward = cleaned.slice(0, cleaned.length - 3);
-    const inward = cleaned.slice(-3);
-    return `${outward} ${inward}`;
-  }
+  // Outward codes should NOT contain space, so just return cleaned
   return cleaned;
 }
-
 // ✅ Edit Therapist Profile (Admin or Therapist)
 const editTherapistProfile = async (req, res) => {
   try {
@@ -96,13 +91,22 @@ therapistProfile.specializations = specializations
   .map((id) => new mongoose.Types.ObjectId(id.trim()));
  
     // Postal codes
-    if (req.body.servicesInPostalcode) {
-      const codes = req.body.servicesInPostalcode
-        .split(",")
-        .map((pc) => normalizePostcode(pc))
-        .filter((pc) => pc);
-      therapistProfile.servicesInPostalCodes = [...new Set(codes)];
+    if (!req.body.servicesInPostalcode) return;
+
+  const codes = req.body.servicesInPostalcode
+    .split(",")
+    .map(pc => normalizePostcode(pc))
+    .filter(pc => pc); // remove empty
+  const uniqueCodes = [...new Set(codes)];
+  // 2. Assign to therapist profile
+  therapistProfile.servicesInPostalCodes = uniqueCodes;
+  for (const code of uniqueCodes) {
+    const existing = await Location.findOne({ postalcodes: code });
+    if (!existing) {
+      await Location.create({ postalcodes: [code] });
+      console.log(`Added new outward code to Location collection: ${code}`);
     }
+  }
 
     await therapistProfile.save();
 

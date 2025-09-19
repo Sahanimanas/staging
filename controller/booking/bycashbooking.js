@@ -233,23 +233,29 @@ console.log(bookingnew)
 
     <p>Best regards,<br>Team NOIRA</p>
 `;
+
     const therapistMail = `
     <h2>New Booking Alert</h2>
     <p>Dear ${bookingnew.therapistId.title},</p>
     <p>You have a new booking. Please find the details below:</p>
-
     <p><strong>Client:</strong> ${bookingnew.clientId.name.first} ${
-      bookingnew.clientId.name.last
-    }</p>
+      bookingnew.clientId.name.last}</p>
     <p><strong>Contact:</strong> ${bookingnew.clientId.phone}</p>
     <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
     <p><strong>Date:</strong> ${bookingnew.date.toDateString()}</p>
+    <p><strong>Duration:</strong> ${durationMinutes}</p>
     <p><strong>Time:</strong> ${startUTC} - ${endUTC}</p>
     <p><strong>Price:</strong> ${bookingnew.price.amount}</p>
-    <p><strong>Status:</strong> Paid ✅</p>
-    
-    <p>For any assistance, please call the client at  +44 7350 700055.</p>
-    
+    <p><strong>Payment Mode:</strong> ${
+      bookingnew.paymentMode
+    }</p>
+    <p><strong>Location:</strong></p>
+    <p><strong>${bookingnew.clientId.address.Building_No}, ${
+      bookingnew.clientId.address.Street
+    }, ${bookingnew.clientId.address.Locality}, ${
+      bookingnew.clientId.address.PostalCode
+    }</strong></p>
+    <p>For any assistance, please call us at  +44 7350 700055.</p>
     <p>Best regards,<br>Team NOIRA</p>
 `;
     await sendMail(
@@ -269,22 +275,14 @@ console.log(bookingnew)
       "en-GB"
     )}, ${startUTC} ${durationMinutes}mins. Therapist:${
       bookingnew.therapistId.title
-    }. Please prepare a quiet space (bed/floor) and ensure comfort.`;
+    }. Please prepare a quiet space (bed/floor) and ensure comfort.`;
 
-    const therapistmessage = `${bookingnew.date.toLocaleDateString(
-      "en-GB"
-    )} ${startUTC} ${durationMinutes}mins £${
-      bookingnew.price.amount
+    const therapistmessage = `${bookingnew.date.toLocaleDateString("en-GB")} ${startUTC} ${durationMinutes}mins £${bookingnew.price.amount
     } ${bookingnew.paymentMode.toUpperCase()}
 ${bookingnew.clientId?.name?.first?.toUpperCase()}    
-${bookingnew.clientId.phone}
-
-at ${bookingnew.clientId.address.Building_No}, ${
-      bookingnew.clientId.address.Street
-    }, ${bookingnew.clientId.address.Locality}, ${
-      bookingnew.clientId.address.PostalCode
-    }
-, ${bookingnew.serviceId.name},\nTeam Noira`;
+${bookingnew.clientId.phone} at ${bookingnew.clientId.address.Building_No}, ${bookingnew.clientId.address.Street}, ${bookingnew.clientId.address.Locality}, ${bookingnew.clientId.address.PostalCode }
+, ${bookingnew.serviceId.name},
+Team Noira`;
 
     await sendCustomSMS(bookingnew.clientId.phone, message);
     await sendCustomSMS(therapist.userId.phone, therapistmessage);

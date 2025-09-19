@@ -8,16 +8,19 @@ const mongoose = require('mongoose');
 // ===============================
 // Load environment variables
 // ===============================
-dotenv.config({ path: '/etc/secrets/stripe.env' });
+// dotenv.config({ path: '/etc/secrets/stripe.env' });
 dotenv.config({ path: './.env' });
 
 const PORT = process.env.PORT && !isNaN(process.env.PORT) ? parseInt(process.env.PORT, 10) : 3000;
 // ===============================
 // Express setup
 // ===============================
+// console.log("first")
 const app = express();
 const connectDB = require('./db/db.js');
 connectDB();
+
+console.log("🔑 Loaded STRIPE_WEBHOOK_SECRET:", process.env.STRIPE_WEBHOOK_SECRET ? "YES" : "MISSING");
 // JSON middleware, except for /webhook
 app.use((req, res, next) => {
   if (req.originalUrl === "/api/webhook") {
@@ -68,6 +71,7 @@ app.use('/api/auth/therapist/login', login_Therapist);
 app.use('/api/therapist', therapistRoutes);
 app.use('/api/services', require('./routes/servicesRoute.js'));
 app.get('/api/auth/verifytoken', tokenHandler);
+
 
 app.post('/api/payment/create-checkout-session',authmiddleware, require("./controller/booking/create_booking.js"));
 app.post('/api/payment/cashbooking',authmiddleware, require("./controller/booking/bycashbooking"))
