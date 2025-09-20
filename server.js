@@ -8,8 +8,8 @@ const mongoose = require('mongoose');
 // ===============================
 // Load environment variables
 // ===============================
-dotenv.config({ path: '/etc/secrets/stripe.env' });
-// dotenv.config({ path: './.env' });
+// dotenv.config({ path: '/etc/secrets/stripe.env' });
+dotenv.config({ path: './.env' });
 
 const PORT = process.env.PORT && !isNaN(process.env.PORT) ? parseInt(process.env.PORT, 10) : 3000;
 // ===============================
@@ -79,6 +79,8 @@ app.post('/api/payment/cashbooking',authmiddleware, require("./controller/bookin
 app.use('/api/bookings', Bookingroute);
 app.use('/api/auth', require('./routes/forgotpasswordRoute/forgotpass.js'));
 app.use('/api/otp',authmiddleware, require('./routes/OTProute'))
+
+app.post('/api/testregion', require('./controller/regioncontroller.js')) //testing 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server is running on port ${PORT}`);

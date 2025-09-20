@@ -17,14 +17,29 @@ const uploadToCloudinary = async (file) => {
   return cloudinary.uploader.upload(file.tempFilePath, { folder: "therapists" });
 };
 
-function normalizePostcode(postcode) {
-  if (!postcode) return "";
-  const cleaned = postcode.replace(/\s+/g, "").toUpperCase();
-  // Outward codes should NOT contain space, so just return cleaned
-  return cleaned;
+function normalizeRegion(region) {
+  if (!region) return "";
+  let normalized = region.trim().toLowerCase();
+
+  // Allow short names (east, west, etc.) and expand them
+  if (["east", "west", "north", "south", "central"].includes(normalized)) {
+    normalized = `${normalized} london`;
+  }
+
+  return normalized;
 }
+
+// Allowed regions (lowercase for comparison)
+const allowedRegions = [
+  "central london",
+  "east london",
+  "west london",
+  "north london",
+  "south london"
+];
 // ✅ Edit Therapist Profile (Admin or Therapist)
 const editTherapistProfile = async (req, res) => {
+  console.log(req.body)
   try {
     let therapistProfile;
       const therapistId = req.params.therapistId; // TherapistProfile _id
@@ -90,24 +105,30 @@ therapistProfile.specializations = specializations
   .filter((id) => mongoose.Types.ObjectId.isValid(id)) // ✅ keep only valid ObjectIds
   .map((id) => new mongoose.Types.ObjectId(id.trim()));
  
-    // Postal codes
-    if (req.body.servicesInPostalcode){
 
-  const codes = req.body.servicesInPostalcode
-    .split(",")
-    .map(pc => normalizePostcode(pc))
-    .filter(pc => pc); // remove empty
-  const uniqueCodes = [...new Set(codes)];
-  // 2. Assign to therapist profile
-  therapistProfile.servicesInPostalCodes = uniqueCodes;
-  for (const code of uniqueCodes) {
-    const existing = await Location.findOne({ postalcodes: code });
-    if (!existing) {
-      await Location.create({ postalcodes: [code] });
-      console.log(`Added new outward code to Location collection: ${code}`);
-    }
-  }
+
+//working
+let regionsInput = req.body["servicesInPostalCodes[]"] || [];
+
+// Ensure array
+if (!Array.isArray(regionsInput)) {
+  regionsInput = [regionsInput];
 }
+
+// Normalize + filter
+const servicesInPostalCodes = regionsInput
+  .map(r => normalizeRegion(r))
+  .filter(r => allowedRegions.includes(r));
+
+if (servicesInPostalCodes.length === 0) {
+  return res.status(400).json({
+    message: "At least one valid region must be provided",
+    allowedRegions
+  });
+}
+
+therapistProfile.servicesInPostalCodes = servicesInPostalCodes;
+
 
     await therapistProfile.save();
 

@@ -18,20 +18,31 @@ const uploadToCloudinary = async (file) => {
   });
 };
 
-// Normalize postcode (like in createTherapist)
-function normalizePostcode(postcode) {
-  if (!postcode) return "";
-  const cleaned = postcode.replace(/\s+/g, "").toUpperCase();
-  if (cleaned.length > 3) {
-    const outward = cleaned.slice(0, cleaned.length - 3);
-    const inward = cleaned.slice(-3);
-    return `${outward} ${inward}`;
+
+function normalizeRegion(region) {
+  if (!region) return "";
+  let normalized = region.trim().toLowerCase();
+
+  // Allow short names (east, west, etc.) and expand them
+  if (["east", "west", "north", "south", "central"].includes(normalized)) {
+    normalized = `${normalized} london`;
   }
-  return cleaned;
+
+  return normalized;
 }
+
+// Allowed regions (lowercase for comparison)
+const allowedRegions = [
+  "central london",
+  "east london",
+  "west london",
+  "north london",
+  "south london"
+];
 
 // ✅ Edit Therapist Profile
 const editTherapistProfile = async (req, res) => {
+  console.log(req.body)
   const check = req.user;
   if(req.user.role !== "admin") {
   return res.status(403).json({ message: "Forbidden: Admins only" });
@@ -98,16 +109,29 @@ const editTherapistProfile = async (req, res) => {
       .filter((id) => id)
       .map((id) => new mongoose.Types.ObjectId(id.trim()));
 
-    // Postal codes
-    if (req.body.servicesInPostalcode) {
-      const codes = req.body.servicesInPostalcode
-        .split(",")
-        .map((pc) => normalizePostcode(pc))
-        .filter((pc) => pc);
+    //working
+let regionsInput = req.body["servicesInPostalCodes[]"] || [];
 
-      therapistProfile.servicesInPostalCodes = [...new Set(codes)];
-    }
-   //printed
+// Ensure array
+if (!Array.isArray(regionsInput)) {
+  regionsInput = [regionsInput];
+}
+
+// Normalize + filter
+const servicesInPostalCodes = regionsInput
+  .map(r => normalizeRegion(r))
+  .filter(r => allowedRegions.includes(r));
+
+if (servicesInPostalCodes.length === 0) {
+  return res.status(400).json({
+    message: "At least one valid region must be provided",
+    allowedRegions
+  });
+}
+therapistProfile.servicesInPostalCodes = servicesInPostalCodes
+
+
+
     // Save therapist profile
     await therapistProfile.save();
  

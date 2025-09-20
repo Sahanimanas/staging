@@ -24,20 +24,30 @@ const uploadToCloudinary = async (file) => {
   });
 };
 
-// Normalize UK postcode (no changes)
-function normalizePostcode(postcode) {
-    if (!postcode) return "";
-    const cleaned = postcode.replace(/\s+/g, "").toUpperCase();
-    if (cleaned.length > 3) {
-        const outward = cleaned.slice(0, cleaned.length - 3);
-        const inward = cleaned.slice(-3);
-        return `${outward} ${inward}`;
-    }
-    return cleaned;
+function normalizeRegion(region) {
+  if (!region) return "";
+  let normalized = region.trim().toLowerCase();
+
+  // Allow short names (east, west, etc.) and expand them
+  if (["east", "west", "north", "south", "central"].includes(normalized)) {
+    normalized = `${normalized} london`;
+  }
+
+  return normalized;
 }
+
+// Allowed regions (lowercase for comparison)
+const allowedRegions = [
+  "central london",
+  "east london",
+  "west london",
+  "north london",
+  "south london"
+];
 
 // Controller
 const createTherapist = async (req, res) => {
+  console.log(req.body)
   // Use a try/catch to handle initial validation and user creation errors.
   try {
     
@@ -80,10 +90,32 @@ const createTherapist = async (req, res) => {
     if (!Array.isArray(specializations)) specializations = [specializations];
     specializations = specializations.filter(id => id).map(id => new ObjectId(id.trim()));
 
-    const servicesInPostalCodes = req.body.servicesInPostalcode
-        ? req.body.servicesInPostalcode.split(",").map(pc => normalizePostcode(pc)).filter(pc => pc)
-        : [];
+
+//working
+let regionsInput = req.body["servicesInPostalCodes[]"] || [];
+
+// Ensure array
+if (!Array.isArray(regionsInput)) {
+  regionsInput = [regionsInput];
+}
+
+// Normalize + filter
+const servicesInPostalCodes = regionsInput
+  .map(r => normalizeRegion(r))
+  .filter(r => allowedRegions.includes(r));
+
+if (servicesInPostalCodes.length === 0) {
+  return res.status(400).json({
+    message: "At least one valid region must be provided",
+    allowedRegions
+  });
+}
         
+
+
+
+
+
     let languages = req.body["languages[]"] || [];
     if (!Array.isArray(languages)) languages = [languages];
     languages = languages.filter(l => l);

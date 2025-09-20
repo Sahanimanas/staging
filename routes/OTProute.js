@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Send custom OTP
 router.post("/send-otp", async (req, res) => {
-  
+
   const { mobileNumber} = req.body;
   const user = req.user;
   const purpose = "phoneverification"

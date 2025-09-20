@@ -24,14 +24,7 @@ const TherapistProfileSchema = new Schema(
     servicesInPostalCodes: [
       {
         type: String,
-        validate: {
-          validator: function (v) {
-            // UK postcode regex (case-insensitive)
-            return /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i.test(v);
-          },
-          message: (props) => `${props.value} is not a valid UK postcode!`,
         },
-      },
     ],
     experience: {
       type: Number,
