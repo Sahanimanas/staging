@@ -86,7 +86,7 @@ const editTherapistProfile = async (req, res) => {
     // ----------------------------
     // Update TherapistProfile fields
     // ----------------------------
-    therapistProfile.title = `${user.name.first} ${user.name.last}` 
+    therapistProfile.title = req.body.username?req.body.username:`${req.body.firstName}`;
     if (req.body.bio) therapistProfile.bio = req.body.bio;
     if (req.body.experience) therapistProfile.experience = Number(req.body.experience);
 

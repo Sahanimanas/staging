@@ -119,7 +119,7 @@ if (servicesInPostalCodes.length === 0) {
     let languages = req.body["languages[]"] || [];
     if (!Array.isArray(languages)) languages = [languages];
     languages = languages.filter(l => l);
-const Username = req.body.username?req.body.username:`${req.body.firstName} ${req.body.lastName}`;
+const Username = req.body.username?req.body.username:`${req.body.firstName}`;
     // Create TherapistProfile (no changes)
     const newTherapistProfile = new TherapistProfile({
         title: `${Username}`,

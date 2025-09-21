@@ -63,7 +63,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), require('./r
 app.get('/api/'  , (req, res) => res.send("Hello from server"));
 app.use('/api/auth', require('./routes/google.js'));
 app.use('/api/auth/user', userAuth);
-app.use('/api/user', require('./routes/userRoutes.js'));
+app.use('/api/user', require('./routes/userRoutes.js'));  
 app.use('/api/admin', Adminroutes);
 app.use('/api/verifyotp', require('./routes/otproutes.js'));
 app.post('/api/auth/admin/login', login_User);

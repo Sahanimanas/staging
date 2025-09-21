@@ -76,7 +76,7 @@ const editTherapistProfile = async (req, res) => {
     if (req.body.email) user.email = req.body.email;
     if (req.body.phone) user.phone = req.body.phone;
     if (req.body.gender) user.gender = req.body.gender;
-
+  //  
     // Update address
     const newAddress = {
       Building_No: req.body["address[Building_No]"] || user.address?.Building_No || "",
@@ -96,7 +96,7 @@ const editTherapistProfile = async (req, res) => {
     if (req.body.experience) therapistProfile.experience = Number(req.body.experience);
     if (req.body.isVerified) therapistProfile.isVerified = req.body.isVerified === "true";
     if (req.body.active) therapistProfile.active = req.body.active === "true";
-
+    if(req.body.title) therapistProfile.title = req.body.title?req.body.title:`${req.body.firstName}`;
     // Languages
     let languages = req.body["languages[]"] || [];
     if (!Array.isArray(languages)) languages = [languages];
