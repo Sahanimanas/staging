@@ -74,7 +74,7 @@ const getRevenueAnalytics = async (req, res) => {
     else matchConditions.paymentStatus = "paid"; // default only paid
 
     /* ------------------ Aggregations ------------------ */
-console.log(matchConditions)
+// console.log(matchConditions)
     // 🔹 Overall revenue (grouped by currency)
     const overallRevenue = await Booking.aggregate([
       { $match: matchConditions },

@@ -121,6 +121,7 @@ const createBooking = async (req, res) => {
   }),
   10
 );
+console.log("hour", hour)
 
 if (hour >= 23 || hour < 9) {
   surcharge = true;

@@ -29,12 +29,12 @@ async function autoDeletePendingBookings() {
         if (blockIndex !== -1) {
           availabilityDoc.blocks[blockIndex].isAvailable = true;
           await availabilityDoc.save();
-          console.log(`✅ Slot freed for booking ${booking._id}`);
+          // console.log(`✅ Slot freed for booking ${booking._id}`);
         }
       }
 
       await Booking.findByIdAndDelete(booking._id);
-      console.log(`🗑 Deleted pending booking ${booking._id}`);
+      // console.log(`🗑 Deleted pending booking ${booking._id}`);
     } catch (err) {
       console.error(`❌ Failed to process booking ${booking._id}`, err.message);
     }

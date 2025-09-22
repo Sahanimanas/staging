@@ -30,7 +30,7 @@ const sendCustomSMS = async (mobile, message) => {
     };
 
     const { data } = await axios.request(options);
-    console.log("✅ SMS Sent:", data);
+    // console.log("✅ SMS Sent:", data);
     return data;
 
   } catch (error) {

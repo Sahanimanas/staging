@@ -201,13 +201,10 @@ Team Noira`;
             if (blockIndex !== -1) {
               availabilityDoc.blocks[blockIndex].isAvailable = true;
               await availabilityDoc.save();
-              console.log(`✅ Slot for booking ${bookingId} has been freed.`);
+              // console.log(`✅ Slot for booking ${bookingId} has been freed.`);
             }
           }
 
-          console.log(
-            `🗑️ Booking ${bookingId} has been deleted due to expired session.`
-          );
         }
 
         // Step 5: Update the payment record to 'failed'

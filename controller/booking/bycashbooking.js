@@ -204,7 +204,7 @@ const createBooking = async (req, res) => {
     const endUTC = `${String(end.getUTCHours()).padStart(2, "0")}:${String(
       end.getUTCMinutes()
     ).padStart(2, "0")}`;
-console.log(bookingnew)
+// console.log(bookingnew)
 
 
     const durationMinutes = Math.round((end - start) / (1000 * 60));
@@ -294,7 +294,7 @@ Team Noira`;
       },
       { new: true }
     );
-    console.log(updated);
+    // console.log(updated);
     return res.status(200).json({ message: "Booking confirmed" });
   } catch (error) {
     console.error("Booking creation failed:", error);

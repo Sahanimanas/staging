@@ -54,7 +54,7 @@ const getAllTherapists = async (req, res) => {
       };
     });
 
-  console.log(result)
+  // console.log(result)
     return res.status(200).json({
       count: result.length, // count on this page
       total: totalTherapists, // total across all pages

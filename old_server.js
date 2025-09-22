@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 
 require('dotenv').config({ path: '/etc/secrets/stripe.env' });
 
-console.log("STRIPE_SECRET_KEY:", process.env.STRIPE_SECRET_KEY ? "Loaded " : "Missing ");
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -50,7 +50,7 @@ app.use(
 // app.use('/admin', );
 
 app.get('/', (req, res) => {
-  console.log("server hit")
+
   res.send(`Hello from server`);
 });
 

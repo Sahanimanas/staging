@@ -102,7 +102,7 @@ const dashboard = async (req, res) => {
         weekStart.setUTCDate(todayStart.getUTCDate() - todayStart.getUTCDay());
         break;
     }
-console.log(todayStart,todayEnd)
+// console.log(todayStart,todayEnd)
     // ✅ Today's Sessions (or range sessions)
     const todaysSessions = await Booking.countDocuments({
       therapistId,
@@ -126,7 +126,7 @@ console.log(todayStart,todayEnd)
     // ✅ Therapist Profile
      const { avgRating, totalReviews } = await getTherapistAverageRating(therapistId);
 
-console.log(`⭐ Average Rating: ${avgRating} (${totalReviews} reviews)`);
+// console.log(`⭐ Average Rating: ${avgRating} (${totalReviews} reviews)`);
 // Output: ⭐ Average Rating: 4.7 (12 reviews)
 
 

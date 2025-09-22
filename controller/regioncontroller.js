@@ -46,7 +46,7 @@ const getRegionFromPostcode = (req, res) => {
     }
 
     const code = outwardMatch[1];
-    console.log("Outward code detected:", code);
+    // console.log("Outward code detected:", code);
 
     // Prefix match to detect region
     let region = null;

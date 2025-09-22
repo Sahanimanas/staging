@@ -59,11 +59,11 @@ const editService = async (req, res) => {
 
     // Background upload if image provided
     if (req.files && req.files.image) {
-      console.log(`Starting background upload for service: ${updatedService.name}`);
+      // console.log(`Starting background upload for service: ${updatedService.name}`);
       uploadToCloudinary(req.files.image)
         .then((result) => {
           const imageUrl = result.secure_url;
-          console.log(`Upload successful for ${updatedService.name}. URL: ${imageUrl}`);
+          // console.log(`Upload successful for ${updatedService.name}. URL: ${imageUrl}`);
           return Service.updateOne(
             { _id: updatedService._id },
             { $set: { image_url: imageUrl } }

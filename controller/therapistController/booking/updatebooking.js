@@ -117,7 +117,7 @@ const declineBooking = async (req, res) => {
 
 
     const admins = await User.find({ role: 'admin' });
-    console.log("admins",admins)
+    // console.log("admins",admins)
   
   for (const admin of admins) {
     await sendMail(

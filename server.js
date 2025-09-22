@@ -20,7 +20,6 @@ const app = express();
 const connectDB = require('./db/db.js');
 connectDB();
 
-console.log("🔑 Loaded STRIPE_WEBHOOK_SECRET:", process.env.STRIPE_WEBHOOK_SECRET ? "YES" : "MISSING");
 // JSON middleware, except for /webhook
 app.use((req, res, next) => {
   if (req.originalUrl === "/api/webhook") {
