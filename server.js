@@ -79,7 +79,7 @@ app.use('/api/bookings', Bookingroute);
 app.use('/api/auth', require('./routes/forgotpasswordRoute/forgotpass.js'));
 app.use('/api/otp',authmiddleware, require('./routes/OTProute'))
 
-app.post('/api/testregion', require('./controller/regioncontroller.js')) //testing 
+app.get('/api/outcodes', require('./services/getoutcodes')) //testing 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server is running on port ${PORT}`);

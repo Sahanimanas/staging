@@ -19,27 +19,6 @@ const uploadToCloudinary = async (file) => {
 };
 
 
-// function normalizeRegion(region) {
-//   if (!region) return "";
-//   let normalized = region.trim().toLowerCase();
-
-//   // Allow short names (east, west, etc.) and expand them
-//   if (["east", "west", "north", "south", "central"].includes(normalized)) {
-//     normalized = `${normalized} london`;
-//   }
-
-//   return normalized;
-// }
-
-// // Allowed regions (lowercase for comparison)
-// const allowedRegions = [
-//   "central london",
-//   "east london",
-//   "west london",
-//   "north london",
-//   "south london"
-// ];
-
 // ✅ Edit Therapist Profile
 const editTherapistProfile = async (req, res) => {
   console.log(req.body)

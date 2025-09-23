@@ -25,9 +25,10 @@ const getTherapists = async (req, res) => {
       return res.status(400).json({ error: "Invalid request body" });
     }
 
-    // Normalize postal code input
-    const normalizedPostalCode = String(postalCode).trim().toUpperCase();
-console.log(normalizedPostalCode)
+  const normalizedPostalCode = String(postalCode).trim().toUpperCase();
+    const outwardCode = normalizedPostalCode.split(" ")[0]; // Only first part (outcode)
+    console.log("Outward code to match:", outwardCode);
+
     // Parse date & time (your code already handles this)
     const [year, month, day] = date.split("-");
     const slotStart = new Date(`${year}-${month}-${day}T${time}:00.000Z`);
@@ -65,7 +66,7 @@ console.log(normalizedPostalCode)
     const therapists = await TherapistProfiles.find({
       specializations: serviceID,
       active: true,
-      servicesInPostalCodes: normalizedPostalCode, // 🔑 Filter by postal code match
+      servicesInPostalCodes: outwardCode, // 🔑 Filter by postal code match
     })
       .populate("userId", "email avatar_url")
       .populate("specializations", "name");
