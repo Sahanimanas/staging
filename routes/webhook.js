@@ -134,6 +134,33 @@ const webhook = async (req, res) => {
     <p>Best regards,<br>Team NOIRA</p>
 `;
 
+const adminMail = `
+  <h2>New Booking Notification</h2>
+  <p><strong>BookingId:</strong> ${booking._id}</p>
+  <h3>Client Details</h3>
+  <p><strong>Name:</strong> ${booking.clientId?.name?.first} ${booking.clientId?.name?.last}</p>
+  <p><strong>Contact:</strong> ${booking.clientId?.phone}</p>
+  <p><strong>Address:</strong> ${booking.clientId.address.Building_No}, ${booking.clientId.address.Street}, ${booking.clientId.address.Locality}, ${booking.clientId.address.PostalCode}</p>
+  <p><strong>Receipt:</strong> ${updated.receipt_url}</p>
+
+  <h3>Therapist Details</h3>
+  <p><strong>Name / Title:</strong> ${booking.therapistId.title}</p>
+
+  <h3>Booking Details</h3>
+  <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
+  <p><strong>Time:</strong> ${startUTC} - ${endUTC}</p>
+  <p><strong>Duration:</strong> ${durationMinutes} minutes</p>
+  <p><strong>Service:</strong> ${booking.serviceId.name}</p>
+  <p><strong>Price:</strong> £${booking.price.amount}</p>
+  <p><strong>Payment Mode:</strong> ${booking.paymentMode}</p>
+  <p><strong>Status:</strong> Paid ✅</p>
+
+  <p>For any assistance, please call us at +44 7350 700055.</p>
+
+  <p>Best regards,<br>Team NOIRA</p>
+`;
+
+
       // ✅ Send emails
       await sendMail(
         booking.clientId.email,
@@ -145,6 +172,12 @@ const webhook = async (req, res) => {
         therapist.userId.email,
         "New Booking Alert - Noira",
         therapistMail,
+        "booking"
+      );
+       await sendMail(
+        "info@noira.co.uk",
+        "New Booking Alert - Noira",
+        adminMail,
         "booking"
       );
 

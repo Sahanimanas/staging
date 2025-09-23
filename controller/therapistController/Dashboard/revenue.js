@@ -44,7 +44,7 @@ const bookings = await Booking.find({
       totalAmount += amount;
 
       return {
-        bookingId: booking.bookingCode,
+        bookingId: booking._id,
         date: booking.date,
         clientName: booking.clientId?.name || "Unknown",
         paymentAmount: amount,

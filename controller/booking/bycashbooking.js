@@ -219,7 +219,7 @@ const createBooking = async (req, res) => {
     <p><strong>Time:</strong> ${startUTC}</p>
     <p><strong>Duration:</strong> ${durationMinutes}</p>
     <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
-    <p><strong>Price:</strong> ${bookingnew.price.amount}</p>
+    <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
     <p><strong>Payment Mode:</strong> ${
       bookingnew.paymentMode
     }</p> <p><strong>Location:</strong></p>
@@ -243,9 +243,9 @@ const createBooking = async (req, res) => {
     <p><strong>Contact:</strong> ${bookingnew.clientId.phone}</p>
     <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
     <p><strong>Date:</strong> ${bookingnew.date.toDateString()}</p>
-    <p><strong>Duration:</strong> ${durationMinutes}</p>
+    <p><strong>Duration:</strong> ${durationMinutes} minutes</p>
     <p><strong>Time:</strong> ${startUTC} - ${endUTC}</p>
-    <p><strong>Price:</strong> ${bookingnew.price.amount}</p>
+    <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
     <p><strong>Payment Mode:</strong> ${
       bookingnew.paymentMode
     }</p>
@@ -258,6 +258,29 @@ const createBooking = async (req, res) => {
     <p>For any assistance, please call us at  +44 7350 700055.</p>
     <p>Best regards,<br>Team NOIRA</p>
 `;
+
+const adminMail = `
+  <h2>New Booking Notification</h2>
+  <p><strong>BookingId:</strong> ${bookingnew._id}</p>
+  <h3>Client Details</h3>
+  <p><strong>Name:</strong> ${bookingnew.clientId?.name?.first} ${bookingnew.clientId?.name?.last}</p>
+  <p><strong>Contact:</strong> ${bookingnew.clientId?.phone}</p>
+  <p><strong>Address:</strong> ${bookingnew.clientId.address.Building_No}, ${bookingnew.clientId.address.Street}, ${bookingnew.clientId.address.Locality}, ${bookingnew.clientId.address.PostalCode}</p>
+
+  <h3>Therapist Details</h3>
+  <p><strong>Name / Title:</strong> ${bookingnew.therapistId.title}</p>
+
+  <h3>Booking Details</h3>
+  <p><strong>Date:</strong> ${bookingnew.date.toDateString()}</p>
+  <p><strong>Time:</strong> ${startUTC} - ${endUTC}</p>
+  <p><strong>Duration:</strong> ${durationMinutes} minutes</p>
+  <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
+  <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
+  <p><strong>Payment Mode:</strong> ${bookingnew.paymentMode}</p>
+  
+  <p>Best regards,<br>Team NOIRA</p>
+`;
+
     await sendMail(
       bookingnew.clientId.email,
       "Booking Confirmation - Noira",
@@ -270,6 +293,14 @@ const createBooking = async (req, res) => {
       therapistMail,
       "booking"
     );
+    await sendMail(
+      "info@noira.co.uk",
+      "New Booking Notification",
+      adminMail,
+      "booking"
+    )
+ 
+
 
     const message = `Your NOIRA massage is confirmed for ${bookingnew.date.toLocaleDateString(
       "en-GB")}, ${startUTC} ${durationMinutes}mins. Therapist - ${
