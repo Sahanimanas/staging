@@ -79,7 +79,9 @@ app.use('/api/bookings', Bookingroute);
 app.use('/api/auth', require('./routes/forgotpasswordRoute/forgotpass.js'));
 app.use('/api/otp',authmiddleware, require('./routes/OTProute'))
 
-app.get('/api/outcodes', require('./services/getoutcodes')) //testing 
+app.get('/api/outcodes', require('./services/getoutcodes')) //testing 4
+app.get('/api/blog', require('./controller/blog/blog').getBlogs)
+app.get('/api/blog/:id',require('./controller/blog/blog').BlogID)
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server is running on port ${PORT}`);

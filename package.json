@@ -39,6 +39,7 @@
     "stripe": "^18.4.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "twilio": "^5.9.0"
+    "twilio": "^5.9.0",
+    "uuid": "^13.0.0"
   }
 }
