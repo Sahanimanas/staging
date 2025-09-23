@@ -12,11 +12,15 @@ const bookingUser = async (req, res) => {
     }
 
     // Find all bookings for this user
-    const bookings = await Booking.find({ clientId: userId })
-      .populate("therapistId") // populate therapist's title
-      .populate("serviceId") // populate service info
-      .sort({ createdAt: -1 })
-      .lean();
+   const bookings = await Booking.find({
+  clientId: userId,
+  status: { $ne: "pending" }, // ✅ exclude pending
+})
+  .populate("therapistId")
+  .populate("serviceId")
+  .sort({ createdAt: -1 })
+  .lean();
+
   const totalBookings = bookings.length;
     const totalPages = Math.ceil(totalBookings / limit);
     const paginatedBookings = bookings.slice(skip, skip + limit);

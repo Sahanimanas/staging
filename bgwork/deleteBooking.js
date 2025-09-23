@@ -3,7 +3,7 @@ const Booking = require("../models/BookingSchema");
 const TherapistAvailability = require("../models/AvailabilitySchema");
 
 async function autoDeletePendingBookings() {
-  const cutoff = new Date(Date.now() - 2 * 60 * 1000); // 2 mins ago
+  const cutoff = new Date(Date.now() - 5 * 60 * 1000); // 2 mins ago
 
   const oldBookings = await Booking.find({
     status: "pending",
