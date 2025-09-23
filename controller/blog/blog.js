@@ -1,5 +1,4 @@
-
-const { v4: uuidv4 } = require("uuid"); // npm install uuid
+ // npm install uuid
 
 // Sample blogs with unique IDs
 const blogs = [
@@ -10,7 +9,7 @@ const blogs = [
     author: "Dr. Sarah Chen",
     date: "15 January 2024",
     reading_time: "8 min read",
-    banner_image: "deep_tissue_massage.jpg",
+    banner_image: "https://images.unsplash.com/photo-1605040056130-38d9faad3534?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     content: [
       {
         section: "Introduction",
@@ -36,14 +35,14 @@ const blogs = [
       button_text: "Book a Therapy Session with Noira"
     }
   },
-  {
+  { 
     id: 2,
     title: "Aromatherapy Blends: Crafting Your Perfect Wellness Ritual",
     category: "Wellness",
     author: "Dr. Emily Hart",
     date: "12 January 2024",
     reading_time: "6 min read",
-    banner_image: "aromatherapy_blends.jpg",
+    banner_image: "https://images.unsplash.com/photo-1596178060671-7a80dc8059ea?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     content: [
       {
         section: "Introduction",
@@ -74,7 +73,7 @@ const blogs = [
     author: "Dr. James Carter",
     date: "10 January 2024",
     reading_time: "7 min read",
-    banner_image: "urban_wellness.jpg",
+    banner_image: "https://plus.unsplash.com/premium_photo-1661306478690-f9c09465996b?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     content: [
       {
         section: "Introduction",
