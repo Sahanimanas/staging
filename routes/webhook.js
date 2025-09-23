@@ -153,14 +153,8 @@ const webhook = async (req, res) => {
       }. Please prepare a quiet space (bed/floor) and ensure comfort.`;
 
       const therapistmessage = 
-`${booking.date.toLocaleDateString("en-GB")} | ${startUTC} | ${durationMinutes} mins
-£${booking.price.amount} | ${booking.paymentMode.toUpperCase()}
-Client:${booking.clientId?.name?.first?.toUpperCase()}
-Phone:${therapist.userId.phone}
-Address:${booking.clientId.address.Building_No}, ${booking.clientId.address.Street}, 
-${booking.clientId.address.Locality}, ${booking.clientId.address.PostalCode}
-
-Service: ${booking.serviceId.name}
+`${booking.date.toLocaleDateString("en-GB")} ${startUTC} ${durationMinutes} mins £${booking.price.amount} ${booking.paymentMode.toUpperCase()} ${booking.clientId?.name?.first?.toUpperCase()} ${therapist.userId.phone} ${booking.clientId.address.Building_No}, ${booking.clientId.address.Street}, 
+${booking.clientId.address.Locality},${booking.clientId.address.PostalCode} ${booking.serviceId.name}
 Team Noira`;
 ;
       await sendCustomSMS(booking.clientId.phone, clientmessage);

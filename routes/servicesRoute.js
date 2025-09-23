@@ -3,10 +3,9 @@ const express = require('express');
 const router = express.Router();
 
 const getAllServices = require('../controller/services/massageServices.js');
-const authMiddleware = require('../models/middlewares/authtoken.js');
 
-router.get('/list', getAllServices);
-router.get('/', require('../controller/services/getServices.js'));
+router.get('/list', getAllServices); // price
+router.get('/', require('../controller/services/getServices.js')); // no price
 
 module.exports = router;
 

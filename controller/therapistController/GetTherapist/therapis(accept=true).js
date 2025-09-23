@@ -34,13 +34,14 @@ const getAllTherapists = async (req, res) => {
       active: true,
     })
       .populate("specializations", "name -_id")
+      .populate("userId", "avatar_url")
       .lean();
 
     // ✅ Merge user + profile
     const result = users.map((user) => {
-      const profile = profiles.find(
-        (p) => p.userId.toString() === user._id.toString()
-      );
+     const profile = profiles.find(
+  (p) => p.userId?._id?.toString() === user._id.toString()
+);
       return {
         ...user,
         profile: profile

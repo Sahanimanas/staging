@@ -11,21 +11,24 @@ const BookingSchema = require("../../../models/BookingSchema");
  * @body { service: { serviceId, optionIndex }, date (DD-MM-YYYY), time (HH:mm) }
  */
 
-
 const getTherapists = async (req, res) => {
   try {
-    const { service, date, time } = req.body;
+    const { service, date, time, postalCode } = req.body;
 
     if (
       !service?.serviceId ||
       service.optionIndex === undefined ||
       !date ||
-      !time
+      !time ||
+      !postalCode
     ) {
       return res.status(400).json({ error: "Invalid request body" });
     }
 
-    // Parse date & time
+    // Normalize postal code input
+    const normalizedPostalCode = String(postalCode).trim().toUpperCase();
+console.log(normalizedPostalCode)
+    // Parse date & time (your code already handles this)
     const [year, month, day] = date.split("-");
     const slotStart = new Date(`${year}-${month}-${day}T${time}:00.000Z`);
 
@@ -33,55 +36,57 @@ const getTherapists = async (req, res) => {
       return res.status(400).json({ error: "Invalid date or time format" });
     }
 
-    // ✅ Check if the selected date is in the past
+    // ✅ Past date check
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // normalize
+    today.setHours(0, 0, 0, 0);
     if (slotStart < today) {
       return res
         .status(400)
         .json({ error: "Selected date cannot be in the past" });
     }
 
-    // Create a new mongoose ObjectId
+    // Convert service ID to ObjectId
     const serviceID = new mongoose.Types.ObjectId(service.serviceId);
 
-    // Fetch service duration
+    // Get service duration
     const serviceDoc = await ServiceSchema.findById(serviceID);
     if (!serviceDoc)
       return res.status(404).json({ error: "Service not found" });
 
     const option = serviceDoc.options[service.optionIndex];
-    if (!option) return res.status(400).json({ error: "Invalid option index" });
+    if (!option)
+      return res.status(400).json({ error: "Invalid option index" });
 
     const slotEnd = new Date(
       slotStart.getTime() + option.durationMinutes * 60000
     );
 
-    // Step 1: Find therapists offering this service
+    // ✅ Step 1: Find therapists offering this service **and matching postal code**
     const therapists = await TherapistProfiles.find({
       specializations: serviceID,
-      active: true,  
+      active: true,
+      servicesInPostalCodes: normalizedPostalCode, // 🔑 Filter by postal code match
     })
       .populate("userId", "email avatar_url")
       .populate("specializations", "name");
 
- 
-
     if (!therapists.length) {
       return res.status(404).json({ therapists: [] });
     }
-    const therapistIds = therapists.map((t) => t._id);
-    const dayStart = new Date(slotStart);
-    dayStart.setUTCHours(0, 0, 0, 0); // start of the day in UTC
 
+    const therapistIds = therapists.map((t) => t._id);
+
+    const dayStart = new Date(slotStart);
+    dayStart.setUTCHours(0, 0, 0, 0);
     const dayEnd = new Date(slotStart);
 
+    // ✅ Step 2: Get therapist availabilities for that day
     const availabilities = await AvailabilitySchema.find({
       therapistId: { $in: therapistIds },
       date: { $gte: dayStart, $lte: dayEnd },
     });
 
-    // Step 3: Filter available therapists based on availability blocks
+    // ✅ Step 3: Filter therapists based on available blocks
     const availableTherapistIds = availabilities
       .filter((av) =>
         av.blocks.some((block) => {
@@ -96,7 +101,6 @@ const getTherapists = async (req, res) => {
           const blockEnd = new Date(av.date);
           blockEnd.setUTCHours(eh, em, 0, 0);
 
-
           return slotStart >= blockStart && slotEnd <= blockEnd;
         })
       )
@@ -106,7 +110,7 @@ const getTherapists = async (req, res) => {
       return res.json({ therapists: [] });
     }
 
-    // Step 4: Exclude therapists with conflicting bookings
+    // ✅ Step 4: Exclude therapists with conflicting bookings
     const conflictingBookings = await BookingSchema.find({
       therapistId: { $in: availableTherapistIds },
       date: new Date(`${year}-${month}-${day}T00:00:00.000Z`),
@@ -122,21 +126,19 @@ const getTherapists = async (req, res) => {
       b.therapistId.toString()
     );
 
-    // Final list (only available and not booked)
+    // ✅ Final filtered list
     const finalTherapists = therapists.filter(
       (t) =>
         availableTherapistIds.includes(t._id.toString()) &&
         !bookedTherapistIds.includes(t._id.toString())
     );
 
-   const profile = finalTherapists;
     return res.json({
-      therapists: profile,
+      therapists: finalTherapists,
     });
   } catch (error) {
     console.error("Error filtering therapists:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-module.exports = getTherapists;
+module.exports = getTherapists

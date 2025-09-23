@@ -10,7 +10,8 @@ const therapistServices = async (req, res) => {
 
     // Find therapist and populate services
     const therapist = await TherapistProfile.findById(therapistId)
-      .populate("specializations", "name description options") // select only necessary fields
+      .populate("specializations", "name description options")
+       // select only necessary fields
       .select("specializations"); // we only need the specializations field
 
     if (!therapist) {

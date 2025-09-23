@@ -8,7 +8,7 @@ const authMiddleware = require('../models/middlewares/authtoken.js');
 const TherapistTokenMiddleware = require('../models/middlewares/Therapisttoken')
 const router = express.Router();
 
-router.post("/filter",authMiddleware,getTherapists);
+router.post("/filter",getTherapists);
 
 router.post('/addavailability',TherapistTokenMiddleware,require('../controller/therapistController/schedule/addAvailabilty'));
 router.post('/addtherapist',TherapistTokenMiddleware,require('../controller/therapistController/Add&DeleteTherapist/Addtherapist.js'));
@@ -23,17 +23,18 @@ router.post('/bookings/revenue', TherapistTokenMiddleware ,require('../controlle
 router.post("/reset",  require('../models/middlewares/verifyTherapist.js'), require('../controller/therapistController/schedule/DeleteEntireMonth.js'));
 router.post('/next7days', TherapistTokenMiddleware ,require('../controller/therapistController/schedule/next7days.js'));
 router.get('/filter',authMiddleware, require('../controller/therapistController/GetTherapist/getbypostalcode.js'));
+
 //by Therapist flow
-router.get('/list',authMiddleware, require('../controller/therapistController/GetTherapist/bytherpist/getTherapist.js'));
-router.get('/:therapistId/services', authMiddleware ,require('../controller/services/therapistServices.js'));
+router.get('/list', require('../controller/therapistController/GetTherapist/bytherpist/getTherapist.js'));
+router.get('/:therapistId/services' , require('../controller/services/therapistServices.js'));
 //profile 
 router.put('/edittherapist/:therapistId',authMiddleware, require('../controller/therapistController/Profile/editprofile.js'));
-//bookings
+//bookings  of therpist // requires Authentication token
 router.get('/getbookings',authMiddleware, require('../controller/therapistController/booking/booking.js'));
 router.put('/completebooking/:bookingId',authMiddleware, require('../controller/therapistController/booking/updatebooking.js').MarkComplete);
 router.put('/decline/:bookingId',authMiddleware,require('../models/middlewares/DeclineReason').cancellationValidator, require('../controller/therapistController/booking/updatebooking.js').declineBooking);
 router.get('/decline/reasons', TherapistTokenMiddleware , require('../models/middlewares/DeclineReason').CancelReason)
 //get by id
-router.get('/:id',authMiddleware, require('../controller/therapistController/GetTherapist/therapistByID.js'));
+router.get('/:id',  require('../controller/therapistController/GetTherapist/therapistByID.js'));
 module.exports = router;
 

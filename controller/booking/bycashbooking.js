@@ -99,7 +99,7 @@ const createBooking = async (req, res) => {
 
     // Find client
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "User no3t found" });
 
     // Parse date + time in UTC
     const [year, month, day] = date.split("-").map(Number);
@@ -272,16 +272,12 @@ const createBooking = async (req, res) => {
     );
 
     const message = `Your NOIRA massage is confirmed for ${bookingnew.date.toLocaleDateString(
-      "en-GB"
-    )}, ${startUTC} ${durationMinutes}mins. Therapist:${
-      bookingnew.therapistId.title
-    }. Please prepare a quiet space (bed/floor) and ensure comfort.`;
+      "en-GB")}, ${startUTC} ${durationMinutes}mins. Therapist - ${
+      bookingnew.therapistId.title}.Please prepare a quiet space (bed/floor) and ensure comfort.
+    Team Noira`;
 
     const therapistmessage = `${bookingnew.date.toLocaleDateString("en-GB")} ${startUTC} ${durationMinutes}mins £${bookingnew.price.amount
-    } ${bookingnew.paymentMode.toUpperCase()}
-${bookingnew.clientId?.name?.first?.toUpperCase()}    
-${bookingnew.clientId.phone} at ${bookingnew.clientId.address.Building_No}, ${bookingnew.clientId.address.Street}, ${bookingnew.clientId.address.Locality}, ${bookingnew.clientId.address.PostalCode }
-, ${bookingnew.serviceId.name},
+    } ${bookingnew.paymentMode.toUpperCase()} ${bookingnew.clientId?.name?.first?.toUpperCase()} ${bookingnew.clientId.phone} at ${bookingnew.clientId.address.Building_No} ${bookingnew.clientId.address.Street} ${bookingnew.clientId.address.Locality} ${bookingnew.clientId.address.PostalCode } ${bookingnew.serviceId.name} 
 Team Noira`;
 
     await sendCustomSMS(bookingnew.clientId.phone, message);
