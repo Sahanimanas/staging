@@ -87,6 +87,7 @@ const webhook = async (req, res) => {
     <h2>Booking Confirmed</h2>
     <p>Dear ${booking.clientId?.name?.first} ${booking.clientId?.name?.last},</p>
     <p>Your appointment at Noira Massage Therapy is confirmed. Please find the details below:</p>
+    <p><strong>BookingId:</strong> ${booking._id}</p>
     <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
     <p><strong>Time:</strong> ${startUTC}</p>
     <p><strong>Duration:</strong> ${durationMinutes}</p>
@@ -110,6 +111,7 @@ const webhook = async (req, res) => {
     <h2>New Booking Alert</h2>
     <p>Dear ${booking.therapistId.title},</p>
     <p>You have a new booking. Please find the details below:</p>
+     <p><strong>BookingId:</strong> ${booking._id}</p>
     <p><strong>Client:</strong> ${booking.clientId.name.first} ${
         booking.clientId.name.last
       }</p>

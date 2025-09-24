@@ -215,6 +215,7 @@ const createBooking = async (req, res) => {
       bookingnew.clientId?.name?.last
     },</p>
     <p>Your appointment at Noira Massage Therapy is confirmed. Please find the details below:</p>
+    <p><strong>BookingId:</strong> ${bookingnew._id}</p>
     <p><strong>Date:</strong> ${bookingnew.date.toDateString()}</p>
     <p><strong>Time:</strong> ${startUTC}</p>
     <p><strong>Duration:</strong> ${durationMinutes}</p>
@@ -238,6 +239,7 @@ const createBooking = async (req, res) => {
     <h2>New Booking Alert</h2>
     <p>Dear ${bookingnew.therapistId.title},</p>
     <p>You have a new booking. Please find the details below:</p>
+    <p><strong>BookingId:</strong> ${bookingnew._id}</p>
     <p><strong>Client:</strong> ${bookingnew.clientId.name.first} ${
       bookingnew.clientId.name.last}</p>
     <p><strong>Contact:</strong> ${bookingnew.clientId.phone}</p>
