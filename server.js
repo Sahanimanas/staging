@@ -12,10 +12,7 @@ dotenv.config({ path: '/etc/secrets/stripe.env' });
 dotenv.config({ path: './.env' });
 
 const PORT = process.env.PORT && !isNaN(process.env.PORT) ? parseInt(process.env.PORT, 10) : 3000;
-// ===============================
-// Express setup
-// ===============================
-// console.log("first")
+
 const app = express();
 const connectDB = require('./db/db.js');
 connectDB();
