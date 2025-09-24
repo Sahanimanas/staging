@@ -162,7 +162,7 @@ const createBooking = async (req, res) => {
       date: newdate,
       slotStart,
       slotEnd,
-      status: "pending",
+      status: "confirmed",
       paymentStatus: "pending",
       paymentMode: "cash",
       price: { amount: finalPrice, currency: "gbp" },
@@ -208,7 +208,7 @@ const createBooking = async (req, res) => {
 
 
     const durationMinutes = Math.round((end - start) / (1000 * 60));
-
+ 
     const clientMail = `
     <h2>Booking Confirmed</h2>
     <p>Dear ${bookingnew.clientId?.name?.first} ${
@@ -294,7 +294,7 @@ const adminMail = `
       "booking"
     );
     await sendMail(
-      "info@noira.co.uk",
+      "info@noira.co.uk",  //check
       "New Booking Notification",
       adminMail,
       "booking"
@@ -314,13 +314,7 @@ Team Noira`;
     await sendCustomSMS(bookingnew.clientId.phone, message);
     await sendCustomSMS(therapist.userId.phone, therapistmessage);
 
-    const updated = await BookingSchema.findByIdAndUpdate(
-      bookingnew._id,
-      {
-        status: "confirmed",
-      },
-      { new: true }
-    );
+   
     // console.log(updated);
     return res.status(200).json({ message: "Booking confirmed" });
   } catch (error) {

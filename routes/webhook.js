@@ -175,7 +175,7 @@ const adminMail = `
         "booking"
       );
        await sendMail(
-        "info@noira.co.uk",
+        "info@noira.co.uk",  //check
         "New Booking Alert - Noira",
         adminMail,
         "booking"
