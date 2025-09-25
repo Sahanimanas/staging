@@ -2,11 +2,12 @@ const BookingSchema = require("../../models/BookingSchema");
 const Service = require("../../models/ServiceSchema");
 const User = require("../../models/userSchema");
 const AvailabilitySchema = require("../../models/AvailabilitySchema");
-const Stripe = require("stripe");
-const Payment = require("../../models/PaymentSchema");
 const TherapistProfile = require("../../models/TherapistProfiles");
 const sendMail = require("../../utils/sendmail");
 const sendCustomSMS = require("../../utils/smsService");
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+
 /**
  * Helper to split availability blocks after a booking
  */
@@ -28,13 +29,11 @@ function blockBookedSlot(blocks, slotStart, slotEnd) {
       slotStart.getUTCHours() * 60 + slotStart.getUTCMinutes();
     const bookingEnd = slotEnd.getUTCHours() * 60 + slotEnd.getUTCMinutes();
 
-    // If booking is completely outside this block
     if (bookingEnd <= blockStart || bookingStart >= blockEnd) {
       newBlocks.push(block);
       return;
     }
 
-    // --- Before booking ---
     if (bookingStart > blockStart) {
       newBlocks.push({
         startTime: formatTime(blockStart),
@@ -43,14 +42,12 @@ function blockBookedSlot(blocks, slotStart, slotEnd) {
       });
     }
 
-    // --- Booked slot ---
     newBlocks.push({
       startTime: formatTime(Math.max(bookingStart, blockStart)),
       endTime: formatTime(Math.min(bookingEnd, blockEnd)),
       isAvailable: false,
     });
 
-    // --- After booking ---
     if (bookingEnd < blockEnd) {
       newBlocks.push({
         startTime: formatTime(bookingEnd),
@@ -59,15 +56,22 @@ function blockBookedSlot(blocks, slotStart, slotEnd) {
       });
     }
   });
-  // console.log(newBlocks)
+
   return newBlocks;
 }
 
-// helper: convert minutes → HH:mm
 function formatTime(minutes) {
   const h = String(Math.floor(minutes / 60)).padStart(2, "0");
   const m = String(minutes % 60).padStart(2, "0");
   return `${h}:${m}`;
+}
+
+// ✅ Helper to generate random password
+function generateRandomPassword(length = 10) {
+  return crypto.randomBytes(length)
+    .toString("base64")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(0, length);
 }
 
 const createBooking = async (req, res) => {
@@ -82,8 +86,11 @@ const createBooking = async (req, res) => {
       date,
       time,
       notes,
+      name,
+      phone,
+      address
     } = req.body;
-
+console.log(req.body)
     if (
       !email ||
       !therapistId ||
@@ -97,9 +104,52 @@ const createBooking = async (req, res) => {
 
     const ritualPurchaseId = ritualPurchaseid || null;
 
-    // Find client
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User no3t found" });
+    // ✅ Find or create client user
+    let user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      const autoPassword = generateRandomPassword();
+      const hashedPassword = await bcrypt.hash(autoPassword, 10);
+let updatedname = '';
+      if (typeof name === "string" && name.trim() !== "") {
+  const parts = name.trim().split(/\s+/); // split by any amount of spaces
+  updatedname = {
+    first: parts[0],
+    last: parts.slice(1).join(" ") || "",
+  };
+} else if (typeof name === "object" && name !== null) {
+  updatedname = {
+    first: name.first || "Guest",
+    last: name.last || "",
+  };
+} else {
+  updatedname = {
+    first: "Guest",
+    last: "",
+  };
+}
+let updatedphone = '44'+phone
+console.log(name)
+      user = await User.create({
+        name: updatedname,
+        email: email.toLowerCase(),
+        passwordHash: hashedPassword,
+        phone: updatedphone || null,
+        role: "client",
+        emailVerified: false,
+        address: address || {}, // optional if provided
+      });
+ 
+
+      console.log(`✅ Auto-created new user for ${email} with password: ${autoPassword}`);
+      
+//client mail for password
+let clientpasswordmail = `✅ Auto-created new user for ${email} with password: ${autoPassword}`;
+await sendMail(user.email, "Login password - Noira", clientpasswordmail, "otp");
+
+      // (Optional) send email with credentials here
+    }
+
+
 
     // Parse date + time in UTC
     const [year, month, day] = date.split("-").map(Number);
@@ -112,7 +162,6 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ error: "Invalid date or time format" });
     }
 
-    // Fetch service and option
     const serviceDoc = await Service.findById(serviceId);
     if (!serviceDoc)
       return res.status(404).json({ error: "Service not found" });
@@ -120,9 +169,7 @@ const createBooking = async (req, res) => {
     const option = serviceDoc.options[optionIndex];
     if (!option) return res.status(400).json({ error: "Invalid option index" });
 
-    const slotEnd = new Date(
-      slotStart.getTime() + option.durationMinutes * 60000
-    );
+    const slotEnd = new Date(slotStart.getTime() + option.durationMinutes * 60000);
 
     // Price calculation
     let finalPrice = option.price.amount;
@@ -140,20 +187,20 @@ const createBooking = async (req, res) => {
       surcharge = true;
       finalPrice += 15;
     }
-// 🔹 MODIFIED: Apply coupon code discount
+
     if (couponCode) {
       const formattedCode = couponCode.trim().toUpperCase();
       if (formattedCode === "RELAX10") {
-        finalPrice = finalPrice * 0.9; // 10% discount
+        finalPrice = finalPrice * 0.9;
       } else if (formattedCode === "RELAX100") {
-        finalPrice = 0; // 100% discount
+        finalPrice = 0;
       }
     }
-    // 🔹 END MODIFICATION
-    const newdate = new Date(slotStart); // copy original date
+
+    const newdate = new Date(slotStart);
     newdate.setUTCHours(0, 0, 0, 0);
 
-    // Create booking
+    // ✅ Create booking
     const booking = await BookingSchema.create({
       clientId: user._id,
       serviceId,
@@ -162,7 +209,7 @@ const createBooking = async (req, res) => {
       date: newdate,
       slotStart,
       slotEnd,
-      status: "pending",
+      status: "confirmed",
       paymentStatus: "pending",
       paymentMode: "cash",
       price: { amount: finalPrice, currency: "gbp" },
@@ -170,7 +217,7 @@ const createBooking = async (req, res) => {
       notes,
     });
 
-    // Block the booked slot from availability
+    // ✅ Block therapist availability
     const availabilityDoc = await AvailabilitySchema.findOne({
       therapistId,
       date: newdate,
@@ -185,6 +232,7 @@ const createBooking = async (req, res) => {
       await availabilityDoc.save();
     }
 
+    // ✅ Populate booking with all details
     const bookingnew = await BookingSchema.findById(booking._id)
       .populate("therapistId")
       .populate("clientId")
@@ -197,47 +245,42 @@ const createBooking = async (req, res) => {
     const start = new Date(bookingnew.slotStart);
     const end = new Date(bookingnew.slotEnd);
 
-    // Format in UTC so it does NOT shift to local
     const startUTC = `${String(start.getUTCHours()).padStart(2, "0")}:${String(
       start.getUTCMinutes()
     ).padStart(2, "0")}`;
     const endUTC = `${String(end.getUTCHours()).padStart(2, "0")}:${String(
       end.getUTCMinutes()
     ).padStart(2, "0")}`;
-// console.log(bookingnew)
-
 
     const durationMinutes = Math.round((end - start) / (1000 * 60));
 
+
+    // ✅ Emails and SMS notifications stay the same
     const clientMail = `
-    <h2>Booking Confirmed</h2>
-    <p>Dear ${bookingnew.clientId?.name?.first} ${
-      bookingnew.clientId?.name?.last
-    },</p>
-    <p>Your appointment at Noira Massage Therapy is confirmed. Please find the details below:</p>
-    <p><strong>Date:</strong> ${bookingnew.date.toDateString()}</p>
-    <p><strong>Time:</strong> ${startUTC}</p>
-    <p><strong>Duration:</strong> ${durationMinutes}</p>
-    <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
-    <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
-    <p><strong>Payment Mode:</strong> ${
-      bookingnew.paymentMode
-    }</p> <p><strong>Location:</strong></p>
-    <p><strong>${bookingnew.clientId.address.Building_No}, ${
-      bookingnew.clientId.address.Street
-    }, ${bookingnew.clientId.address.Locality}, ${
-      bookingnew.clientId.address.PostalCode
-    }</strong></p>
-    <p>For any assistance, please call us at +44 7350 700055.</p>
-    <p>We look forward to serving you.</p>
+      <h2>Booking Confirmed</h2>
+      <p>Dear ${bookingnew.clientId?.name?.first} ${
+        bookingnew.clientId?.name?.last
+      },</p>
+      <p>Your appointment at Noira Massage Therapy is confirmed.</p>
+      <p><strong>BookingId:</strong> ${bookingnew._id}</p>
+      <p><strong>Date:</strong> ${bookingnew.date.toDateString()}</p>
+      <p><strong>Time:</strong> ${startUTC}</p>
+      <p><strong>Duration:</strong> ${durationMinutes} minutes</p>
+      <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
+      <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
+      <p><strong>Payment Mode:</strong> ${bookingnew.paymentMode}</p>
+      <p><strong>Location:</strong> ${bookingnew.clientId.address?.Building_No || ""}, 
+        ${bookingnew.clientId.address?.Street || ""}, 
+        ${bookingnew.clientId.address?.Locality || ""}, 
+        ${bookingnew.clientId.address?.PostalCode || ""}</p>
+      <p>Best regards,<br>Team NOIRA</p>
+    `;
 
-    <p>Best regards,<br>Team NOIRA</p>
-`;
-
-    const therapistMail = `
+      const therapistMail = `
     <h2>New Booking Alert</h2>
     <p>Dear ${bookingnew.therapistId.title},</p>
     <p>You have a new booking. Please find the details below:</p>
+    <p><strong>BookingId:</strong> ${bookingnew._id}</p>
     <p><strong>Client:</strong> ${bookingnew.clientId.name.first} ${
       bookingnew.clientId.name.last}</p>
     <p><strong>Contact:</strong> ${bookingnew.clientId.phone}</p>
@@ -281,48 +324,21 @@ const adminMail = `
   <p>Best regards,<br>Team NOIRA</p>
 `;
 
-    await sendMail(
-      bookingnew.clientId.email,
-      "Booking Confirmation - Noira",
-      clientMail,
-      "booking"
-    );
-    await sendMail(
-      therapist.userId.email,
-      "New Booking Alert - Noira",
-      therapistMail,
-      "booking"
-    );
-    await sendMail(
-      "info@noira.co.uk",
-      "New Booking Notification",
-      adminMail,
-      "booking"
-    )
- 
 
+    await sendMail(bookingnew.clientId.email, "Booking Confirmation - Noira", clientMail, "booking");
+    await sendMail(therapist.userId.email, "New Booking Alert - Noira", therapistMail, "booking");
+    await sendMail("manashvisahani@gmail.com", "New Booking Notification", adminMail, "booking");
 
     const message = `Your NOIRA massage is confirmed for ${bookingnew.date.toLocaleDateString(
-      "en-GB")}, ${startUTC} ${durationMinutes}mins. Therapist - ${
-      bookingnew.therapistId.title}.Please prepare a quiet space (bed/floor) and ensure comfort.
-    Team Noira`;
-
-    const therapistmessage = `${bookingnew.date.toLocaleDateString("en-GB")} ${startUTC} ${durationMinutes}mins £${bookingnew.price.amount
-    } ${bookingnew.paymentMode.toUpperCase()} ${bookingnew.clientId?.name?.first?.toUpperCase()} ${bookingnew.clientId.phone} at ${bookingnew.clientId.address.Building_No} ${bookingnew.clientId.address.Street} ${bookingnew.clientId.address.Locality} ${bookingnew.clientId.address.PostalCode } ${bookingnew.serviceId.name} 
-Team Noira`;
+      "en-GB")}, ${startUTC} ${durationMinutes}mins. Therapist - ${bookingnew.therapistId.title}.`;
 
     await sendCustomSMS(bookingnew.clientId.phone, message);
-    await sendCustomSMS(therapist.userId.phone, therapistmessage);
+    await sendCustomSMS(therapist.userId.phone, `NEW booking: ${message}`);
 
-    const updated = await BookingSchema.findByIdAndUpdate(
-      bookingnew._id,
-      {
-        status: "confirmed",
-      },
-      { new: true }
-    );
-    // console.log(updated);
+    
+
     return res.status(200).json({ message: "Booking confirmed" });
+
   } catch (error) {
     console.error("Booking creation failed:", error);
     return res

@@ -39,12 +39,7 @@ const sendMail = async (to, subject, html, type) => {
     USE_EMAIL = process.env.EMAIL_NOREPLY;
   }
   try {
-    // await transporter.sendMail({
-    //   from: `"Noira App" <${process.env.EMAIL_USER}>`,
-    //   to,
-    //   subject,
-    //   html,
-    // });
+  
        const client = await getGraphClient();
 
     const message = {                                 

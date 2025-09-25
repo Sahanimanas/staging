@@ -87,9 +87,10 @@ const webhook = async (req, res) => {
     <h2>Booking Confirmed</h2>
     <p>Dear ${booking.clientId?.name?.first} ${booking.clientId?.name?.last},</p>
     <p>Your appointment at Noira Massage Therapy is confirmed. Please find the details below:</p>
+   <p><strong>BookingId:</strong> ${booking._id}</p>
     <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
     <p><strong>Time:</strong> ${startUTC}</p>
-    <p><strong>Duration:</strong> ${durationMinutes}</p>
+    <p><strong>Duration:</strong> ${durationMinutes} minutes</p>
     <p><strong>Service:</strong> ${booking.serviceId.name}</p>
     <p><strong>Price:</strong> £${booking.price.amount}</p>
     <p><strong>Payment Mode:</strong> ${
@@ -144,7 +145,7 @@ const adminMail = `
   <p><strong>Receipt:</strong> ${updated.receipt_url}</p>
 
   <h3>Therapist Details</h3>
-  <p><strong>Name / Title:</strong> ${booking.therapistId.title}</p>
+  <p><strong>Name</strong> ${booking.therapistId.title}</p>
 
   <h3>Booking Details</h3>
   <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
@@ -175,7 +176,7 @@ const adminMail = `
         "booking"
       );
        await sendMail(
-        "info@noira.co.uk",
+        "manashvisahani@gmail.com", //change to info@noira.co.uk
         "New Booking Alert - Noira",
         adminMail,
         "booking"

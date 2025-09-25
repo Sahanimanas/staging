@@ -1,5 +1,5 @@
-const User = require("../../../models/userSchema");
-const Location = require("../../../models/Location");
+const User = require("../../models/userSchema");
+const Location = require("../../models/Location");
 const mongoose = require("mongoose");
 
 // UK Postal Code Regex (strict but flexible)
@@ -9,14 +9,10 @@ const updateUserAddress = async (req, res) => {
   try {
     const userId = req.params.userId;
     const {
-      buildingNo,
-      street,
-      locality,
-      postTown,
-      postalCode,
+      address
     } = req.body;
 
-    if (!buildingNo || !street || !postTown || !postalCode) {
+    if (!address) {
       return res.status(400).json({ message: "Required address fields are missing." });
     }
 
@@ -31,7 +27,7 @@ const updateUserAddress = async (req, res) => {
       return cleaned;
     };
 
-    const normalizedPostalCode = normalizePostcode(postalCode);
+    const normalizedPostalCode = normalizePostcode(address.PostalCode);
 
     // 🔹 Step 1: Regex validation
     if (!UK_POSTCODE_REGEX.test(normalizedPostalCode)) {
@@ -54,10 +50,10 @@ const updateUserAddress = async (req, res) => {
 
     // Construct new address
     const updatedAddress = {
-      Building_No: buildingNo,
-      Street: street,
-      Locality: locality || "",
-      PostTown: postTown,
+      Building_No: address.Building_No,
+      Street: address.Street,
+      Locality: address.Locality || "",
+      PostTown: address.PostTown || london,
       PostalCode: normalizedPostalCode,
     };
 

@@ -42,7 +42,8 @@ app.get('/api/health', (req, res) => {
     port: PORT
   });
 });
-require('./bgwork/deleteBooking.js')
+// require('./bgwork/deleteBooking.js')
+require('./bgwork/ServiceLocation')
 // ===============================
 // Routes
 // ===============================
@@ -69,8 +70,8 @@ app.use('/api/services', require('./routes/servicesRoute.js'));
 app.get('/api/auth/verifytoken', tokenHandler);
 
 
-app.post('/api/payment/create-checkout-session',authmiddleware, require("./controller/booking/create_booking.js"));
-app.post('/api/payment/cashbooking',authmiddleware, require("./controller/booking/bycashbooking"))
+app.post('/api/payment/create-checkout-session', require("./controller/booking/create_booking.js"));
+app.post('/api/payment/cashbooking', require("./controller/booking/bycashbooking"))
 
 app.use('/api/bookings', Bookingroute);
 app.use('/api/auth', require('./routes/forgotpasswordRoute/forgotpass.js'));
