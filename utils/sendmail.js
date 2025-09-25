@@ -57,7 +57,7 @@ const sendMail = async (to, subject, html, type) => {
 
     // Send from noreply mailbox
     await client.api(`/users/${USE_EMAIL}/sendMail`).post({ message });
-// console.log("mail sent",  message)
+ console.log("mail sent to",  to)
   } catch (err) {
     console.error("❌ Failed to send email:", err.message);
     return res.status(500).json({message:"mail sent error"})

@@ -28,11 +28,18 @@ const webhook = async (req, res) => {
         console.warn("⚠️ No bookingId found in metadata");
         break;
       }
+     console.log("webhook called for", bookingId);
+     console.log(new Date());
 
       const booking = await BookingSchema.findById(bookingId)
         .populate("therapistId")
         .populate("clientId")
         .populate("serviceId");
+      
+        if(booking.status ==='completed'){
+          return res.status(200).json({message:"already completed"})
+        }
+      
 
       const therapist = await TherapistProfile.findById(
         booking.therapistId
@@ -91,6 +98,7 @@ const webhook = async (req, res) => {
     <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
     <p><strong>Time:</strong> ${startUTC}</p>
     <p><strong>Duration:</strong> ${durationMinutes} minutes</p>
+    <p><strong>Duration:</strong> ${durationMinutes} minutes</p>
     <p><strong>Service:</strong> ${booking.serviceId.name}</p>
     <p><strong>Price:</strong> £${booking.price.amount}</p>
     <p><strong>Payment Mode:</strong> ${
@@ -111,6 +119,7 @@ const webhook = async (req, res) => {
     <h2>New Booking Alert</h2>
     <p>Dear ${booking.therapistId.title},</p>
     <p>You have a new booking. Please find the details below:</p>
+     <p><strong>BookingId:</strong> ${booking._id}</p>
     <p><strong>Client:</strong> ${booking.clientId.name.first} ${
         booking.clientId.name.last
       }</p>
@@ -194,6 +203,8 @@ Team Noira`;
       await sendCustomSMS(booking.clientId.phone, clientmessage);
 
       await sendCustomSMS(therapist.userId.phone, therapistmessage);
+console.log("sms sent to",therapist.userId.phone )
+console.log("sms sent to",booking.clientId.phone )
 
       break;
     }

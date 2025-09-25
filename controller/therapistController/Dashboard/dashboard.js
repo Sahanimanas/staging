@@ -1,9 +1,7 @@
 const Booking = require("../../../models/BookingSchema");
-const TherapistProfile = require("../../../models/TherapistProfiles");
 const mongoose = require("mongoose");
 
 async function getTherapistAverageRating(therapistId) {
-  // Convert to ObjectId if therapistId is string
   const objectId = new mongoose.Types.ObjectId(therapistId);
 
   const result = await Booking.aggregate([
@@ -11,7 +9,7 @@ async function getTherapistAverageRating(therapistId) {
       $match: {
         therapistId: objectId,
         status: "completed",
-        "review.rating": { $exists: true, $ne: null } // only include with rating
+        "review.rating": { $exists: true, $ne: null }
       }
     },
     {
@@ -24,11 +22,11 @@ async function getTherapistAverageRating(therapistId) {
   ]);
 
   if (result.length === 0) {
-    return { avgRating: 0, totalReviews: 0 }; // no reviews found
+    return { avgRating: 0, totalReviews: 0 };
   }
 
   return {
-    avgRating: result[0].avgRating.toFixed(1), // round to 1 decimal place
+    avgRating: result[0].avgRating.toFixed(1),
     totalReviews: result[0].totalReviews
   };
 }
@@ -42,115 +40,136 @@ const dashboard = async (req, res) => {
       return res.status(400).json({ error: "therapistId is required" });
     }
 
-    let todayStart = new Date();
-    let todayEnd = new Date();
-    let weekStart = new Date();
+    const now = new Date();
 
-    // ✅ Determine date ranges based on filter
-    switch (filter) {
-      case "today":
-        todayStart.setUTCHours(0, 0, 0, 0);
-        todayEnd.setUTCHours(23, 59, 59, 999);
-        weekStart = new Date(todayStart);
-        weekStart.setUTCDate(todayStart.getUTCDate() - todayStart.getUTCDay());
-        break;
+    // ✅ Today Range
+    let todayStart = new Date(now);
+    todayStart.setUTCHours(0, 0, 0, 0);
+    let todayEnd = new Date(now);
+    todayEnd.setUTCHours(23, 59, 59, 999);
 
-      case "week": {
-  const now = new Date();
+    // ✅ Week Range (Monday → Sunday)
+    const dayOfWeek = todayStart.getUTCDay();
+    let weekStart = new Date(todayStart);
+    weekStart.setUTCDate(todayStart.getUTCDate() - ((dayOfWeek + 6) % 7));
+    weekStart.setUTCHours(0, 0, 0, 0);
 
-  // Start of the week (Sunday, 00:00:00 UTC)
-  weekStart = new Date(now);
-  weekStart.setUTCDate(now.getUTCDate() - now.getUTCDay());
-  weekStart.setUTCHours(0, 0, 0, 0);
+    let weekEnd = new Date(weekStart);
+    weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
+    weekEnd.setUTCHours(23, 59, 59, 999);
 
-  // End of the week (Saturday, 23:59:59 UTC)
-  todayEnd = new Date(weekStart);
-  todayEnd.setUTCDate(weekStart.getUTCDate() + 6); // go to Saturday
-  todayEnd.setUTCHours(23, 59, 59, 999);
+    // ✅ Month Range
+    let monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
+    let monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
 
-  // Today start (if you need today's data only)
-  todayStart = new Date(now);
-  todayStart.setUTCHours(0, 0, 0, 0);
+    let isCustom = false;
+    let customSessions = { confirmed: 0, completed: 0 };
 
-  break;
-}
-
-      case "month": {
-        const now = new Date();
-        todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
-        todayEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
-        weekStart = new Date(todayStart); // so weekSessions covers full month
-        break;
+    // ✅ Override ranges if filter is provided
+    if (filter === "week") {
+      todayStart = weekStart;
+      todayEnd = weekEnd;
+    } else if (filter === "month") {
+      todayStart = monthStart;
+      todayEnd = monthEnd;
+    } else if (filter === "custom") {
+      if (!startDate || !endDate) {
+        return res.status(400).json({ error: "startDate and endDate are required for custom filter" });
       }
+      isCustom = true;
+      todayStart = new Date(startDate);
+      todayEnd = new Date(endDate);
+      todayStart.setUTCHours(0, 0, 0, 0);
+      todayEnd.setUTCHours(23, 59, 59, 999);
 
+      // ✅ Count confirmed + completed for custom range
+      customSessions.confirmed = await Booking.countDocuments({
+        therapistId,
+        status: "confirmed",
+        date: { $gte: todayStart, $lte: todayEnd },
+      });
 
-      case "custom":
-        if (!startDate || !endDate) {
-          return res.status(400).json({ error: "startDate and endDate are required for custom filter" });
-        }
-        todayStart = new Date(startDate);
-        todayEnd = new Date(endDate);
-        todayStart.setUTCHours(0, 0, 0, 0);
-        todayEnd.setUTCHours(23, 59, 59, 999);
-        weekStart = new Date(todayStart);
-        break;
-
-      default:
-        todayStart.setUTCHours(0, 0, 0, 0);
-        todayEnd.setUTCHours(23, 59, 59, 999);
-        weekStart = new Date(todayStart);
-        weekStart.setUTCDate(todayStart.getUTCDate() - todayStart.getUTCDay());
-        break;
+      customSessions.completed = await Booking.countDocuments({
+        therapistId,
+        status: "completed",
+        date: { $gte: todayStart, $lte: todayEnd },
+      });
     }
-// console.log(todayStart,todayEnd)
-    // ✅ Today's Sessions (or range sessions)
-    const todaysSessions = await Booking.countDocuments({
-      therapistId,
-      status: "confirmed",
-      date: { $gte: todayStart, $lte: todayEnd },
-    }) || null;
 
-    // ✅ Pending Requests
+    // ✅ Today's Sessions
+    const todaysSessions = {
+      confirmed: await Booking.countDocuments({
+        therapistId,
+        status: "confirmed",
+        date: { $gte: todayStart, $lte: todayEnd },
+      }),
+      completed: await Booking.countDocuments({
+        therapistId,
+        status: "completed",
+        date: { $gte: todayStart, $lte: todayEnd },
+      }),
+    };
+
+    // ✅ Pending Requests (all confirmed regardless of date)
     const pendingRequests = await Booking.countDocuments({
       therapistId,
-      status: "pending",
-    }) || null;
-
-    // ✅ This Week Sessions (or extended range sessions)
-    const weekSessions = await Booking.countDocuments({
-      therapistId,
       status: "confirmed",
-      date: { $gte: weekStart, $lte: todayEnd },
-    }) || null;
+    });
 
-    // ✅ Therapist Profile
-     const { avgRating, totalReviews } = await getTherapistAverageRating(therapistId);
+    // ✅ Week Sessions
+    const weekSessions = {
+      confirmed: await Booking.countDocuments({
+        therapistId,
+        status: "confirmed",
+        date: { $gte: weekStart, $lte: weekEnd },
+      }),
+      completed: await Booking.countDocuments({
+        therapistId,
+        status: "completed",
+        date: { $gte: weekStart, $lte: weekEnd },
+      }),
+    };
 
-// console.log(`⭐ Average Rating: ${avgRating} (${totalReviews} reviews)`);
-// Output: ⭐ Average Rating: 4.7 (12 reviews)
+    // ✅ Month Sessions
+    const monthSessions = {
+      confirmed: await Booking.countDocuments({
+        therapistId,
+        status: "confirmed",
+        date: { $gte: monthStart, $lte: monthEnd },
+      }),
+      completed: await Booking.countDocuments({
+        therapistId,
+        status: "completed",
+        date: { $gte: monthStart, $lte: monthEnd },
+      }),
+    };
 
+    // ✅ Therapist Rating + Total Reviews
+    const { avgRating, totalReviews } = await getTherapistAverageRating(therapistId);
 
-    // ✅ Revenue Generated
+    // ✅ Revenue Generated (unchanged)
     const revenueResult = await Booking.aggregate([
       {
         $match: {
           therapistId: new mongoose.Types.ObjectId(therapistId),
           status: "completed",
-          date: { $gte: weekStart, $lte: todayEnd },
+          date: { $gte: weekStart, $lte: weekEnd },
         },
       },
       { $group: { _id: null, totalRevenue: { $sum: "$price.amount" } } },
     ]) || null;
 
-    const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
-  
+    let totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+    totalRevenue = 0.65*totalRevenue;
     res.json({
       todaysSessions,
       pendingRequests,
       weekSessions,
+      monthSessions,
+      ...(isCustom && { customSessions }), // ✅ Only include customSessions when filter is custom
       averageRating: avgRating,
       totalRevenue,
-      totalReviews
+      totalReviews,
     });
 
   } catch (error) {

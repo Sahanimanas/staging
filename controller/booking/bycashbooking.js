@@ -210,6 +210,7 @@ await sendMail(user.email, "Login password - Noira", clientpasswordmail, "otp");
       slotStart,
       slotEnd,
       status: "confirmed",
+      status: "confirmed",
       paymentStatus: "pending",
       paymentMode: "cash",
       price: { amount: finalPrice, currency: "gbp" },
@@ -280,6 +281,7 @@ await sendMail(user.email, "Login password - Noira", clientpasswordmail, "otp");
     <h2>New Booking Alert</h2>
     <p>Dear ${bookingnew.therapistId.title},</p>
     <p>You have a new booking. Please find the details below:</p>
+    <p><strong>BookingId:</strong> ${bookingnew._id}</p>
     <p><strong>BookingId:</strong> ${bookingnew._id}</p>
     <p><strong>Client:</strong> ${bookingnew.clientId.name.first} ${
       bookingnew.clientId.name.last}</p>

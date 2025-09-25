@@ -81,8 +81,8 @@ const getDashboardStats = async (req, res) => {
       { $group: { _id: null, total: { $sum: "$price.amount" } } },
     ]);
 
-    const revenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
-
+    let revenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
+      revenue = 0.35*revenue;
     return res.json({
       totalBookings,
       activeTherapists,
