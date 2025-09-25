@@ -28,11 +28,18 @@ const webhook = async (req, res) => {
         console.warn("⚠️ No bookingId found in metadata");
         break;
       }
+     console.log("webhook called for", bookingId);
+     console.log(new Date());
 
       const booking = await BookingSchema.findById(bookingId)
         .populate("therapistId")
         .populate("clientId")
         .populate("serviceId");
+      
+        if(booking.status ==='completed'){
+          return res.status(200).json({message:"already completed"})
+        }
+      
 
       const therapist = await TherapistProfile.findById(
         booking.therapistId
