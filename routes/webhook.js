@@ -97,7 +97,7 @@ const webhook = async (req, res) => {
     <p><strong>BookingId:</strong> ${booking._id}</p>
     <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
     <p><strong>Time:</strong> ${startUTC}</p>
-    <p><strong>Duration:</strong> ${durationMinutes}</p>
+    <p><strong>Duration:</strong> ${durationMinutes} minutes</p>
     <p><strong>Service:</strong> ${booking.serviceId.name}</p>
     <p><strong>Price:</strong> £${booking.price.amount}</p>
     <p><strong>Payment Mode:</strong> ${
@@ -153,7 +153,7 @@ const adminMail = `
   <p><strong>Receipt:</strong> ${updated.receipt_url}</p>
 
   <h3>Therapist Details</h3>
-  <p><strong>Name / Title:</strong> ${booking.therapistId.title}</p>
+  <p><strong>Name:</strong> ${booking.therapistId.title}</p>
 
   <h3>Booking Details</h3>
   <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
@@ -202,6 +202,8 @@ Team Noira`;
       await sendCustomSMS(booking.clientId.phone, clientmessage);
 
       await sendCustomSMS(therapist.userId.phone, therapistmessage);
+console.log("sms sent to",therapist.userId.phone )
+console.log("sms sent to",booking.clientId.phone )
 
       break;
     }

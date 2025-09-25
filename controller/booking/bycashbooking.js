@@ -218,7 +218,7 @@ const createBooking = async (req, res) => {
     <p><strong>BookingId:</strong> ${bookingnew._id}</p>
     <p><strong>Date:</strong> ${bookingnew.date.toDateString()}</p>
     <p><strong>Time:</strong> ${startUTC}</p>
-    <p><strong>Duration:</strong> ${durationMinutes}</p>
+    <p><strong>Duration:</strong> ${durationMinutes} minutes</p>
     <p><strong>Service:</strong> ${bookingnew.serviceId.name}</p>
     <p><strong>Price:</strong> £${bookingnew.price.amount}</p>
     <p><strong>Payment Mode:</strong> ${
