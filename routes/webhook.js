@@ -176,7 +176,7 @@ const adminMail = `
         "booking"
       );
        await sendMail(
-        "manashvisahani@gmail.com", //change to info@noira.co.uk
+        "bookings@noira.co.uk", //change to info@noira.co.uk
         "New Booking Alert - Noira",
         adminMail,
         "booking"
