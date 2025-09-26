@@ -83,6 +83,7 @@ const getDashboardStats = async (req, res) => {
 
     let revenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
       revenue = 0.35*revenue;
+      revenue = Math.round(revenue * 100) / 100;
     return res.json({
       totalBookings,
       activeTherapists,

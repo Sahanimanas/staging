@@ -161,6 +161,7 @@ const dashboard = async (req, res) => {
 
     let totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
     totalRevenue = 0.65*totalRevenue;
+    totalRevenue = Math.round(totalRevenue * 100) / 100;
     res.json({
       todaysSessions,
       pendingRequests,

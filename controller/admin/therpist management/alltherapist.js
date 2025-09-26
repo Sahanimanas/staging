@@ -55,17 +55,21 @@ const therapistlist = async (req, res) => {
       .populate("userId", "-_id -passwordHash") // full user object
       .skip(skip)
       .limit(pageSize);
-
+console.log(therapists)
     // --- Merge User + Profile into one object ---
-    const formattedTherapists = therapists.map(profile => {
-      const user = profile.userId;
-      return {
-        ...user.toObject(), // spread user fields
-        profile: {
-          ...profile.toObject() // remove duplicate userId
-        }
-      };
-    });
+  const formattedTherapists = therapists.map(profile => {
+  if (!profile.userId) {
+    return null; // or skip, or handle differently
+  }
+  const user = profile.userId;
+  return {
+    ...user.toObject(),
+    profile: {
+      ...profile.toObject()
+    }
+  };
+}).filter(Boolean); // remove nulls
+
 
     res.status(200).json({
       count: formattedTherapists.length,
