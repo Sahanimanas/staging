@@ -154,7 +154,7 @@ if (
   <p>With discretion and care,<br>The Noira Team</p>
 `;
    await sendMail(user.email, "Login password - Noira", clientpasswordmail, "otp");
-     }
+ }
 
 let checkaddress = false;
      if(user.address !==null){

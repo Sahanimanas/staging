@@ -8,5 +8,5 @@ router.get('/therapist/summary/:therapistId',require('../controller/admin/payout
 router.get('/admin/reports/booking-wise',require('../controller/admin/payoutreport/therapistClientreport'))
 router.get('/admin/reports/weekly-summary',require('../controller/admin/payoutreport/weeklysummary'))
 
-
+router.post('/admin/marksettlebyid', require('../controller/admin/payout/settlements/settlementbyId.js'))
 module.exports = router

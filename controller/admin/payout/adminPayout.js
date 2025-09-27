@@ -79,9 +79,10 @@ const getWeeklySettlementReport = async (req, res) => {
         $gte: start,
         $lte: end,
       },
+      settlementId: null,
       status: "completed",
     }).exec();
-    console.log(allBookings);
+
     const globalMetrics = calculatePayoutMetrics(allBookings);
     return res.status(200).json({
       dateRange: `${startDate} to ${endDate}`,
