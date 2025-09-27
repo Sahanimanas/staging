@@ -12,6 +12,7 @@ router.post("/filter",getTherapists);
 
 router.post('/addavailability',TherapistTokenMiddleware,require('../controller/therapistController/schedule/addAvailabilty'));
 router.post('/addtherapist',TherapistTokenMiddleware,require('../controller/therapistController/Add&DeleteTherapist/Addtherapist.js'));
+router.get('/getalltherapistsnames',require('../controller/admin/payoutreport/getonlytherapistname'))
 
 router.get('/getalltherapists',require('../controller/therapistController/GetTherapist/therapis(accept=true).js'));
 router.post('/date',TherapistTokenMiddleware,require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityByDate);

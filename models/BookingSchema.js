@@ -27,6 +27,12 @@ const BookingSchema = new Schema({
     },
     default: null,
   },
+  /* Inside BookingSchema */
+settlementId: { 
+    type: Schema.Types.ObjectId, 
+    ref: "TherapistSettlement", 
+    default: null 
+} // Null until it is included in a formal settlement.
 }, { timestamps: true } );
 
 

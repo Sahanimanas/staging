@@ -76,6 +76,7 @@ app.post('/api/payment/cashbooking', require("./controller/booking/bycashbooking
 app.use('/api/bookings', Bookingroute);
 app.use('/api/auth', require('./routes/forgotpasswordRoute/forgotpass.js'));
 app.use('/api/otp',authmiddleware, require('./routes/OTProute'))
+app.use('/api/payout',require('./routes/payoutRoute'))
 
 app.get('/api/outcodes', require('./services/getoutcodes')) //testing 4
 app.get('/api/blog', require('./controller/blog/blog').getBlogs)

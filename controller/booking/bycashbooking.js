@@ -143,7 +143,21 @@ console.log(name)
       console.log(`✅ Auto-created new user for ${email} with password: ${autoPassword}`);
       
 //client mail for password
-let clientpasswordmail = `✅ Auto-created new user for ${email} with password: ${autoPassword}`;
+ let clientpasswordmail = `
+  <h2>Welcome to Noira</h2>
+  <p>Dear ${updatedname},</p>
+  
+  <p>For your convenience, we have created a Noira account to make your future bookings seamless.</p>
+  
+  <h3>Your Login Details</h3>
+  <p><strong>Email:</strong> ${email}</p>
+  <p><strong>Password:</strong> ${autoPassword}</p>
+  
+  <p>Please log in anytime to view your bookings, manage your preferences, and enjoy a more personalised Noira experience.</p>
+  
+  <p>With discretion and care,<br>The Noira Team</p>
+`;
+
 await sendMail(user.email, "Login password - Noira", clientpasswordmail, "otp");
 
       // (Optional) send email with credentials here
