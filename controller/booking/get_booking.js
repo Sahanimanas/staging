@@ -7,7 +7,7 @@ const getAllBookings = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const bookings = await Booking.find()
+    const bookings = await Booking.find({status:{$ne:'pending'}})
       .populate("clientId", "name email avatar_url")
       .populate("therapistId", "title")
       .populate("serviceId", "name")
