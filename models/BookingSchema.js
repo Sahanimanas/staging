@@ -27,7 +27,7 @@ const BookingSchema = new Schema({
     },
     default: null,
   },
-  /* Inside BookingSchema */
+ 
 settlementId: { 
     type: Schema.Types.ObjectId, 
     ref: "TherapistSettlement", 
