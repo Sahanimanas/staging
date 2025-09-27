@@ -19,7 +19,10 @@ const bookingUser = async (req, res) => {
     }
 
     // Find all bookings for this therapist
-    const bookings = await Booking.find({ therapistId })
+    const bookings = await Booking.find({ 
+  therapistId, 
+  status: { $ne: 'pending' } 
+})
       .populate("clientId","-passwordHash") // populate client's info
       .populate("serviceId") // populate service info
       .sort({ createdAt: -1 })
