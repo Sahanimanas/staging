@@ -79,8 +79,15 @@ const getWeeklySettlementReport = async (req, res) => {
       settlementId: null,
       status: "completed",
     }).exec();
-
+let netPayable,netReceivable;
     const globalMetrics = calculatePayoutMetrics(allBookings);
+    if(globalMetrics.payableToTherapist> globalMetrics.receivableFromTherapist){
+          netPayable = globalMetrics.payableToTherapist-globalMetrics.receivableFromTherapist
+    }
+    if(globalMetrics.payableToTherapist< globalMetrics.receivableFromTherapist){
+          netReceivable = globalMetrics.receivableFromTherapist-globalMetrics.payableToTherapist
+    }
+    
     return res.status(200).json({
       dateRange: `${startDate} to ${endDate}`,
       summaryMetrics: {
@@ -90,8 +97,8 @@ const getWeeklySettlementReport = async (req, res) => {
           globalMetrics.receivableFromTherapist,
         therapistEarnings:
           globalMetrics.payableToTherapist + globalMetrics.totalCashRevenue, // Simplified view of therapist earnings
-        netPayable: globalMetrics.payableToTherapist,
-        netReceivable: globalMetrics.receivableFromTherapist,
+        netPayable: netPayable,
+        netReceivable: netReceivable,
       },
       weeklySettlementSummary: pendingSettlements, // Use the generated/pending settlements
     });
