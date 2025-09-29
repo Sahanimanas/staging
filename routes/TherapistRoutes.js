@@ -17,7 +17,7 @@ router.get('/getalltherapistsnames',require('../controller/admin/payoutreport/ge
 router.get('/getalltherapists',require('../controller/therapistController/GetTherapist/therapis(accept=true).js'));
 router.post('/date',TherapistTokenMiddleware,require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityByDate);
 router.post('/blocks', TherapistTokenMiddleware, require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityBlocks);
-router.get('/availability/:id' , require('../controller/therapistController/schedule/getAvailabilityById.js'));
+router.post('/availability/:id' , require('../controller/therapistController/schedule/getAvailabilityById.js'));
 router.post('/availability/copy', TherapistTokenMiddleware ,require('../controller/therapistController/schedule/copyavailability.js'));
 router.post("/dashboard/:therapistId",TherapistTokenMiddleware ,require('../controller/therapistController/Dashboard/dashboard.js'));
 router.post('/bookings/revenue', TherapistTokenMiddleware ,require('../controller/therapistController/Dashboard/revenue.js'));
@@ -28,6 +28,7 @@ router.get('/filter',authMiddleware, require('../controller/therapistController/
 //by Therapist flow
 router.get('/list', require('../controller/therapistController/GetTherapist/bytherpist/getTherapist.js'));
 router.get('/:therapistId/services' , require('../controller/services/therapistServices.js'));
+
 //profile 
 router.put('/edittherapist/:therapistId',authMiddleware, require('../controller/therapistController/Profile/editprofile.js'));
 //bookings  of therpist // requires Authentication token

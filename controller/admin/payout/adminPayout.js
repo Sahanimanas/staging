@@ -109,22 +109,5 @@ let netPayable,netReceivable;
   }
 };
 
-const settleTherapistWeek = async (req, res) => {
-  const { settlementId } = req.params;
-  const updatedSettlement = await TherapistSettlement.findByIdAndUpdate(
-    settlementId,
-    {
-      status: "SETTLED",
-      settlementDate: new Date(),
-      settlementRef: req.body.transactionRef, // UTR/Transaction ID
-    },
-    { new: true }
-  );
-  await Booking.updateMany(
-    { _id: { $in: updatedSettlement.includedBookingIds } },
-    { $set: { settlementId: settlementId } }
-  );
 
-  res.status(200).json(updatedSettlement);
-};
-module.exports = { getWeeklySettlementReport, settleTherapistWeek };
+module.exports =  getWeeklySettlementReport ;

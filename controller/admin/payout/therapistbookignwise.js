@@ -93,6 +93,7 @@ const getBookingWiseReport = async (req, res) => {
 
       return {
         bookingId: booking._id,
+        bookingDate: booking.date,
         clientName: booking.clientId?.name || "Unknown Client",
         therapist: booking.therapistId?.title || "Unknown Therapist",
         service: booking.serviceId?.name || "Unknown Service",

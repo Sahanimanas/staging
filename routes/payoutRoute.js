@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 // {url}/api/payout/admin/marksettleweek
-router.get('/admin/summary', require('../controller/admin/payout/adminPayout').getWeeklySettlementReport);
+router.get('/admin/summary', require('../controller/admin/payout/adminPayout'));
 // router.get('/therapist/summary/:therapistId',require('../controller/admin/payout/therapistPayout'))
-
+router.get('/admin/summary/excel', require('../controller/admin/payout/adminPayoutexcel.js'));
 router.get('/admin/reports/booking-wise',require('../controller/admin/payoutreport/therapistClientreport'))
 router.get('/admin/reports/weekly-summary',require('../controller/admin/payoutreport/weeklysummary'))
 
