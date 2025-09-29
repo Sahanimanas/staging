@@ -36,9 +36,11 @@ const webhook = async (req, res) => {
         .populate("clientId")
         .populate("serviceId");
       
-        if(booking.status ==='completed'){
-          return res.status(200).json({message:"already completed"})
-        }
+        // ✅ Prevent duplicate processing
+if (booking.status === "completed" || booking.status === "confirmed") {
+  console.log(`Booking ${bookingId} already ${booking.status}, skipping webhook.`);
+  return res.status(200).json({ message: `Booking already ${booking.status}` });
+}
       
 
       const therapist = await TherapistProfile.findById(

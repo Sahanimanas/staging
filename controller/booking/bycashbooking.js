@@ -343,7 +343,7 @@ const adminMail = `
 
     await sendMail(bookingnew.clientId.email, "Booking Confirmation - Noira", clientMail, "booking");
     await sendMail(therapist.userId.email, "New Booking Alert - Noira", therapistMail, "booking");
-    await sendMail("bookings@noira.co.uk", "New Booking Notification", adminMail, "booking");
+    await sendMail("manashvisahani@gmail.com", "New Booking Notification", adminMail, "booking");
 
     const message = `Your NOIRA massage is confirmed for ${bookingnew.date.toLocaleDateString(
       "en-GB")}, ${startUTC} ${durationMinutes}mins. Therapist - ${bookingnew.therapistId.title}.`;

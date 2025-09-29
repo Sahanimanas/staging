@@ -3,7 +3,7 @@ const Booking = require("../../../models/BookingSchema");
 
 const COMMISSION_RATE = 0.35;
 
-const getWeeklySettlementSummary = async (req, res) => {
+const getTherapistWeeklySummary = async (req, res) => {
   const {
     startDate,
     endDate,
@@ -14,75 +14,70 @@ const getWeeklySettlementSummary = async (req, res) => {
   } = req.query;
 
   try {
-    const pageNum = parseInt(page) > 0 ? parseInt(page) : 1;
-    const pageSize = parseInt(limit) > 0 ? parseInt(limit) : 20;
+    const pageNum = Math.max(1, parseInt(page));
+    const pageSize = Math.max(1, parseInt(limit));
     const skip = (pageNum - 1) * pageSize;
 
-    // --- 1. Fetch ALL settlements for the week ---
+    /* ------------------ 1. Build settlement query ------------------ */
     const settlementQuery = { settlementType: "WEEKLY" };
+
     if (startDate && endDate) {
       settlementQuery.periodEnd = {
         $gte: new Date(`${startDate}T00:00:00.000Z`),
         $lte: new Date(`${endDate}T23:59:59.999Z`),
       };
     }
+
     if (therapistId && therapistId !== "null") {
       settlementQuery.therapistId = therapistId;
     }
 
-    // Fetch all (PENDING + SETTLED), then we'll filter logic manually
     const settlements = await TherapistSettlement.find(settlementQuery)
       .populate("therapistId", "title")
       .sort({ periodEnd: 1 })
       .lean();
 
-    // --- 2. Group by therapist and prefer pending settlement if available ---
-    const therapistMap = {};
-    settlements.forEach((s) => {
-      const tId = s.therapistId?._id?.toString();
-      if (!tId) return;
+    /* ------------------ 2. Format Settlements ------------------ */
+    let formattedSettlements = settlements.map((s) => ({
+      settlementId: s._id,
+      therapistId: s.therapistId?._id,
+      therapist: s.therapistId?.title || "Unknown Therapist",
+      totalBookings: s.totalBookings || 0,
+      totalOnlinePayable: s.payableToTherapist || 0,
+      totalCashReceivable: s.receivableFromTherapist || 0,
+      netSettlement: s.netSettlementAmount || 0,
+      settlementStatus: s.status,
+      settledDate: s.settledDate || null,
+      actions:
+        s.status === "PENDING"
+          ? ["Settle Now", "Adjust Next Week"]
+          : ["View Only"],
+    }));
 
-      // If no entry yet OR current one is SETTLED but new one is PENDING, replace it
-      if (!therapistMap[tId] || therapistMap[tId].status === "SETTLED" && s.status === "PENDING") {
-        therapistMap[tId] = s;
-      }
-    });
+    // ✅ Filter by settlement status if provided
+    if (settlementStatus && settlementStatus !== "null") {
+      formattedSettlements = formattedSettlements.filter(
+        (s) => s.settlementStatus === settlementStatus.toUpperCase()
+      );
+    }
 
-    const formattedSettlements = Object.values(therapistMap)
-      .filter((s) => {
-        if (settlementStatus && settlementStatus !== "null") {
-          return s.status === settlementStatus.toUpperCase();
-        }
-        return true;
-      })
-      .map((s) => ({
-        settlementId: s._id,
-        therapistId: s.therapistId?._id,
-        therapist: s.therapistId?.title || "Unknown Therapist",
-        totalBookings: s.totalBookings || 0,
-        totalOnlinePayable: s.payableToTherapist || 0,
-        totalCashReceivable: s.receivableFromTherapist || 0,
-        netSettlement: s.netSettlementAmount || 0,
-        settlementStatus: s.status,
-        actions:
-          s.status === "PENDING"
-            ? ["Settle Now", "Adjust Next Week"]
-            : ["View Only"],
-      }));
-
-    // --- 3. Fetch live bookings ONLY for therapists with no settlement record ---
-    const therapistsWithSettlements = new Set(Object.keys(therapistMap));
+    /* ------------------ 3. Live bookings for unsettled therapists ------------------ */
+    const settledTherapistIds = new Set(
+      formattedSettlements.map((s) => s.therapistId?.toString())
+    );
 
     const bookingQuery = {
       status: "completed",
-      settlementId: null, // only unsettled bookings
+      settlementId: null, // ✅ only unsettled bookings
     };
+
     if (startDate && endDate) {
       bookingQuery.slotEnd = {
         $gte: new Date(`${startDate}T00:00:00.000Z`),
         $lte: new Date(`${endDate}T23:59:59.999Z`),
       };
     }
+
     if (therapistId && therapistId !== "null") {
       bookingQuery.therapistId = therapistId;
     }
@@ -95,9 +90,6 @@ const getWeeklySettlementSummary = async (req, res) => {
     bookings.forEach((b) => {
       if (!b.therapistId) return;
       const tId = b.therapistId._id.toString();
-
-      // Skip if therapist already has a settlement record
-      if (therapistsWithSettlements.has(tId)) return;
 
       if (!groupedBookings[tId]) {
         groupedBookings[tId] = {
@@ -112,6 +104,7 @@ const getWeeklySettlementSummary = async (req, res) => {
           totalCashReceivable: 0,
           netSettlement: 0,
           settlementStatus: "PENDING",
+          settledDate: null,
           actions: ["Settle Now"],
         };
       }
@@ -136,28 +129,44 @@ const getWeeklySettlementSummary = async (req, res) => {
 
     const liveBookingData = Object.values(groupedBookings);
 
-    // --- 4. Merge & paginate ---
+    /* ------------------ 4. Merge & Paginate ------------------ */
     const finalData = [...formattedSettlements, ...liveBookingData];
-    const paginatedData = finalData.slice(skip, skip + pageSize);
+
+    // ✅ Also include total bookings (settled + pending) for each therapist
+    const therapistTotals = {};
+    finalData.forEach((row) => {
+      if (!therapistTotals[row.therapistId]) {
+        therapistTotals[row.therapistId] = row.totalBookings;
+      } else {
+        therapistTotals[row.therapistId] += row.totalBookings;
+      }
+    });
+
+    const enrichedData = finalData.map((row) => ({
+      ...row,
+      totalBookingsOverall: therapistTotals[row.therapistId],
+    }));
+
+    const paginatedData = enrichedData.slice(skip, skip + pageSize);
 
     res.status(200).json({
-      message: "Weekly settlement summary retrieved.",
-      count: finalData.length,
+      message: "Therapist weekly settlement summary retrieved successfully.",
+      count: enrichedData.length,
       data: paginatedData,
       pagination: {
         page: pageNum,
         limit: pageSize,
-        total: finalData.length,
-        totalPages: Math.ceil(finalData.length / pageSize),
+        total: enrichedData.length,
+        totalPages: Math.ceil(enrichedData.length / pageSize),
       },
     });
   } catch (error) {
-    console.error("Error fetching weekly summary:", error);
+    console.error("Error fetching therapist weekly summary:", error);
     res.status(500).json({
-      message: "Error fetching weekly summary",
+      message: "Error fetching therapist weekly summary",
       error: error.message,
     });
   }
 };
 
-module.exports = getWeeklySettlementSummary;
+module.exports = getTherapistWeeklySummary;

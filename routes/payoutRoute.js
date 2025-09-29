@@ -1,12 +1,18 @@
 const express = require('express');
 const router = express.Router();
 
-
+// {url}/api/payout/admin/marksettleweek
 router.get('/admin/summary', require('../controller/admin/payout/adminPayout').getWeeklySettlementReport);
-router.get('/therapist/summary/:therapistId',require('../controller/admin/payout/therapistPayout'))
+// router.get('/therapist/summary/:therapistId',require('../controller/admin/payout/therapistPayout'))
 
 router.get('/admin/reports/booking-wise',require('../controller/admin/payoutreport/therapistClientreport'))
 router.get('/admin/reports/weekly-summary',require('../controller/admin/payoutreport/weeklysummary'))
 
 router.post('/admin/marksettlebyid', require('../controller/admin/payout/settlements/settlementbyId.js'))
+router.post('/admin/marksettleweek',require('../controller/admin/payout/settlements/settlementByweek'))
+
+//therapist payout dashboard
+// /api/payout/therapist/reports/week-summary
+router.get('/therapist/reports/booking-wise', require('../controller/admin/payout/therapistbookignwise'))
+router.get('/therapist/reports/week-summary' , require('../controller/admin/payout/therapistsummary.js'))
 module.exports = router

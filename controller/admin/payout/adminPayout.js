@@ -12,7 +12,6 @@ const calculatePayoutMetrics = (bookings) => {
   let totalCashRevenue = 0;
 
   bookings.forEach((booking) => {
-    // Ensure price is calculated correctly, assuming 'price' field has an 'amount' sub-field
     const bookingAmount = booking.price?.amount || 0;
 
     if (booking.status === "completed" && booking.paymentStatus === "paid") {
@@ -25,13 +24,10 @@ const calculatePayoutMetrics = (bookings) => {
     }
   });
 
-  // Commission Logic
   const companyCommissionOnline = totalOnlineRevenue * COMMISSION_RATE;
-  const payableToTherapist = totalOnlineRevenue * (1 - COMMISSION_RATE); // 65% of Online
+  const payableToTherapist = totalOnlineRevenue * (1 - COMMISSION_RATE);
+  const receivableFromTherapist = totalCashRevenue * COMMISSION_RATE;
 
-  const receivableFromTherapist = totalCashRevenue * COMMISSION_RATE; // 35% of Cash
-
-  // Net Calculation
   const netSettlementAmount = payableToTherapist - receivableFromTherapist;
   const actionRequired =
     netSettlementAmount > 0
@@ -42,15 +38,16 @@ const calculatePayoutMetrics = (bookings) => {
 
   return {
     totalBookings,
-    totalOnlineRevenue,
-    totalCashRevenue,
-    companyCommissionOnline,
-    payableToTherapist,
-    receivableFromTherapist,
-    netSettlementAmount,
+    totalOnlineRevenue: Number(totalOnlineRevenue.toFixed(2)),
+    totalCashRevenue: Number(totalCashRevenue.toFixed(2)),
+    companyCommissionOnline: Number(companyCommissionOnline.toFixed(2)),
+    payableToTherapist: Number(payableToTherapist.toFixed(2)),
+    receivableFromTherapist: Number(receivableFromTherapist.toFixed(2)),
+    netSettlementAmount: Number(netSettlementAmount.toFixed(2)),
     actionRequired,
   };
 };
+
 // 1. Weekly Settlement Report Generation (The main report view)
 const getWeeklySettlementReport = async (req, res) => {
   const { startDate, endDate } = req.query;

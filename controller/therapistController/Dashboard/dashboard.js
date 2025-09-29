@@ -146,22 +146,22 @@ const dashboard = async (req, res) => {
 
     // ✅ Therapist Rating + Total Reviews
     const { avgRating, totalReviews } = await getTherapistAverageRating(therapistId);
+// ✅ Revenue Generated (now uses same date range as filter)
+const revenueResult = await Booking.aggregate([
+  {
+    $match: {
+      therapistId: new mongoose.Types.ObjectId(therapistId),
+      status: "completed",
+      date: { $gte: todayStart, $lte: todayEnd }, // ✅ use selected date range
+    },
+  },
+  { $group: { _id: null, totalRevenue: { $sum: "$price.amount" } } },
+]);
 
-    // ✅ Revenue Generated (unchanged)
-    const revenueResult = await Booking.aggregate([
-      {
-        $match: {
-          therapistId: new mongoose.Types.ObjectId(therapistId),
-          status: "completed",
-          date: { $gte: weekStart, $lte: weekEnd },
-        },
-      },
-      { $group: { _id: null, totalRevenue: { $sum: "$price.amount" } } },
-    ]) || null;
+let totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+totalRevenue = totalRevenue * 0.65; // ✅ apply 65% therapist share
+totalRevenue = Math.round(totalRevenue * 100) / 100;
 
-    let totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
-    totalRevenue = 0.65*totalRevenue;
-    totalRevenue = Math.round(totalRevenue * 100) / 100;
     res.json({
       todaysSessions,
       pendingRequests,
