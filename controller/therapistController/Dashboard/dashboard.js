@@ -48,15 +48,14 @@ const dashboard = async (req, res) => {
     let todayEnd = new Date(now);
     todayEnd.setUTCHours(23, 59, 59, 999);
 
-    // ✅ Week Range (Monday → Sunday)
-    const dayOfWeek = todayStart.getUTCDay();
-    let weekStart = new Date(todayStart);
-    weekStart.setUTCDate(todayStart.getUTCDate() - ((dayOfWeek + 6) % 7));
-    weekStart.setUTCHours(0, 0, 0, 0);
+    // ✅ Week Range (last 7 days ending yesterday)
+    const yesterday = new Date();
+    yesterday.setUTCDate(now.getUTCDate() - 1);
+    yesterday.setUTCHours(23, 59, 59, 999);
 
-    let weekEnd = new Date(weekStart);
-    weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
-    weekEnd.setUTCHours(23, 59, 59, 999);
+    const weekStart = new Date();
+    weekStart.setUTCDate(yesterday.getUTCDate() - 6); // 7 days inclusive
+    weekStart.setUTCHours(0, 0, 0, 0);
 
     // ✅ Month Range
     let monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
@@ -68,7 +67,7 @@ const dashboard = async (req, res) => {
     // ✅ Override ranges if filter is provided
     if (filter === "week") {
       todayStart = weekStart;
-      todayEnd = weekEnd;
+      todayEnd = yesterday;
     } else if (filter === "month") {
       todayStart = monthStart;
       todayEnd = monthEnd;
@@ -121,12 +120,12 @@ const dashboard = async (req, res) => {
       confirmed: await Booking.countDocuments({
         therapistId,
         status: "confirmed",
-        date: { $gte: weekStart, $lte: weekEnd },
+        date: { $gte: weekStart, $lte: yesterday },
       }),
       completed: await Booking.countDocuments({
         therapistId,
         status: "completed",
-        date: { $gte: weekStart, $lte: weekEnd },
+        date: { $gte: weekStart, $lte: yesterday },
       }),
     };
 
@@ -146,28 +145,29 @@ const dashboard = async (req, res) => {
 
     // ✅ Therapist Rating + Total Reviews
     const { avgRating, totalReviews } = await getTherapistAverageRating(therapistId);
-// ✅ Revenue Generated (now uses same date range as filter)
-const revenueResult = await Booking.aggregate([
-  {
-    $match: {
-      therapistId: new mongoose.Types.ObjectId(therapistId),
-      status: "completed",
-      date: { $gte: todayStart, $lte: todayEnd }, // ✅ use selected date range
-    },
-  },
-  { $group: { _id: null, totalRevenue: { $sum: "$price.amount" } } },
-]);
 
-let totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
-totalRevenue = totalRevenue * 0.65; // ✅ apply 65% therapist share
-totalRevenue = Math.round(totalRevenue * 100) / 100;
+    // ✅ Revenue Generated (same range as filter)
+    const revenueResult = await Booking.aggregate([
+      {
+        $match: {
+          therapistId: new mongoose.Types.ObjectId(therapistId),
+          status: "completed",
+          date: { $gte: todayStart, $lte: todayEnd },
+        },
+      },
+      { $group: { _id: null, totalRevenue: { $sum: "$price.amount" } } },
+    ]);
+
+    let totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+    totalRevenue = totalRevenue * 0.65; // therapist share
+    totalRevenue = Math.round(totalRevenue * 100) / 100;
 
     res.json({
       todaysSessions,
       pendingRequests,
       weekSessions,
       monthSessions,
-      ...(isCustom && { customSessions }), // ✅ Only include customSessions when filter is custom
+      ...(isCustom && { customSessions }),
       averageRating: avgRating,
       totalRevenue,
       totalReviews,
