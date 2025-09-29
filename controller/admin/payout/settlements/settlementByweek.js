@@ -50,8 +50,8 @@ const settleWeeklyBookings = async (req, res) => {
           therapistName: b.therapistId.title,
           bookings: [],
           totalBookings: 0,
-          totalOnlinePayable: 0,
-          totalCashReceivable: 0,
+          totalOnlineRevenue: 0,
+          totalCashRevenue: 0,
           netSettlementAmount: 0,
         };
       }
@@ -64,30 +64,43 @@ const settleWeeklyBookings = async (req, res) => {
       grouped[tId].totalBookings++;
 
       if (b.paymentMode === "online") {
-        grouped[tId].totalOnlinePayable += therapistShare;
+        grouped[tId].totalOnlineRevenue += amount;
         grouped[tId].netSettlementAmount += therapistShare;
       } else {
-        grouped[tId].totalCashReceivable += commission;
+        grouped[tId].totalCashRevenue += amount;
         grouped[tId].netSettlementAmount -= commission;
       }
     });
 
-    const settledDate = new Date(); // ✅ capture settlement date in UTC
+    const settledDate = new Date(); // UTC settlement date
 
     // 3. Create settlement records for each therapist
     const settlementDocs = await TherapistSettlement.insertMany(
-      Object.values(grouped).map((g) => ({
-        therapistId: g.therapistId,
-        settlementType: "WEEKLY",
-        status: "SETTLED", // Mark as settled right away
-        periodStart: new Date(`${startDate}T00:00:00.000Z`),
-        periodEnd: new Date(`${endDate}T23:59:59.999Z`),
-        settledDate, // ✅ store in DB
-        totalBookings: g.totalBookings,
-        payableToTherapist: g.totalOnlinePayable,
-        receivableFromTherapist: g.totalCashReceivable,
-        netSettlementAmount: g.netSettlementAmount,
-      }))
+      Object.values(grouped).map((g) => {
+        // Determine actionRequired
+        let actionRequired;
+        if (g.netSettlementAmount > 0) actionRequired = "PAY_THERAPIST";
+        else if (g.netSettlementAmount < 0) actionRequired = "COLLECT_FROM_THERAPIST";
+        else actionRequired = "NET_ZERO";
+
+        return {
+          therapistId: g.therapistId,
+          settlementType: "WEEKLY",
+          status: "SETTLED",
+          periodStart: new Date(`${startDate}T00:00:00.000Z`),
+          periodEnd: new Date(`${endDate}T23:59:59.999Z`),
+          settlementDate: settledDate,
+          totalBookings: g.totalBookings,
+          totalOnlineRevenue: g.totalOnlineRevenue,
+          companyCommissionOnline: g.totalOnlineRevenue * COMMISSION_RATE,
+          payableToTherapist: g.totalOnlineRevenue - g.totalOnlineRevenue * COMMISSION_RATE,
+          totalCashRevenue: g.totalCashRevenue,
+          receivableFromTherapist: g.totalCashRevenue * COMMISSION_RATE,
+          netSettlementAmount: g.netSettlementAmount,
+          actionRequired,
+          includedBookingIds: g.bookings,
+        };
+      })
     );
 
     // 4. Map settlementIds back to bookings
@@ -110,12 +123,14 @@ const settleWeeklyBookings = async (req, res) => {
     const responseData = settlementDocs.map((doc) => ({
       settlementId: doc._id,
       therapistId: doc.therapistId,
+      therapistName: doc.therapistName,
       totalBookings: doc.totalBookings,
-      totalOnlinePayable: doc.payableToTherapist,
-      totalCashReceivable: doc.receivableFromTherapist,
+      totalOnlineRevenue: doc.totalOnlineRevenue,
+      totalCashRevenue: doc.totalCashRevenue,
       netSettlement: doc.netSettlementAmount,
       settlementStatus: doc.status,
-      settledDate: doc.settledDate, // ✅ return in response
+      actionRequired: doc.actionRequired,
+      settledDate: doc.settlementDate, // ✅ return in response
     }));
 
     res.status(200).json({
