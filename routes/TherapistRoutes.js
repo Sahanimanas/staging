@@ -18,6 +18,7 @@ router.get('/getalltherapists',require('../controller/therapistController/GetThe
 router.post('/date',TherapistTokenMiddleware,require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityByDate);
 router.post('/blocks', TherapistTokenMiddleware, require('../controller/therapistController/schedule/deleteAvailabilty').deleteAvailabilityBlocks);
 router.post('/availability/:id' , require('../controller/therapistController/schedule/getAvailabilityById.js'));
+router.get('/availability/:id' , require('../controller/therapistController/schedule/getavailability'));
 router.post('/availability/copy', TherapistTokenMiddleware ,require('../controller/therapistController/schedule/copyavailability.js'));
 router.post("/dashboard/:therapistId",TherapistTokenMiddleware ,require('../controller/therapistController/Dashboard/dashboard.js'));
 router.post('/bookings/revenue', TherapistTokenMiddleware ,require('../controller/therapistController/Dashboard/revenue.js'));
