@@ -1,25 +1,37 @@
 const express = require('express');
 const router = express.Router();
-const getWeeklySettlementReportInternal =require('../controller/admin/payout/adminPayout')
-const generateSettlementPDF = require('../controller/admin/payout/settlementpdf')
-// {url}/api/payout/admin/marksettleweek
-router.get('/admin/summary', require('../controller/admin/payout/adminPayout'));
-// router.get('/therapist/summary/:therapistId',require('../controller/admin/payout/therapistPayout'))
-// router.get('/admin/summary/excel', require('../controller/admin/payout/adminPayoutexcel.js'));
+const getWeeklySettlementReportInternal =require('../controller/test')
+const generateTherapistInvoice = require('../controller/invoicePdf.js')
 
+router.get('/admin/summary', require('../controller/admin/payout/adminPayout'));
+
+const path = require("path");
+const fs = require("fs");
 router.get("/admin/weekly-settlement/pdf", async (req, res) => {
   try {
-    // Get settlement data (internal function, not Express handler)
-    const { startDate, endDate } = req.query;
-    console.log(startDate,endDate)
-    const reportData = await getWeeklySettlementReportInternal({
+    const { startDate, endDate, therapistId } = req.query;
+
+    // Fetch report data
+    const reportData = await getWeeklySettlementReportInternal(
       startDate,
       endDate,
-    });
+      therapistId
+    );
 
-    // Generate and send PDF
-    await generateSettlementPDF(reportData, res);
+    // Set headers so browser treats it as a downloadable PDF
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=Noira_Invoice_${therapistId}.pdf`
+    );
+
+    // Generate PDF and pipe directly to response
+    const doc = generateTherapistInvoice(reportData);
+    doc.pipe(res);  // stream PDF directly to frontend
+    doc.end();      // finalize PDF
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error generating PDF", error: error.message });
   }
 });

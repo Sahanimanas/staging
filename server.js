@@ -42,8 +42,9 @@ app.get('/api/health', (req, res) => {
     port: PORT
   });
 });
-// require('./bgwork/deleteBooking.js')
+require('./bgwork/deleteBooking.js')
 require('./bgwork/ServiceLocation')
+require('./bgwork/autocompletebooking')
 // ===============================
 // Routes
 // ===============================

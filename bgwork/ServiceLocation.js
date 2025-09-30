@@ -44,7 +44,7 @@ cron.schedule("0 */6 * * *", () => {
   syncTherapistPostcodes();
 });
 
-// Optional: run immediately on server start
-syncTherapistPostcodes();
+
+
 
 module.exports = syncTherapistPostcodes;
