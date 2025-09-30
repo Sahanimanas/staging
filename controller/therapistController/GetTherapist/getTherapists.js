@@ -27,7 +27,7 @@ const getTherapists = async (req, res) => {
 
   const normalizedPostalCode = String(postalCode).trim().toUpperCase();
     const outwardCode = normalizedPostalCode.split(" ")[0]; // Only first part (outcode)
-    console.log("Outward code to match:", outwardCode);
+    // console.log("Outward code to match:", outwardCode);23
 
     // Parse date & time (your code already handles this)
     const [year, month, day] = date.split("-");
@@ -72,7 +72,7 @@ const getTherapists = async (req, res) => {
       .populate("specializations", "name");
 
     if (!therapists.length) {
-      return res.status(404).json({ therapists: [] });
+      return res.status(200).json({ therapists: [] });
     }
 
     const therapistIds = therapists.map((t) => t._id);

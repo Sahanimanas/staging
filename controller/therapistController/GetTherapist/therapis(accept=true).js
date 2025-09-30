@@ -1,6 +1,6 @@
 const User = require("../../../models/userSchema.js");
 const TherapistProfile = require("../../../models/TherapistProfiles.js");
-const Booking = require("../../../models/BookingSchema.js"); // we need Booking to count
+const Booking = require("../../../models/BookingSchema.js");
 
 const getAllTherapists = async (req, res) => {
   try {
@@ -9,14 +9,33 @@ const getAllTherapists = async (req, res) => {
     const limit = parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 10;
     const skip = (page - 1) * limit;
 
+    // ✅ Optional postal code filter
+    let outwardCode = null;
+    if (req.query.postalCode) {
+      const normalizedPostalCode = String(req.query.postalCode).trim().toUpperCase();
+      outwardCode = normalizedPostalCode.split(" ")[0]; // first part only
+    }
+
+    // ✅ Base query: only active profiles
+    const profileQuery = { active: true };
+    if (outwardCode) {
+      profileQuery.servicesInPostalCodes = outwardCode; // 🔑 match postal outcode
+    }
+
     // ✅ Find therapist profiles that accept new clients
-    const acceptingProfiles = await TherapistProfile.find({ active: true }).lean();
+    const acceptingProfiles = await TherapistProfile.find(profileQuery).lean();
     const acceptingUserIds = acceptingProfiles.map((p) => p.userId);
 
-    // ✅ Count total therapists (only those accepting)
+    // ✅ Count total therapists (filtered by outwardCode if applied)
     const totalTherapists = acceptingUserIds.length;
     if (!totalTherapists) {
-      return res.status(404).json({ message: "No therapists found" });
+      return res.status(200).json({
+        count: 0,
+        total: 0,
+        page,
+        totalPages: 0,
+        therapists: [],
+      });
     }
 
     // ✅ Fetch users who are therapists & accepting
@@ -24,24 +43,23 @@ const getAllTherapists = async (req, res) => {
       .select("-passwordHash")
       .lean();
 
-    const usersIds = users.map((t) => t._id);
+    const userIds = users.map((t) => t._id);
 
     // ✅ Fetch therapist profiles for these users
     const profiles = await TherapistProfile.find({
-      userId: { $in: usersIds },
+      userId: { $in: userIds },
       active: true,
     })
       .populate("specializations", "name -_id")
       .populate("userId", "avatar_url")
       .lean();
 
-    // ✅ Count bookings per therapist
+    // ✅ Count completed bookings per therapist
     const bookingsCount = await Booking.aggregate([
-      { $match: { therapistId: { $in: usersIds }, status: "completed" } },
+      { $match: { therapistId: { $in: userIds }, status: "completed" } },
       { $group: { _id: "$therapistId", count: { $sum: 1 } } },
     ]);
 
-    // Convert to map for fast lookup
     const bookingMap = {};
     bookingsCount.forEach((b) => {
       bookingMap[b._id.toString()] = b.count;
@@ -56,7 +74,7 @@ const getAllTherapists = async (req, res) => {
 
       return {
         ...user,
-        bookingCount, // add booking count for sorting
+        bookingCount,
         profile: profile
           ? {
               _id: profile._id,
@@ -74,8 +92,8 @@ const getAllTherapists = async (req, res) => {
     const paginatedResult = result.slice(skip, skip + limit);
 
     return res.status(200).json({
-      count: paginatedResult.length, // count on this page
-      total: totalTherapists, // total across all pages
+      count: paginatedResult.length,
+      total: totalTherapists,
       page,
       totalPages: Math.ceil(totalTherapists / limit),
       therapists: paginatedResult,

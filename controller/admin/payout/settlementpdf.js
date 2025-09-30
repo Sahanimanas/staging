@@ -62,20 +62,7 @@ const generateSettlementPDF = async (data, res) => {
               </tr>
             </thead>
             <tbody>
-              ${
-                data.weeklySettlementSummary.length > 0
-                  ? data.weeklySettlementSummary
-                      .map(
-                        (s) => `
-                    <tr>
-                      <td>${s.therapistId?.name || "Unknown Therapist"}</td>
-                      <td>${s.status}</td>
-                      <td>${s.totalAmount || 0}</td>
-                    </tr>`
-                      )
-                      .join("")
-                  : `<tr><td colspan="3" style="text-align:center;">No settlements found</td></tr>`
-              }
+             
             </tbody>
           </table>
 

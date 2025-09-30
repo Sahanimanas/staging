@@ -49,8 +49,8 @@ const calculatePayoutMetrics = (bookings) => {
 };
 
 // 1. Weekly Settlement Report Generation (The main report view)
-const getWeeklySettlementReport = async (req, res) => {
-  const { startDate, endDate } = req.query;
+const getWeeklySettlementReport = async (req, res,startDate,endDate) => {
+  // const { startDate, endDate } = req.query;
 
   const getUtcDateRange = (startDateStr, endDateStr) => {
     const start = new Date(startDateStr);
