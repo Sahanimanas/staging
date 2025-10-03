@@ -5,6 +5,7 @@ const getDashboardStats = async (req, res) => {
   try {
     const { filter } = req.query;
     let startDate, endDate;
+    let dateCondition = {};
 
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
@@ -13,8 +14,8 @@ const getDashboardStats = async (req, res) => {
       startDate = new Date(today);
       endDate = new Date(today);
       endDate.setUTCHours(23, 59, 59, 999);
-    }
-     else if (filter === "week") {
+      dateCondition = { $gte: startDate, $lte: endDate };
+    } else if (filter === "week") {
       const firstDayOfWeek = new Date(today);
       firstDayOfWeek.setDate(today.getDate() - today.getDay());
       firstDayOfWeek.setUTCHours(0, 0, 0, 0);
@@ -25,46 +26,49 @@ const getDashboardStats = async (req, res) => {
 
       startDate = firstDayOfWeek;
       endDate = lastDayOfWeek;
-    } 
-    else if (filter === "month") {
+      dateCondition = { $gte: startDate, $lte: endDate };
+    } else if (filter === "month") {
       startDate = new Date(today.getFullYear(), today.getMonth(), 1);
       endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
       endDate.setUTCHours(23, 59, 59, 999);
-    } 
-    else {
+      dateCondition = { $gte: startDate, $lte: endDate };
+    } else if (filter === "all") {
+      // For "all" filter, we don’t restrict by date
+      dateCondition = {}; 
+    } else {
       return res.status(400).json({ error: "Invalid filter" });
     }
 
-    // Common match condition
-    const dateCondition = { $gte: startDate, $lte: endDate };
-
-    // Total bookings in the range
-    const totalBookings = await Booking.countDocuments({
-      createdAt: dateCondition,
-    });
+    // Total bookings in the range (or all time)
+    const totalBookings = await Booking.countDocuments(
+      Object.keys(dateCondition).length ? { createdAt: dateCondition } : {}
+    );
 
     // Active therapists
     const activeTherapists = await Therapist.countDocuments({ active: true });
 
-    // Completed sessions (in the date range)
-    const todaysSessions = await Booking.countDocuments({
-      date: dateCondition,
-      status: "confirmed",
-    });
+    // Completed sessions (in the date range or all time)
+    const todaysSessions = await Booking.countDocuments(
+      Object.keys(dateCondition).length
+        ? { date: dateCondition, status: "confirmed" }
+        : { status: "confirmed" }
+    );
 
-    // Declined bookings in the date range
-    const declinedBookings = await Booking.countDocuments({
-      createdAt: dateCondition,
-      status: "declined",
-    });
+    // Declined bookings
+    const declinedBookings = await Booking.countDocuments(
+      Object.keys(dateCondition).length
+        ? { createdAt: dateCondition, status: "declined" }
+        : { status: "declined" }
+    );
 
-    // Cancelled bookings in the date range
-    const cancelledBookings = await Booking.countDocuments({
-      createdAt: dateCondition,
-      status: "cancelled",
-    });
+    // Cancelled bookings
+    const cancelledBookings = await Booking.countDocuments(
+      Object.keys(dateCondition).length
+        ? { createdAt: dateCondition, status: "cancelled" }
+        : { status: "cancelled" }
+    );
 
-    // Upcoming sessions (future bookings)
+    // Upcoming sessions (always future bookings)
     const upcoming = await Booking.countDocuments({
       date: { $gte: new Date() },
       status: "pending",
@@ -72,18 +76,17 @@ const getDashboardStats = async (req, res) => {
 
     // Revenue for completed bookings
     const revenueAgg = await Booking.aggregate([
-        {
-    $match: {
-      date: dateCondition,                 // ✅ use booking date, not createdAt
-      status: "completed",                 // only confirmed sessions             // only paid bookings
-    },
-  },
+      {
+        $match: Object.keys(dateCondition).length
+          ? { date: dateCondition, status: "completed" }
+          : { status: "completed" },
+      },
       { $group: { _id: null, total: { $sum: "$price.amount" } } },
     ]);
 
     let revenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
-      revenue = 0.35*revenue;
-      revenue = Math.round(revenue * 100) / 100;
+    revenue = Math.round(revenue * 0.35 * 100) / 100;
+
     return res.json({
       totalBookings,
       activeTherapists,
@@ -99,4 +102,4 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-module.exports =  getDashboardStats ;
+module.exports = getDashboardStats;

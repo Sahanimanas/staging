@@ -45,6 +45,7 @@ app.get('/api/health', (req, res) => {
 // require('./bgwork/deleteBooking.js')
 require('./bgwork/ServiceLocation')
 require('./bgwork/autocompletebooking')
+require('./bgwork/remainder')
 // ===============================
 // Routes
 // ===============================
