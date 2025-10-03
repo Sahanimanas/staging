@@ -87,7 +87,7 @@ const createBooking = async (req, res) => {
       mobileNumber,
       PostalCode
     } = req.body;
-console.log(req.body)
+
     if (!email || !therapistId || !serviceId || !date || !time || optionIndex === undefined) {
       return res.status(400).json({ message: "Missing required fields" });
     }
