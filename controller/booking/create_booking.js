@@ -141,7 +141,7 @@ if (
    
  let clientpasswordmail = `
   <h2>Welcome to Noira</h2>
-  <p>Dear ${updatedname},</p>
+  <p>Dear ${updatedname.first},</p>
   
   <p>For your convenience, we have created a Noira account to make your future bookings seamless.</p>
   

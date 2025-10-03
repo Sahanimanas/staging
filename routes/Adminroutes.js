@@ -32,9 +32,10 @@ router.get('/bookings', verifyadmin ,  require('../controller/booking/get_bookin
 router.get('/dashboard', verifyadmin, dashboard);
 router.get('/revenue', verifyadmin ,   require('../controller/admin/revenue.js'));
 router.get('/bookings/therapist/:therapistId', verifyadmin ,   require('../controller/admin/bookingbytherapist.js'));
-
+router.put('/booking/cancel/:id', verifyadmin, require('../controller/booking/update_booking.js').cancelBooking)
+router.put('/booking/reschedule/:id', verifyadmin, require('../controller/booking/update_booking.js').rescheduleBooking)
 //users management
-router.get('/users', verifyadmin ,   require('../controller/admin/usermanagement/users.js'));
+router.get('/users', verifyadmin , require('../controller/admin/usermanagement/users.js'));
 
 //admin management
 router.post('/createadmin', authMiddleware , require('../controller/admin/admin management/addAdmin.js'))

@@ -21,7 +21,6 @@ const {
 
 router.get("/" , authMiddleware , getAllBookings);
 router.get("/:id", authMiddleware , getBookingById);
-router.put("/:id", authMiddleware , require("../controller/booking/update_booking.js"));
 router.delete("/:id", authMiddleware , require("../controller/booking/delete_booking.js"));
 
 module.exports = router;
