@@ -44,9 +44,8 @@ const getDashboardStats = async (req, res) => {
       Object.keys(dateCondition).length ? { createdAt: dateCondition } : {}
     );
 
-    // Active therapists
     const activeTherapists = await Therapist.countDocuments({ active: true });
-
+    
     // Completed sessions (in the date range or all time)
     const todaysSessions = await Booking.countDocuments(
       Object.keys(dateCondition).length

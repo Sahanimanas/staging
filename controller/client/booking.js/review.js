@@ -43,16 +43,12 @@ const adminMail = `
   <h3>Booking Details</h3>
   <p><strong>Booking Date:</strong> ${booking.createdAt.toDateString()}</p>
   <p><strong>Date:</strong> ${booking.date.toDateString()}</p>
-  <p><strong>Time:</strong> ${startUTC} - ${endUTC}</p>
-  <p><strong>Duration:</strong> ${durationMinutes} minutes</p>
   <p><strong>Service:</strong> ${booking.serviceId.name}</p>
   <p><strong>Price:</strong> £${booking.price.amount}</p>
   <p><strong>Payment Mode:</strong> ${booking.paymentMode}</p>
   
   <p><br>Team NOIRA</p>
 `;
-
-
 
     await sendMail("bookings@noira.co.uk", "New Review Notification", adminMail, "booking");
     res.status(200).json({

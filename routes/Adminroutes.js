@@ -19,6 +19,9 @@ router.get('/therapist/list', verifyadmin ,  require('../controller/admin/therpi
 router.post('/createtherapist', verifyadmin ,  require('./Admin/createTherpist.js'));
 router.post('/therapist/bulkaction', verifyadmin ,  require('../controller/admin/therpist management/bulkAction.js'));
 router.put('/updatetherapist/:therapistId', verifyadmin ,  authMiddleware, require('../controller/admin/therpist management/editProfile.js'))
+router.get('/active/therapistlist', require('../controller/admin/activeTherapist'))
+router.get('/therapist/schedule/:therapistId', require('../controller/admin/therapistSchedule'))
+
 //service Routes
 router.post('/addservices', verifyadmin ,  require('../controller/admin/service management/addService.js'));
 router.delete('/deleteservices/:id', verifyadmin ,   require('../controller/admin/service management/deleteService.js'));
@@ -39,5 +42,12 @@ router.get('/users', verifyadmin , require('../controller/admin/usermanagement/u
 
 //admin management
 router.post('/createadmin', authMiddleware , require('../controller/admin/admin management/addAdmin.js'))
+
+//revenue
+router.get('/revenue/bookings', require('../controller/admin/revenueOnbooking.js'))
+
+//review route
+router.get('/booking/reviews', require('../controller/admin/getRevies'))
+router.post('/booking/reviews/:id/reply', require('../controller/admin/ReviewReply'))
 
 module.exports = router;

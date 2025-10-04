@@ -24,6 +24,7 @@ const BookingSchema = new Schema({
     type: {
       rating: { type: Number, min: 1, max: 5 },
       Comment: String,
+      reply:String,
     },
     default: null,
   },
