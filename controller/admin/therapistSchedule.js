@@ -13,6 +13,10 @@ const getTherapistScheduleForAdmin = async (req, res) => {
 
     // ⏰ Prepare date filter
     let dateFilter = {};
+    const today = new Date();
+   today.toISOString();
+   dateFilter.date = { $gte: today};
+   
     if (date) {
       const start = new Date(date);
       start.setHours(0, 0, 0, 0);

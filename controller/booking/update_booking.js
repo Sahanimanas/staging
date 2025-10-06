@@ -39,7 +39,7 @@ function toUTC(dateString) {
 const rescheduleBooking = async (req, res) => {
   try {
     const { id } = req.params;
-    const { slotStart } = req.body;
+    const { slotStart, therapistId} = req.body;
 
     if (!slotStart) {
       return res.status(400).json({
@@ -110,7 +110,8 @@ const rescheduleBooking = async (req, res) => {
     booking.date = newDateUTC;
     booking.slotStart = newSlotStartUTC;
     booking.slotEnd = newSlotEndUTC;
-    booking.status = "confirmed";
+    booking.status = "confirmed";   
+    booking.therapistId = therapistId;
 
     await booking.save();
 
