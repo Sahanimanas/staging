@@ -50,4 +50,7 @@ router.get('/revenue/bookings', require('../controller/admin/revenueOnbooking.js
 router.get('/booking/reviews', require('../controller/admin/getRevies'))
 router.post('/booking/reviews/:id/reply', require('../controller/admin/ReviewReply'))
 
+//graph
+router.get('/graph/therapist', require('../controller/admin/graphPlot/therapistSchedule'))
+
 module.exports = router;
