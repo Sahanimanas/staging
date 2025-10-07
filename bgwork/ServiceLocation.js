@@ -10,7 +10,7 @@ const syncTherapistPostcodes = async () => {
     // 1️⃣ Fetch all therapist profiles
     const therapists = await TherapistProfile.find({}, "servicesInPostalCodes");
 
-    // 2️⃣ Extract all postcodes into a flat array
+   //2️⃣ Extract all postcodes into a flat array
     const allPostcodes = therapists.flatMap(t => t.servicesInPostalCodes || []);
 
     // 3️⃣ Remove duplicates + empty/null values
