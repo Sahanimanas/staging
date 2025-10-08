@@ -1,5 +1,4 @@
 // utils/sendMail.js
-const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 const { Client } = require("@microsoft/microsoft-graph-client");
@@ -22,13 +21,7 @@ async function getGraphClient() {
     },
   });
 }
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
+
 const sendMail = async (to, subject, html, type) => {
   let USE_EMAIL;
   // console.log(type)

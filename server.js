@@ -43,9 +43,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 // require('./bgwork/deleteBooking.js')
-require('./bgwork/ServiceLocation')
-require('./bgwork/autocompletebooking')
-require('./bgwork/remainder')
+const location_cron = require('./bgwork/ServiceLocation');location_cron()
+const autocomplete_cron=require('./bgwork/autocompletebooking');autocomplete_cron()
+const remaindermail_cron = require('./bgwork/remainder');remaindermail_cron()
+const incative_cron = require('./controller/admin/autosendMailOfInactiveTherapsit');incative_cron()
 // ===============================
 // Routes
 // ===============================
